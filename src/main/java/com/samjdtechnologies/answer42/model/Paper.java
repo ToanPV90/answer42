@@ -1,16 +1,25 @@
 package com.samjdtechnologies.answer42.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-
-import jakarta.persistence.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.type.SqlTypes;
-
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 
 /**
  * Entity representing a research paper in the system.
@@ -31,9 +40,10 @@ public class Paper {
     @Column(nullable = false)
     private String title;
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(columnDefinition = "text[]", nullable = false)
-    private String[] authors;
+    // Changed from String[] to List<String>
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb", nullable = false)
+    private List<String> authors;
 
     private String journal;
 
@@ -45,7 +55,7 @@ public class Paper {
     @Column(name = "text_content")
     private String textContent;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private JsonNode metadata;
 
@@ -73,19 +83,20 @@ public class Paper {
     @Column(name = "publication_date")
     private LocalDate publicationDate;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "key_findings", columnDefinition = "jsonb")
     private JsonNode keyFindings;
     
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "methodology_details", columnDefinition = "jsonb")
     private JsonNode methodologyDetails;
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(columnDefinition = "text[]")
-    private String[] topics;
+    // Changed from String[] to List<String>
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private List<String> topics;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "research_questions", columnDefinition = "jsonb")
     private JsonNode researchQuestions;
 
@@ -98,15 +109,15 @@ public class Paper {
     @Column(name = "summary_detailed")
     private String summaryDetailed;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private JsonNode glossary;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "main_concepts", columnDefinition = "jsonb")
     private JsonNode mainConcepts;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private JsonNode citations;
 
@@ -116,7 +127,7 @@ public class Paper {
     @Column(name = "quality_score")
     private Double qualityScore;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "quality_feedback", columnDefinition = "jsonb")
     private JsonNode qualityFeedback;
 
@@ -132,7 +143,7 @@ public class Paper {
     @Column(name = "crossref_last_verified")
     private ZonedDateTime crossrefLastVerified;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "crossref_metadata", columnDefinition = "jsonb")
     private JsonNode crossrefMetadata;
 
@@ -142,7 +153,7 @@ public class Paper {
     @Column(name = "metadata_confidence")
     private Double metadataConfidence = 0.0;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "metadata_source_details", columnDefinition = "jsonb")
     private JsonNode metadataSourceDetails;
 
@@ -158,7 +169,7 @@ public class Paper {
     @Column(name = "semantic_scholar_last_verified")
     private ZonedDateTime semanticScholarLastVerified;
 
-    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "semantic_scholar_metadata", columnDefinition = "jsonb")
     private JsonNode semanticScholarMetadata;
 
@@ -174,8 +185,8 @@ public class Paper {
         this.updatedAt = ZonedDateTime.now();
     }
 
-    // Constructor with required fields
-    public Paper(String title, String[] authors, String filePath, User user) {
+    // Constructor with required fields - updated for List<String>
+    public Paper(String title, List<String> authors, String filePath, User user) {
         this();
         this.title = title;
         this.authors = authors;
@@ -183,7 +194,7 @@ public class Paper {
         this.user = user;
     }
 
-    // Getters and setters
+    // Getters and setters - updated for List<String>
 
     public UUID getId() {
         return id;
@@ -209,11 +220,11 @@ public class Paper {
         this.title = title;
     }
 
-    public String[] getAuthors() {
+    public List<String> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(String[] authors) {
+    public void setAuthors(List<String> authors) {
         this.authors = authors;
     }
 
@@ -345,11 +356,11 @@ public class Paper {
         this.methodologyDetails = methodologyDetails;
     }
 
-    public String[] getTopics() {
+    public List<String> getTopics() {
         return topics;
     }
 
-    public void setTopics(String[] topics) {
+    public void setTopics(List<String> topics) {
         this.topics = topics;
     }
 

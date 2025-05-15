@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -211,7 +212,7 @@ public class PaperService {
         // Create paper record
         Paper paper = new Paper();
         paper.setTitle(title);
-        paper.setAuthors(authors);
+        paper.setAuthors(Arrays.asList(authors)); // Convert String[] to List<String>
         paper.setUser(currentUser);
         paper.setFilePath(targetPath.toString());
         paper.setFileSize(file.getSize());
@@ -251,7 +252,7 @@ public class PaperService {
             Paper paper = paperOpt.get();
             
             if (title != null) paper.setTitle(title);
-            if (authors != null) paper.setAuthors(authors);
+            if (authors != null) paper.setAuthors(Arrays.asList(authors)); // Convert String[] to List<String>
             if (abstract_ != null) paper.setAbstract(abstract_);
             if (journal != null) paper.setJournal(journal);
             if (year != null) paper.setYear(year);

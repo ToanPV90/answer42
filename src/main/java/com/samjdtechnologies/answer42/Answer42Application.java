@@ -1,20 +1,24 @@
 package com.samjdtechnologies.answer42;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Main application class with additional configuration for proper thread management
  * and shutdown operations to prevent memory leaks.
  */
 @SpringBootApplication
+@EnableJpaRepositories(basePackages = "com.samjdtechnologies.answer42.repository")
+@EntityScan(basePackages = "com.samjdtechnologies.answer42.model")
 public class Answer42Application implements DisposableBean {
     
     private static final Logger logger = LoggerFactory.getLogger(Answer42Application.class);

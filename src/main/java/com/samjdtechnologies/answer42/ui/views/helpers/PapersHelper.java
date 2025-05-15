@@ -1,12 +1,27 @@
 package com.samjdtechnologies.answer42.ui.views.helpers;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.function.Consumer;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
@@ -17,20 +32,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Helper class for PapersView to handle non-UI rendering logic
@@ -83,9 +84,10 @@ public class PapersHelper {
         // Define columns
         grid.addColumn(Paper::getTitle).setHeader("Title").setAutoWidth(true).setFlexGrow(2);
         
+        // Updated to handle List<String> instead of String[]
         grid.addColumn(paper -> {
-            String[] authors = paper.getAuthors();
-            if (authors != null && authors.length > 0) {
+            List<String> authors = paper.getAuthors();
+            if (authors != null && !authors.isEmpty()) {
                 return String.join(", ", authors);
             }
             return "";

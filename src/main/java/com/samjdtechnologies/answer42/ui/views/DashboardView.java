@@ -4,6 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
+import com.samjdtechnologies.answer42.ui.layout.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
@@ -24,7 +25,7 @@ import jakarta.annotation.security.PermitAll;
  * Dashboard view that displays an overview of the user's research papers and projects.
  * This is the main landing page after authentication.
  */
-@Route(value = UIConstants.ROUTE_DASHBOARD, layout = MainView.class)
+@Route(value = "", layout = MainLayout.class)
 @PageTitle("Answer42 - Dashboard")
 @PermitAll
 public class DashboardView extends Div implements AfterNavigationObserver {
@@ -36,17 +37,8 @@ public class DashboardView extends Div implements AfterNavigationObserver {
         // Create welcome section
         Component welcomeSection = createWelcomeSection();
         
-        // Create statistics cards
-        Component statsCards = createStatsCards();
-        
-        // Create quick actions section
-        Component quickActions = createQuickActions();
-        
-        // Create recent papers section
-        Component recentPapers = createRecentPapers();
-        
         // Add all components to the view
-        add(welcomeSection, statsCards, quickActions, recentPapers);
+        add(welcomeSection);
     }
     
     private Component createWelcomeSection() {

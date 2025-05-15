@@ -1,31 +1,44 @@
 package com.samjdtechnologies.answer42.model;
 
-import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+
 @Entity
 @Table(name = "users", schema = "answer42")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
+    
     @Column(unique = true, nullable = false)
     private String username;
-
+    
     @Column(nullable = false)
     private String password;
-
+    
     @Column(unique = true)
     private String email;
-
+    
     private boolean enabled = true;
-
+    
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", schema = "answer42", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(
+        name = "user_roles", 
+        schema = "answer42", 
+        joinColumns = @JoinColumn(name = "user_id")
+    )
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
 
@@ -90,5 +103,16 @@ public class User {
 
     public void addRole(String role) {
         this.roles.add(role);
+    }
+    
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", enabled=" + enabled +
+                ", roles=" + roles +
+                '}';
     }
 }

@@ -3,6 +3,9 @@ package com.samjdtechnologies.answer42.ui.views;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.service.PaperService;
+import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
 import com.vaadin.flow.component.Component;
@@ -16,6 +19,8 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -28,12 +33,23 @@ import jakarta.annotation.security.PermitAll;
 @Route(value = "", layout = MainLayout.class)
 @PageTitle("Answer42 - Dashboard")
 @PermitAll
-public class DashboardView extends Div implements AfterNavigationObserver {
+public class DashboardView extends Div implements AfterNavigationObserver, BeforeEnterObserver {
 
-    public DashboardView() {
+    private final PaperService paperService;
+    private final UserService userService;
+
+    private User currentUser;
+    
+
+    public DashboardView(PaperService paperService, UserService userService) {
+        this.paperService = paperService;
+        this.userService = userService;
+
         addClassName(UIConstants.CSS_DASHBOARD_VIEW);
         setSizeFull();
-        
+    }
+    
+    private void initializeView() {
         // Create welcome section
         Component welcomeSection = createWelcomeSection();
         
@@ -44,12 +60,8 @@ public class DashboardView extends Div implements AfterNavigationObserver {
     private Component createWelcomeSection() {
         Div section = new Div();
         section.addClassName(UIConstants.CSS_WELCOME_SECTION);
-        
-        // Get current user's username
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        
-        H1 welcomeTitle = new H1("Welcome, "+username+"!");
+
+        H1 welcomeTitle = new H1("Welcome, " + (currentUser != null ? currentUser.getUsername() : "User") + "!");
         welcomeTitle.addClassName("welcome-title");
         
         Paragraph welcomeSubtitle = new Paragraph("Manage your research papers and projects from this dashboard");
@@ -349,5 +361,37 @@ public class DashboardView extends Div implements AfterNavigationObserver {
     public void afterNavigation(AfterNavigationEvent event) {
         // This method is called after navigation to this view is complete.
         // Could be used to load data or perform other initialization tasks.
+    }
+    
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        // Check if user is authenticated (not anonymous)
+        if (authentication == null || "anonymousUser".equals(authentication.getPrincipal())) {
+            // Redirect to login page
+            event.forwardTo(UIConstants.ROUTE_LOGIN);
+            return;
+        }
+        
+        // Try to get the current user
+        try {
+            currentUser = userService.findByUsername(authentication.getName())
+                    .orElse(null);
+            
+            // If no user found, redirect to login
+            if (currentUser == null) {
+                event.forwardTo(UIConstants.ROUTE_LOGIN);
+                return;
+            }
+            
+            // Initialize the view once we have a valid user
+            removeAll(); // Clear any previous content
+            initializeView();
+            
+        } catch (Exception e) {
+            // Handle any errors by redirecting to login
+            event.forwardTo(UIConstants.ROUTE_LOGIN);
+        }
     }
 }

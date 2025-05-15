@@ -35,6 +35,8 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -47,7 +49,7 @@ import jakarta.annotation.security.PermitAll;
 @Route(value = UIConstants.ROUTE_PAPERS, layout = MainLayout.class)
 @PageTitle("Answer42 - Papers")
 @PermitAll
-public class PapersView extends Div {
+public class PapersView extends Div implements BeforeEnterObserver {
 
     private final PaperService paperService;
     private final UserService userService;
@@ -69,13 +71,11 @@ public class PapersView extends Div {
 
         addClassName("papers-view");
         setSizeFull();
-
-        // Get current user
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        currentUser = userService.findByUsername(authentication.getName())
-                .orElseThrow(() -> new IllegalStateException("Current user not found"));
-
+    }
+    
+    private void initializeView() {
         // Configure the view
+        removeAll();
         add(createToolbar(), createContent());
 
         // Load initial data
@@ -475,5 +475,36 @@ public class PapersView extends Div {
     private void downloadPaper(Paper paper) {
         // Delegate to helper method to handle download functionality
         getUI().ifPresent(ui -> PapersHelper.downloadPaper(paper, ui, this));
+    }
+    
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        // Check if user is authenticated (not anonymous)
+        if (authentication == null || "anonymousUser".equals(authentication.getPrincipal())) {
+            // Redirect to login page
+            event.forwardTo(UIConstants.ROUTE_LOGIN);
+            return;
+        }
+        
+        // Try to get the current user
+        try {
+            currentUser = userService.findByUsername(authentication.getName())
+                    .orElse(null);
+            
+            // If no user found, redirect to login
+            if (currentUser == null) {
+                event.forwardTo(UIConstants.ROUTE_LOGIN);
+                return;
+            }
+            
+            // Initialize the view once we have a valid user
+            initializeView();
+            
+        } catch (Exception e) {
+            // Handle any errors by redirecting to login
+            event.forwardTo(UIConstants.ROUTE_LOGIN);
+        }
     }
 }

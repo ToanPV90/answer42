@@ -167,19 +167,21 @@ The application uses PostgreSQL with the following core entities:
 
 For complex attributes, we leverage PostgreSQL's JSONB type with Hibernate:
 
+#### Object/Map JSON Fields
+
 ```java
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 public class YourEntity {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     
-    // Use Type annotation for JSON fields
-    @Type(JsonBinaryType.class)
+    // Use JdbcTypeCode annotation for JSON object fields
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> attributes;
     
@@ -187,7 +189,35 @@ public class YourEntity {
 }
 ```
 
-This approach provides the flexibility of schema-less data within a relational database context.
+#### List/Array JSON Fields
+
+For array types stored as JSONB, we use List<String> with the same annotations:
+
+```java
+@Entity
+@Table(name = "papers", schema = "answer42")
+public class Paper {
+    
+    // Other fields...
+    
+    // Changed from String[] to List<String>
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private List<String> topics;
+    
+    public List<String> getTopics() {
+        return topics;
+    }
+
+    public void setTopics(List<String> topics) {
+        this.topics = topics;
+    }
+    
+    // Rest of your entity...
+}
+```
+
+This approach provides the flexibility of schema-less data within a relational database context while maintaining type safety and easy serialization/deserialization.
 
 ## AI Integration
 

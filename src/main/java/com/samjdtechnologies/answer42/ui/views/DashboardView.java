@@ -1,5 +1,8 @@
 package com.samjdtechnologies.answer42.ui.views;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Anchor;
@@ -14,9 +17,8 @@ import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+
 import jakarta.annotation.security.PermitAll;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Dashboard view that displays an overview of the user's research papers and projects.
@@ -273,42 +275,81 @@ public class DashboardView extends Div implements AfterNavigationObserver {
     private Component createPaperCard(String title, String content, boolean processed) {
         Div card = new Div();
         card.addClassName(UIConstants.CSS_PAPER_CARD);
-        
+
         // Card header with title and status
         Div header = new Div();
         header.addClassName("paper-header");
-        
+
         Span titleSpan = new Span(title);
         titleSpan.addClassName("paper-title");
-        
+
         Span statusSpan = new Span(processed ? "PROCESSED" : "PENDING");
         statusSpan.addClassName("paper-status");
         statusSpan.addClassName(processed ? "processed" : "pending");
-        
+
         header.add(titleSpan, statusSpan);
-        
+
         // Card content
         Paragraph contentParagraph = new Paragraph(content);
         contentParagraph.addClassName("paper-content");
         
+        // Add metadata section
+        Div metadata = new Div();
+        metadata.addClassName("paper-metadata");
+        
+        // Author metadata
+        Div authorMetadata = new Div();
+        authorMetadata.addClassName("paper-metadata-item");
+        
+        Icon authorIcon = VaadinIcon.USER.create();
+        authorIcon.addClassName("paper-metadata-icon");
+        
+        Span authorText = new Span("Various Authors");
+        
+        authorMetadata.add(authorIcon, authorText);
+        
+        // Date metadata
+        Div dateMetadata = new Div();
+        dateMetadata.addClassName("paper-metadata-item");
+        
+        Icon dateIcon = VaadinIcon.CALENDAR.create();
+        dateIcon.addClassName("paper-metadata-icon");
+        
+        Span dateText = new Span("2022");
+        
+        dateMetadata.add(dateIcon, dateText);
+        
+        // Citations metadata
+        Div citationsMetadata = new Div();
+        citationsMetadata.addClassName("paper-metadata-item");
+        
+        Icon citationsIcon = VaadinIcon.CONNECT.create();
+        citationsIcon.addClassName("paper-metadata-icon");
+        
+        Span citationsText = new Span("24 citations");
+        
+        citationsMetadata.add(citationsIcon, citationsText);
+        
+        metadata.add(authorMetadata, dateMetadata, citationsMetadata);
+
         // Card footer with action icons
         Div footer = new Div();
         footer.addClassName("paper-footer");
-        
+
         Div viewAction = new Div(VaadinIcon.EYE.create());
         viewAction.addClassName("paper-action");
-        
+
         Div editAction = new Div(VaadinIcon.EDIT.create());
         editAction.addClassName("paper-action");
-        
+
         Div downloadAction = new Div(VaadinIcon.DOWNLOAD.create());
         downloadAction.addClassName("paper-action");
-        
+
         footer.add(viewAction, editAction, downloadAction);
-        
+
         // Add all parts to the card
-        card.add(header, contentParagraph, footer);
-        
+        card.add(header, contentParagraph, metadata, footer);
+
         return card;
     }
     

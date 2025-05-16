@@ -7,7 +7,6 @@
   margin: 0 auto;
   width: 100%;
 }
-
 /* Welcome section - using UIConstants.CSS_WELCOME_SECTION */
 .welcome-section {
   margin-bottom: var(--lumo-space-l);

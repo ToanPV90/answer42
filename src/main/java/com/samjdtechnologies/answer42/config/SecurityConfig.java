@@ -84,8 +84,8 @@ public class SecurityConfig {
                 ).toArray(String[]::new)).permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session
+            ) 
+            .sessionManagement(session -> session // VAADIN requires: IF_REQUIRED || ALWAYS
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .authenticationProvider(authenticationProvider())

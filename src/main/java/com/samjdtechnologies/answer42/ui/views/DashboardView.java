@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.ui.views;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.samjdtechnologies.answer42.model.User;
@@ -53,6 +54,7 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     
     private void initializeView() {
         // Create all dashboard sections
+        removeAll();
         Component welcomeSection = createWelcomeSection();
         Component statsCards = createStatsCards();
         Component quickActions = createQuickActions();
@@ -370,34 +372,26 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
+        // Get authentication directly - no need to check isAuthenticated since @PermitAll will handle
+        // access control through Spring Security 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         
-        // Check if user is authenticated (not anonymous)
-        if (!authenticationService.isAuthenticated()) {
-            // Redirect to login page
-            event.forwardTo(UIConstants.ROUTE_LOGIN);
-            return;
-        }
-        
-        // Try to get the current user
+        // Try to get the current user - this is needed for the view to function properly
         try {
-            currentUser = userService
-            .findByUsername(SecurityContextHolder.getContext().getAuthentication()
-                .getName())
-                    .orElse(null);
-            
-            // If no user found, redirect to login
-            if (currentUser == null) {
-                event.forwardTo(UIConstants.ROUTE_LOGIN);
-                return;
+            if (auth != null) {
+                currentUser = userService.findByUsername(auth.getName()).orElse(null);
             }
             
-            // Initialize the view once we have a valid user
-            removeAll(); // Clear any previous content
+            // Initialize the view regardless of user status
+            // This will be controlled by Spring Security annotations
             initializeView();
             
         } catch (Exception e) {
-            // Handle any errors by redirecting to login
-            event.forwardTo(UIConstants.ROUTE_LOGIN);
+            // Log error but still initialize view
+            System.err.println("Error in DashboardView.beforeEnter: " + e.getMessage());
+            e.printStackTrace();
+            
+            initializeView();
         }
     }
 }

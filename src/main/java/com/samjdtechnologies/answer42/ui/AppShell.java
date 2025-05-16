@@ -23,7 +23,6 @@ import com.vaadin.flow.server.PWA;
     offlinePath = "offline.html",
     offlineResources = {"images/answer42-logo.svg", "favicon.ico", "favicon.svg"}
 )
-
 @CssImport("./styles/themes/answer42/main.css")
 @CssImport("./styles/themes/answer42/styles.css")
 @CssImport("./styles/themes/answer42/components/auth-forms.css")

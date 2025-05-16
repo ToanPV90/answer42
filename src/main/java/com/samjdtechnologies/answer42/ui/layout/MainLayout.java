@@ -49,8 +49,8 @@ public class MainLayout extends AppLayout {
         // Create content container with proper padding
         content = new Div();
         content.setSizeFull();
-        //content.addClassNames("main-content", "content");
-        //content.getStyle().set("padding", CONTENT_PADDING);
+        content.addClassNames("main-content", "content");
+        content.getStyle().set("padding", CONTENT_PADDING);
         setContent(content);
         
         // Core AppLayout components following the AppLayoutNavbarPlacement pattern

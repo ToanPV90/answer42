@@ -1,12 +1,12 @@
 package com.samjdtechnologies.answer42.ui;
 
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Meta;
 import com.vaadin.flow.component.page.Viewport;
 import com.vaadin.flow.server.AppShellSettings;
 import com.vaadin.flow.server.PWA;
-import com.vaadin.flow.theme.Theme;
 
 /**
  * Application shell configuration.
@@ -23,7 +23,13 @@ import com.vaadin.flow.theme.Theme;
     offlinePath = "offline.html",
     offlineResources = {"images/answer42-logo.svg", "favicon.ico", "favicon.svg"}
 )
-@Theme("answer42")
+
+@CssImport("./styles/themes/answer42/main.css")
+@CssImport("./styles/themes/answer42/styles.css")
+@CssImport("./styles/themes/answer42/components/auth-forms.css")
+@CssImport("./styles/themes/answer42/components/main-layout.css")
+//@CssImport("./styles/themes/answer42/components/components/dashboard.css")
+
 @JavaScript("./sw-loader.js")
 @Meta(name = "author", content = "SAMJD Technologies")
 @Meta(name = "application-name", content = "Answer42")

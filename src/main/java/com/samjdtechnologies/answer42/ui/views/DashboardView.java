@@ -1,6 +1,5 @@
 package com.samjdtechnologies.answer42.ui.views;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.samjdtechnologies.answer42.model.User;
@@ -8,6 +7,7 @@ import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
+import com.samjdtechnologies.answer42.ui.service.AuthenticationService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
@@ -30,18 +30,20 @@ import jakarta.annotation.security.PermitAll;
  * Dashboard view that displays an overview of the user's research papers and projects.
  * This is the main landing page after authentication.
  */
-@Route(value = "", layout = MainLayout.class)
+@Route(value = UIConstants.ROUTE_MAIN, layout = MainLayout.class)
 @PageTitle("Answer42 - Dashboard")
 @PermitAll
 public class DashboardView extends Div implements AfterNavigationObserver, BeforeEnterObserver {
-
+    
+    private final AuthenticationService authenticationService;
     private final PaperService paperService;
     private final UserService userService;
 
     private User currentUser;
     
 
-    public DashboardView(PaperService paperService, UserService userService) {
+    public DashboardView(AuthenticationService authenticationService, PaperService paperService, UserService userService) {
+        this.authenticationService = authenticationService;
         this.paperService = paperService;
         this.userService = userService;
 
@@ -50,11 +52,14 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     }
     
     private void initializeView() {
-        // Create welcome section
+        // Create all dashboard sections
         Component welcomeSection = createWelcomeSection();
+        Component statsCards = createStatsCards();
+        Component quickActions = createQuickActions();
+        Component recentPapers = createRecentPapers();
         
         // Add all components to the view
-        add(welcomeSection);
+        add(welcomeSection, statsCards, quickActions, recentPapers);
     }
     
     private Component createWelcomeSection() {
@@ -365,10 +370,9 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
         // Check if user is authenticated (not anonymous)
-        if (authentication == null || "anonymousUser".equals(authentication.getPrincipal())) {
+        if (!authenticationService.isAuthenticated()) {
             // Redirect to login page
             event.forwardTo(UIConstants.ROUTE_LOGIN);
             return;
@@ -376,7 +380,9 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         
         // Try to get the current user
         try {
-            currentUser = userService.findByUsername(authentication.getName())
+            currentUser = userService
+            .findByUsername(SecurityContextHolder.getContext().getAuthentication()
+                .getName())
                     .orElse(null);
             
             // If no user found, redirect to login

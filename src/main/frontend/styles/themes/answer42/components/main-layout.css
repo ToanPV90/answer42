@@ -1,0 +1,276 @@
+/* Main layout styling for the application */
+
+/* Main view layout - using UIConstants.CSS_MAIN_VIEW */
+.main-view {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  background-color: var(--lumo-contrast-5pct);
+}
+
+/* Sidebar styling - using UIConstants.CSS_SIDEBAR */
+.sidebar {
+  width: var(--answer42-sidebar-width);
+  height: 100%;
+  background-color: var(--lumo-base-color);
+  border-right: 1px solid var(--lumo-contrast-10pct);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: var(--lumo-box-shadow-s);
+}
+
+.sidebar-header {
+  padding: var(--lumo-space-m);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  height: var(--answer42-topbar-height);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+}
+
+.sidebar-logo img {
+  height: 32px;
+  width: 32px;
+}
+
+.sidebar-logo-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--lumo-primary-color);
+}
+
+.sidebar-section {
+  padding: var(--lumo-space-m) 0;
+  border-bottom: 1px solid var(--lumo-contrast-5pct);
+}
+
+.sidebar-section-title {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--lumo-tertiary-text-color);
+  letter-spacing: 0.05em;
+  padding: 0 var(--lumo-space-m);
+  margin-bottom: var(--lumo-space-s);
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  padding: var(--lumo-space-s) var(--lumo-space-m);
+  color: var(--lumo-secondary-text-color);
+  text-decoration: none;
+  transition: background-color var(--answer42-transition-fast), color var(--answer42-transition-fast);
+  cursor: pointer;
+  position: relative;
+  border-radius: var(--lumo-border-radius-m);
+  margin: 0 var(--lumo-space-xs);
+}
+
+.sidebar-nav-item:hover {
+  background-color: var(--lumo-contrast-5pct);
+  color: var(--lumo-primary-color);
+}
+
+.sidebar-nav-item.active {
+  color: var(--lumo-primary-color);
+  background-color: var(--lumo-primary-color-10pct);
+  font-weight: 500;
+}
+
+.sidebar-nav-item-icon {
+  margin-right: var(--lumo-space-m);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: inherit;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: var(--lumo-space-m);
+  border-top: 1px solid var(--lumo-contrast-5pct);
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-m);
+}
+
+.assistant-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.assistant-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--lumo-primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.assistant-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.assistant-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--lumo-body-text-color);
+  line-height: 1.2;
+}
+
+.assistant-role {
+  font-size: 0.75rem;
+  color: var(--lumo-tertiary-text-color);
+  line-height: 1.2;
+}
+
+/* Main header styling */
+.main-header {
+  height: var(--answer42-topbar-height);
+  width: 100%;
+  padding: 0 var(--lumo-space-m);
+  background-color: var(--lumo-base-color);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--lumo-box-shadow-xs);
+}
+
+/* Search field styling */
+.search-field {
+  max-width: 400px;
+  width: 100%;
+}
+
+.search-field input {
+  background-color: var(--lumo-contrast-5pct);
+  border-radius: var(--lumo-border-radius-m);
+}
+
+/* Header right section */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-m);
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  background-color: transparent;
+  color: var(--lumo-secondary-text-color);
+  width: 32px;
+  height: 32px;
+  min-width: unset;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background-color: var(--lumo-contrast-5pct);
+}
+
+/* User menu */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+  border-radius: var(--lumo-border-radius-m);
+  cursor: pointer;
+  transition: background-color var(--answer42-transition-fast);
+}
+
+.user-menu:hover {
+  background-color: var(--lumo-contrast-5pct);
+}
+
+.user-initial {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--lumo-primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.user-name {
+  color: var(--lumo-body-text-color);
+  font-weight: 500;
+}
+
+.dropdown-icon {
+  color: var(--lumo-tertiary-text-color);
+  font-size: 14px;
+}
+
+/* Content wrapper - using UIConstants.CSS_CONTENT_WRAPPER */
+.content-wrapper {
+  margin-left: var(--answer42-sidebar-width);
+  width: calc(100% - var(--answer42-sidebar-width));
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Content area - using UIConstants.CSS_CONTENT */
+.content {
+  padding: var(--lumo-space-l);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lumo-space-l);
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--answer42-transition-normal);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .content-wrapper {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .content {
+    padding: var(--lumo-space-m);
+  }
+  
+  .user-name {
+    display: none;
+  }
+}

@@ -11,10 +11,12 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -124,9 +126,56 @@ public class MainLayout extends AppLayout {
             }
         });
         
-        // User avatar
+        // User avatar with dropdown menu
         Avatar avatar = new Avatar(username);
         avatar.addClassName("user-avatar");
+        
+        // Create dropdown menu for avatar click
+        ContextMenu userMenu = new ContextMenu();
+        userMenu.setOpenOnClick(true);
+        userMenu.setTarget(avatar);
+        
+        // Create a horizontal layout for each menu item with icon and text
+        HorizontalLayout profileLayout = new HorizontalLayout(
+            VaadinIcon.USER.create(), new Span("Profile"));
+        profileLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        profileLayout.setSpacing(true);
+        userMenu.addItem(profileLayout, e -> 
+            UI.getCurrent().getPage().executeJs("alert('Profile view not implemented yet')"));
+        
+        HorizontalLayout subscriptionLayout = new HorizontalLayout(
+            VaadinIcon.CREDIT_CARD.create(), new Span("Subscription"));
+        subscriptionLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        subscriptionLayout.setSpacing(true);
+        userMenu.addItem(subscriptionLayout, e -> 
+            UI.getCurrent().getPage().executeJs("alert('Subscription view not implemented yet')"));
+        
+        HorizontalLayout creditsLayout = new HorizontalLayout(
+            VaadinIcon.COIN_PILES.create(), new Span("Credits"));
+        creditsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        creditsLayout.setSpacing(true);
+        userMenu.addItem(creditsLayout, e -> 
+            UI.getCurrent().getPage().executeJs("alert('Credits view not implemented yet')"));
+        
+        HorizontalLayout settingsLayout = new HorizontalLayout(
+            VaadinIcon.COG.create(), new Span("Settings"));
+        settingsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        settingsLayout.setSpacing(true);
+        userMenu.addItem(settingsLayout, e -> 
+            UI.getCurrent().getPage().executeJs("alert('Settings view not implemented yet')"));
+        
+        // Add a separator
+        userMenu.add(new Hr());
+        
+        // Add logout option
+        HorizontalLayout logoutLayout = new HorizontalLayout(
+            VaadinIcon.SIGN_OUT.create(), new Span("Logout"));
+        logoutLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        logoutLayout.setSpacing(true);
+        userMenu.addItem(logoutLayout, e -> logout());
+        
+        // Make avatar appear clickable
+        avatar.getElement().setAttribute("style", "cursor: pointer;");
         
         // Right side items
         HorizontalLayout rightItems = new HorizontalLayout(search, themeToggle, avatar);
@@ -145,21 +194,12 @@ public class MainLayout extends AppLayout {
      * Creates the drawer content with navigation, logout button and footer
      */
     private Scroller createDrawerContent(SideNav nav) {
-        // Create logout button with proper styling
-        Button logoutButton = new Button("Logout", e -> logout());
-        logoutButton.setIcon(VaadinIcon.SIGN_OUT.create());
-        logoutButton.addClassName("sidebar-nav-item");
-        logoutButton.getStyle()
-            .set("margin", "var(--lumo-space-m)")
-            .set("width", "calc(100% - var(--lumo-space-m) * 2)")
-            .set("color", "var(--lumo-error-color)");
-        
         // Add assistant footer to drawer
         Footer footer = createAssistantFooter();
         
         // Create a vertical layout for drawer content
         VerticalLayout drawerContent = new VerticalLayout();
-        drawerContent.add(nav, logoutButton, footer);
+        drawerContent.add(nav, footer);
         drawerContent.setSizeFull();
         drawerContent.expand(nav);
         drawerContent.setSpacing(false);
@@ -175,11 +215,27 @@ public class MainLayout extends AppLayout {
     /**
      * Creates the navigation menu
      */
+    
     private SideNav createSideNav() {
-        SideNav sideNav = new SideNav();
-        sideNav.addClassNames("main-nav", LumoUtility.Padding.SMALL);
+        // Create vertical layout to hold all sidebar components
+        VerticalLayout sidebarLayout = new VerticalLayout();
+        sidebarLayout.setPadding(false);
+        sidebarLayout.setSpacing(false);
         
-        // Main section - using proper routes from UIConstants with consistent styling
+        // Create MAIN section
+        Span mainHeader = new Span("MAIN");
+        mainHeader.getStyle()
+            .set("color", "var(--lumo-tertiary-text-color)")
+            .set("font-size", "var(--lumo-font-size-xs)")
+            .set("font-weight", "500")
+            .set("margin", "var(--lumo-space-m) var(--lumo-space-s) var(--lumo-space-xs)")
+            .set("text-transform", "uppercase");
+        sidebarLayout.add(mainHeader);
+        
+        // Create main nav items
+        SideNav mainNav = new SideNav();
+        mainNav.addClassNames("main-nav");
+        
         SideNavItem dashboardItem = new SideNavItem("Dashboard", UIConstants.ROUTE_MAIN, VaadinIcon.DASHBOARD.create());
         dashboardItem.addClassNames("nav-item", "sidebar-nav-item");
         
@@ -192,38 +248,71 @@ public class MainLayout extends AppLayout {
         SideNavItem aiChatItem = new SideNavItem("AI Chat", UIConstants.ROUTE_AI_CHAT, VaadinIcon.COMMENTS.create());
         aiChatItem.addClassNames("nav-item", "sidebar-nav-item");
         
-        sideNav.addItem(dashboardItem);
-        sideNav.addItem(papersItem);
-        sideNav.addItem(projectsItem);
-        sideNav.addItem(aiChatItem);
+        mainNav.addItem(dashboardItem);
+        mainNav.addItem(papersItem);
+        mainNav.addItem(projectsItem);
+        mainNav.addItem(aiChatItem);
         
-        // User section - expanded by default
-        SideNavItem userNav = new SideNavItem("User");
-        userNav.setPrefixComponent(VaadinIcon.USER.create());
-        userNav.setExpanded(true); // Open by default
-        userNav.addClassNames("sidebar-nav-item");
+        sidebarLayout.add(mainNav);
         
-        // User submenu items with consistent styling - shown below parent item
+        // Add divider
+        Div divider = new Div();
+        divider.getStyle()
+            .set("margin", "var(--lumo-space-m) 0")
+            .set("height", "1px")
+            .set("background-color", "var(--lumo-contrast-10pct)");
+        sidebarLayout.add(divider);
+        
+        // Create USER section
+        Span userHeader = new Span("USER");
+        userHeader.getStyle()
+            .set("color", "var(--lumo-tertiary-text-color)")
+            .set("font-size", "var(--lumo-font-size-xs)")
+            .set("font-weight", "500")
+            .set("margin", "var(--lumo-space-m) var(--lumo-space-s) var(--lumo-space-xs)")
+            .set("text-transform", "uppercase");
+        sidebarLayout.add(userHeader);
+        
+        // Create user nav items
+        SideNav userNav = new SideNav();
+        userNav.addClassNames("user-nav");
+        
         SideNavItem profileItem = new SideNavItem("Profile", UIConstants.ROUTE_PROFILE, VaadinIcon.USER.create());
-        profileItem.addClassNames("sidebar-nav-item");
-        userNav.addItem(profileItem);
+        profileItem.addClassNames("nav-item", "sidebar-nav-item");
         
         SideNavItem subscriptionItem = new SideNavItem("Subscription", UIConstants.ROUTE_PROFILE, VaadinIcon.CREDIT_CARD.create());
-        subscriptionItem.addClassNames("sidebar-nav-item");
-        userNav.addItem(subscriptionItem);
+        subscriptionItem.addClassNames("nav-item", "sidebar-nav-item");
         
         SideNavItem creditsItem = new SideNavItem("Credits", UIConstants.ROUTE_PROFILE, VaadinIcon.COIN_PILES.create());
-        creditsItem.addClassNames("sidebar-nav-item");
-        userNav.addItem(creditsItem);
+        creditsItem.addClassNames("nav-item", "sidebar-nav-item");
         
         SideNavItem settingsItem = new SideNavItem("Settings", UIConstants.ROUTE_SETTINGS, VaadinIcon.COG.create());
-        settingsItem.addClassNames("sidebar-nav-item");
+        settingsItem.addClassNames("nav-item", "sidebar-nav-item");
+        
+        // Create a special SideNavItem for logout with a custom click listener
+        SideNavItem logoutItem = new SideNavItem("Logout", "javascript:void(0)", VaadinIcon.SIGN_OUT.create());
+        logoutItem.addClassNames("nav-item", "sidebar-nav-item");
+        logoutItem.getStyle().set("color", "var(--lumo-error-color)");
+        logoutItem.getElement().addEventListener("click", e -> logout());
+        
+        userNav.addItem(profileItem);
+        userNav.addItem(subscriptionItem);
+        userNav.addItem(creditsItem);
         userNav.addItem(settingsItem);
+        userNav.addItem(logoutItem);
         
-        // Add user section to nav
-        sideNav.addItem(userNav);
+        sidebarLayout.add(userNav);
         
-        return sideNav;
+        // Add VerticalLayout to a container that the drawer can use
+        VerticalLayout container = new VerticalLayout(sidebarLayout);
+        container.setPadding(false);
+        container.setSpacing(false);
+        
+        // Create a single SideNav to return
+        SideNav returnNav = new SideNav();
+        returnNav.getElement().appendChild(container.getElement());
+        
+        return returnNav;
     }
     
     /**

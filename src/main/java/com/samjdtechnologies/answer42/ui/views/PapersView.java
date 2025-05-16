@@ -1,6 +1,5 @@
 package com.samjdtechnologies.answer42.ui.views;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,6 +9,7 @@ import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
+import com.samjdtechnologies.answer42.ui.service.AuthenticationService;
 import com.samjdtechnologies.answer42.ui.views.helpers.PapersHelper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -50,9 +50,11 @@ import jakarta.annotation.security.PermitAll;
 @PageTitle("Answer42 - Papers")
 @PermitAll
 public class PapersView extends Div implements BeforeEnterObserver {
-
+    
+    private final AuthenticationService authenticationService;
     private final PaperService paperService;
     private final UserService userService;
+    
 
     private final Grid<Paper> grid = new Grid<>(Paper.class, false);
     private final TextField searchField = new TextField();
@@ -65,7 +67,8 @@ public class PapersView extends Div implements BeforeEnterObserver {
     private final Button nextButton = new Button("Next");
     private final Span pageInfo = new Span("0 of 0");
 
-    public PapersView(PaperService paperService, UserService userService) {
+    public PapersView(AuthenticationService authenticationService, PaperService paperService, UserService userService) {
+        this.authenticationService = authenticationService;
         this.paperService = paperService;
         this.userService = userService;
 
@@ -479,10 +482,9 @@ public class PapersView extends Div implements BeforeEnterObserver {
     
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
         // Check if user is authenticated (not anonymous)
-        if (authentication == null || "anonymousUser".equals(authentication.getPrincipal())) {
+        if (!authenticationService.isAuthenticated()) {
             // Redirect to login page
             event.forwardTo(UIConstants.ROUTE_LOGIN);
             return;
@@ -490,7 +492,9 @@ public class PapersView extends Div implements BeforeEnterObserver {
         
         // Try to get the current user
         try {
-            currentUser = userService.findByUsername(authentication.getName())
+            currentUser = userService
+            .findByUsername(SecurityContextHolder.getContext().getAuthentication()
+                .getName())
                     .orElse(null);
             
             // If no user found, redirect to login

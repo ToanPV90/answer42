@@ -134,7 +134,9 @@ public class MainLayout extends AppLayout {
         rightItems.setSpacing(true);
         
         // Right align the components using CSS margin-left: auto
-        rightItems.getStyle().set("margin-left", "auto");
+        rightItems.getStyle()
+            .set("margin-left", "auto")
+            .set("padding", "10px");
         
         return rightItems;
     }

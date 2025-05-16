@@ -10,7 +10,6 @@ import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.service.AuthenticationService;
 import com.samjdtechnologies.answer42.ui.views.helpers.PapersHelper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -52,7 +51,6 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 public class PapersView extends Div implements BeforeEnterObserver {
     
-    private final AuthenticationService authenticationService;
     private final PaperService paperService;
     private final UserService userService;
     
@@ -68,8 +66,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
     private final Button nextButton = new Button("Next");
     private final Span pageInfo = new Span("0 of 0");
 
-    public PapersView(AuthenticationService authenticationService, PaperService paperService, UserService userService) {
-        this.authenticationService = authenticationService;
+    public PapersView(PaperService paperService, UserService userService) {
         this.paperService = paperService;
         this.userService = userService;
 

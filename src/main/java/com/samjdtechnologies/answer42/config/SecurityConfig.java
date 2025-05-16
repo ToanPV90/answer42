@@ -1,9 +1,10 @@
 package com.samjdtechnologies.answer42.config;
 
-import com.samjdtechnologies.answer42.security.CustomUserDetailsService;
-import com.samjdtechnologies.answer42.security.JwtAuthenticationFilter;
-import com.samjdtechnologies.answer42.security.JwtTokenUtil;
-import com.samjdtechnologies.answer42.ui.constants.UIConstants;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
+
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,9 +21,10 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
+import com.samjdtechnologies.answer42.security.CustomUserDetailsService;
+import com.samjdtechnologies.answer42.security.JwtAuthenticationFilter;
+import com.samjdtechnologies.answer42.security.JwtTokenUtil;
+import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 
 @Configuration
 @EnableWebSecurity
@@ -84,7 +86,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

@@ -8,7 +8,6 @@ import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.service.AuthenticationService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
@@ -36,16 +35,12 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 public class DashboardView extends Div implements AfterNavigationObserver, BeforeEnterObserver {
     
-    private final AuthenticationService authenticationService;
-    private final PaperService paperService;
     private final UserService userService;
 
     private User currentUser;
     
 
-    public DashboardView(AuthenticationService authenticationService, PaperService paperService, UserService userService) {
-        this.authenticationService = authenticationService;
-        this.paperService = paperService;
+    public DashboardView(PaperService paperService, UserService userService) {
         this.userService = userService;
 
         addClassName(UIConstants.CSS_DASHBOARD_VIEW);

@@ -84,10 +84,10 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // For API use
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(Stream.concat(
-                    Stream.of(allowedPaths),
-                    Stream.of("/public/**", "/login", "/")
-                ).toArray(String[]::new)).permitAll()
+            .requestMatchers(Stream.concat(
+                Stream.of(allowedPaths),
+                Stream.of("/public/**", "/login")
+            ).toArray(String[]::new)).permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().authenticated()
             ) 

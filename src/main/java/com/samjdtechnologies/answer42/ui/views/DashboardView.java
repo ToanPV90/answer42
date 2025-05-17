@@ -258,13 +258,13 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     
     private Div createActionButton(VaadinIcon iconType, String text, String variantClass, String route) {
         Div button = new Div();
-        button.addClassName(UIConstants.CSS_ACTION_BTN);
+        button.addClassName(UIConstants.CSS_DASHBOARD_ACTION_BTN);
         if (variantClass != null && !variantClass.isEmpty()) {
             button.addClassName(variantClass);
         }
         
         Icon icon = iconType.create();
-        icon.addClassName(UIConstants.CSS_ACTION_BTN_ICON);
+        icon.addClassName(UIConstants.CSS_DASHBOARD_ACTION_BTN_ICON);
         
         Span label = new Span(text);
         

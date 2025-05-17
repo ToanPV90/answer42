@@ -90,8 +90,8 @@ public class UIConstants {
     public static final String CSS_PAPER_ACTION = "paper-action";
     public static final String CSS_SECTION_HEADER = "section-header";
     public static final String CSS_SECTION_TITLE = "section-title";
-    public static final String CSS_ACTION_BTN = "action-button";
-    public static final String CSS_ACTION_BTN_ICON = "action-button-icon";
+    public static final String CSS_DASHBOARD_ACTION_BTN = "dashboard-action-button";
+    public static final String CSS_DASHBOARD_ACTION_BTN_ICON = "dashboard-action-button-icon";
     public static final String CSS_EMPTY_STATE_MSG = "empty-state-message";
     public static final String CSS_VIEW_ALL = "view-all";
     
@@ -107,7 +107,10 @@ public class UIConstants {
     public static final String CSS_DIALOG_BUTTONS = "dialog-buttons";
     public static final String CSS_SUPPORTED_FORMATS = "supported-formats";
     public static final String CSS_METADATA_CONTAINER = "metadata-container";
-    
+    public static final String CSS_PAPERS_GRID = "papers-grid";
+    public static final String CSS_PAPERS_ACTION_BUTTON = "papers-action-button"; 
+    public static final String CSS_PAPERS_ACTION_BUTTONS_CONTAINER = "papers-action-buttons-container";
+
     // Form field widths
     public static final String FORM_FIELD_WIDTH = "100%";
     

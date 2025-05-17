@@ -13,6 +13,13 @@
   background-color: var(--lumo-contrast-5pct);
 }
 
+/* Content container - ensure full width usage */
+.content-container {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+}
+
 
 /* Toolbar styling */
 .toolbar {
@@ -29,11 +36,106 @@ vaadin-grid {
   overflow: hidden;
   box-shadow: var(--lumo-box-shadow-xs);
   background-color: var(--lumo-base-color);
+  font-size: 0.85rem; /* Reduced font size for the table */
+  width: 100%;
+  min-width: 0;
+  /* Ensure proper scrolling behavior */
+  position: relative;
+  overflow: auto;
 }
 
+/* Target the specific papers grid class for more precise styling */
+.papers-grid {
+  font-size: 0.85rem;
+}
+
+/* Style the action buttons in the first column */
+.papers-grid vaadin-grid::part(cell):first-child {
+  justify-content: center;
+  padding-left: var(--lumo-space-xs);
+  padding-right: var(--lumo-space-xs);
+}
+
+/* Ensure columns use minimal space needed */
+.papers-grid vaadin-grid::part(cell) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: var(--lumo-space-xs);
+  padding-right: var(--lumo-space-xs);
+}
+
+/* Special handling for title and authors cells - allow wrapping */
+.papers-grid vaadin-grid::part(cell):nth-child(2),
+.papers-grid vaadin-grid::part(cell):nth-child(3) {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+/* More compact table overall */
+.papers-grid {
+  --lumo-space-m: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Compact action buttons styling */
+.papers-action-button {
+  min-width: 28px !important;
+  width: 28px !important; 
+  height: 28px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 0.75rem !important;
+}
+
+.papers-action-button iron-icon {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Action buttons container */
+.papers-action-buttons-container {
+  gap: 2px !important;
+  justify-content: center;
+  max-width: 120px;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Modify content to fit better */
+vaadin-grid [slot^="vaadin-grid-cell-content-"] {
+  width: 100%;
+  padding: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Target all cells and their content */
+vaadin-grid::part(cell) {
+  font-size: 0.85rem;
+}
+
+/* Target cell content specifically */
+vaadin-grid [slot^="vaadin-grid-cell-content-"] {
+  font-size: 0.85rem;
+}
+
+/* Sticky header that stays in place when scrolling */
 vaadin-grid::part(header-cell) {
-  background-color: var(--lumo-contrast-5pct);
+  background-color: var(--lumo-base-color);
   font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Add a small shadow to the header to create separation */
+vaadin-grid::part(header-row) {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 vaadin-grid::part(row) {

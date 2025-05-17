@@ -109,8 +109,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         String username = null;
         String jwtToken = null;
-
-        LoggingUtil.debug(LOG, "doFilterInternal", "Processing request: %s %s", request.getMethod(), request.getRequestURI());
         
         // Extract JWT token if authorization header exists and has correct format
         if (authorizationHeader != null && authorizationHeader.startsWith(jwtTokenUtil.getPrefix())) {
@@ -129,7 +127,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     jwtToken = sessionToken.toString();
                     // Validate and extract username
                     username = jwtTokenUtil.extractUsername(jwtToken);
-                    LoggingUtil.debug(LOG, "doFilterInternal", "Using JWT token from session for user: %s", username);
                     
                     // If token was found in session but not in header, add it to the response
                     // to ensure it's available for the client on subsequent requests

@@ -161,26 +161,37 @@ public class PapersView extends Div implements BeforeEnterObserver {
         // Use helper class to configure the grid
         ComponentRenderer<Component, Paper> actionsRenderer = new ComponentRenderer<>(this::createActions);
         PapersHelper.configureGrid(grid, actionsRenderer, this::showPaperDetails);
+        
+        // Add the CSS class for styling
+        grid.addClassName(UIConstants.CSS_PAPERS_GRID);
+        
+        // Ensure the grid has an ID for CSS targeting
+        grid.setId("table");
     }
 
     private Component createActions(Paper paper) {
+        // Create more compact buttons - use extra-small theme
         // View button
         Button viewButton = new Button(new Icon(VaadinIcon.EYE));
         viewButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         viewButton.addClickListener(e -> showPaperDetails(paper));
         viewButton.getElement().setAttribute("title", "View details");
+        // Apply custom class for compact buttons
+        viewButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
         // Edit button
         Button editButton = new Button(new Icon(VaadinIcon.EDIT));
         editButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         editButton.addClickListener(e -> showEditDialog(paper));
         editButton.getElement().setAttribute("title", "Edit paper");
+        editButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
         // Download button
         Button downloadButton = new Button(new Icon(VaadinIcon.DOWNLOAD));
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         downloadButton.addClickListener(e -> downloadPaper(paper));
         downloadButton.getElement().setAttribute("title", "Download paper");
+        downloadButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
         // Delete button
         Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
@@ -203,9 +214,14 @@ public class PapersView extends Div implements BeforeEnterObserver {
             dialog.open();
         });
         deleteButton.getElement().setAttribute("title", "Delete paper");
+        deleteButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
+        // Create a more compact layout
         HorizontalLayout actions = new HorizontalLayout(viewButton, editButton, downloadButton, deleteButton);
-        actions.setSpacing(true);
+        actions.setSpacing(false);
+        actions.setMargin(false);
+        actions.setPadding(false);
+        actions.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTONS_CONTAINER);
         return actions;
     }
 

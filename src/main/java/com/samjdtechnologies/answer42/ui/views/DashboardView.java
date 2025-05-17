@@ -1,13 +1,21 @@
 package com.samjdtechnologies.answer42.ui.views;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.PaperService;
+import com.samjdtechnologies.answer42.service.ProjectService;
 import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
+import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
@@ -24,30 +32,36 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-import jakarta.annotation.security.PermitAll;
-
 /**
  * Dashboard view that displays an overview of the user's research papers and projects.
  * This is the main landing page after authentication.
  */
 @Route(value = UIConstants.ROUTE_MAIN, layout = MainLayout.class)
 @PageTitle("Answer42 - Dashboard")
-@PermitAll
+@Secured("ROLE_USER")
 public class DashboardView extends Div implements AfterNavigationObserver, BeforeEnterObserver {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DashboardView.class);
     
     private final UserService userService;
+    private final PaperService paperService;
+    private final ProjectService projectService;
 
     private User currentUser;
     
 
-    public DashboardView(PaperService paperService, UserService userService) {
+    public DashboardView(PaperService paperService, UserService userService, ProjectService projectService) {
         this.userService = userService;
+        this.paperService = paperService;
+        this.projectService = projectService;
 
+        LoggingUtil.debug(LOG, "DashboardView", "DashboardView initialized");
         addClassName(UIConstants.CSS_DASHBOARD_VIEW);
         setSizeFull();
     }
     
     private void initializeView() {
+        LoggingUtil.debug(LOG, "initializeView", "Initializing dashboard view components");
         // Create all dashboard sections
         removeAll();
         Component welcomeSection = createWelcomeSection();
@@ -57,6 +71,7 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         
         // Add all components to the view
         add(welcomeSection, statsCards, quickActions, recentPapers);
+        LoggingUtil.debug(LOG, "initializeView", "Dashboard view components initialized");
     }
     
     private Component createWelcomeSection() {
@@ -64,10 +79,10 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         section.addClassName(UIConstants.CSS_WELCOME_SECTION);
 
         H1 welcomeTitle = new H1("Welcome, " + (currentUser != null ? currentUser.getUsername() : "User") + "!");
-        welcomeTitle.addClassName("welcome-title");
+        welcomeTitle.addClassName(UIConstants.CSS_WELCOME_TITLE);
         
         Paragraph welcomeSubtitle = new Paragraph("Manage your research papers and projects from this dashboard");
-        welcomeSubtitle.addClassName("welcome-subtitle");
+        welcomeSubtitle.addClassName(UIConstants.CSS_WELCOME_SUBTITLE);
         
         section.add(welcomeTitle, welcomeSubtitle);
         return section;
@@ -77,32 +92,53 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         Div statsContainer = new Div();
         statsContainer.addClassName(UIConstants.CSS_STATS_CONTAINER);
         
-        // Paper stats card
+        // Get actual paper count for the current user
+        String paperCount = "0";
+        if (currentUser != null) {
+            long count = paperService.countPapersByUser(currentUser);
+            paperCount = String.valueOf(count);
+        }
+        
+        // Paper stats card with actual count
         Component papersCard = createStatCard(
             "Total Papers", 
-            "10", 
+            paperCount, 
             VaadinIcon.FILE_TEXT, 
-            "papers", 
+            UIConstants.CSS_STAT_ICON_PAPERS, 
             "View all papers",
             UIConstants.ROUTE_PAPERS
         );
         
-        // Projects stats card
+        // Projects stats card with actual count
+        String projectCount = "0";
+        if (currentUser != null) {
+            long count = projectService.countProjectsByUser(currentUser);
+            projectCount = String.valueOf(count);
+        }
+        
         Component projectsCard = createStatCard(
             "Projects", 
-            "3", 
+            projectCount, 
             VaadinIcon.FOLDER, 
-            "projects", 
+            UIConstants.CSS_STAT_ICON_PROJECTS, 
             "View all projects",
             UIConstants.ROUTE_PROJECTS
         );
         
-        // AI Chat stats card
+        // AI Chat stats card - showing different statuses based on user
+        String aiChatStatus = "Available";
+        if (currentUser == null) {
+            aiChatStatus = "Login Required";
+        } else if (currentUser.getRoles() != null && !currentUser.getRoles().contains("ROLE_PREMIUM")) {
+            // If the user doesn't have the premium role, show a different status
+            aiChatStatus = "Basic";
+        }
+        
         Component aiChatCard = createStatCard(
             "AI Chat", 
-            "Available", 
+            aiChatStatus, 
             VaadinIcon.COMMENTS, 
-            "chat", 
+            UIConstants.CSS_STAT_ICON_CHAT, 
             "Start chatting",
             UIConstants.ROUTE_AI_CHAT
         );
@@ -118,14 +154,23 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         
         // Card header with title and icon
         Div header = new Div();
-        header.addClassName("stat-header");
+        header.addClassName(UIConstants.CSS_STAT_HEADER);
         
         Span titleSpan = new Span(title);
-        titleSpan.addClassName("stat-title");
+        titleSpan.addClassName(UIConstants.CSS_STAT_TITLE);
         
         Div iconContainer = new Div();
-        iconContainer.addClassName("stat-icon");
-        iconContainer.addClassName(iconClass);
+        iconContainer.addClassName(UIConstants.CSS_STAT_ICON);
+        // Map the iconClass string to the appropriate constant
+        if ("papers".equals(iconClass)) {
+            iconContainer.addClassName(UIConstants.CSS_STAT_ICON_PAPERS);
+        } else if ("projects".equals(iconClass)) {
+            iconContainer.addClassName(UIConstants.CSS_STAT_ICON_PROJECTS);
+        } else if ("chat".equals(iconClass)) {
+            iconContainer.addClassName(UIConstants.CSS_STAT_ICON_CHAT);
+        } else {
+            iconContainer.addClassName(iconClass); // Fallback to the passed class
+        }
         
         Icon icon = iconType.create();
         iconContainer.add(icon);
@@ -134,14 +179,14 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         
         // Card value
         Span valueSpan = new Span(value);
-        valueSpan.addClassName("stat-value");
+        valueSpan.addClassName(UIConstants.CSS_STAT_VALUE);
         
         // Card footer with link
         Div footer = new Div();
-        footer.addClassName("stat-footer");
+        footer.addClassName(UIConstants.CSS_STAT_FOOTER);
         
         Anchor link = new Anchor(route, linkText);
-        link.addClassName("stat-link");
+        link.addClassName(UIConstants.CSS_STAT_LINK);
         
         Icon arrowIcon = VaadinIcon.ARROW_RIGHT.create();
         arrowIcon.setSize("14px");
@@ -227,14 +272,15 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     }
     
     private Component createRecentPapers() {
+        LoggingUtil.debug(LOG, "createRecentPapers", "Creating recent papers section");
         Div section = new Div();
         
         // Section header
         Div sectionHeader = new Div();
-        sectionHeader.addClassName("section-header");
+        sectionHeader.addClassName(UIConstants.CSS_SECTION_HEADER);
         
         H2 sectionTitle = new H2("Recent Papers");
-        sectionTitle.addClassName("section-title");
+        sectionTitle.addClassName(UIConstants.CSS_SECTION_TITLE);
         
         Anchor viewAllLink = new Anchor(UIConstants.ROUTE_PAPERS, "View all");
         viewAllLink.addClassName("view-all");
@@ -245,32 +291,54 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         Div papersList = new Div();
         papersList.addClassName(UIConstants.CSS_PAPERS_LIST);
         
-        // Example papers
-        Component paper1 = createPaperCard(
-            "Advances in CRISPR Gene Editing Therapies",
-            "CRISPR-Cas gene editing technologies have revolutionized biomedical research and therapeutic development. This review summarizes the latest advances in CRISPR-based therapeutic approaches, highlighting improved delivery methods, enhanced specificity, and emerging clinical applications.",
-            true
-        );
-        
-        Component paper2 = createPaperCard(
-            "Urban Planning for Climate Resilience",
-            "This paper explores strategies for designing cities that can withstand and adapt to climate change impacts. It examines case studies from various urban centers implementing innovative approaches to water management, heat mitigation, and sustainable transportation.",
-            true
-        );
-        
-        Component paper3 = createPaperCard(
-            "Neuroplasticity and Language Acquisition",
-            "Investigating the neurological mechanisms underlying language learning across different age groups. The paper combines neuroimaging data with behavioral studies to map brain plasticity patterns during second language acquisition.",
-            true
-        );
-        
-        Component paper4 = createPaperCard(
-            "Cybersecurity in Internet of Things Devices",
-            "A comprehensive analysis of security vulnerabilities in IoT ecosystems and proposed mitigation strategies. The research highlights the need for standardized security protocols and improved firmware update mechanisms.",
-            true
-        );
-        
-        papersList.add(paper1, paper2, paper3, paper4);
+        if (currentUser != null) {
+            LoggingUtil.debug(LOG, "createRecentPapers", "Loading recent papers for user ID: %s", currentUser.getId());
+            // Get real papers from service - limit to 4 for dashboard display
+            List<Paper> recentPapers = paperService.getRecentPapersByUser(currentUser, 4);
+            LoggingUtil.info(LOG, "createRecentPapers", "Retrieved %d recent papers for dashboard display", recentPapers.size());
+            
+            if (recentPapers.isEmpty()) {
+                // If no papers, show a message
+                Paragraph emptyMessage = new Paragraph("No papers yet. Upload your first paper!");
+                emptyMessage.getStyle().set("text-align", "center");
+                emptyMessage.getStyle().set("color", "var(--lumo-secondary-text-color)");
+                emptyMessage.getStyle().set("padding", "var(--lumo-space-l)");
+                papersList.add(emptyMessage);
+            } else {
+                // Add each paper to the list
+                for (Paper paper : recentPapers) {
+                    // Extract content for display - fall back to abstract if text content not available
+                    String displayContent = paper.getTextContent();
+                    if (displayContent == null || displayContent.isEmpty()) {
+                        displayContent = paper.getAbstract();
+                        if (displayContent == null || displayContent.isEmpty()) {
+                            displayContent = "No content available for this paper.";
+                        }
+                    }
+                    
+                    // Truncate content if too long
+                    if (displayContent.length() > 300) {
+                        displayContent = displayContent.substring(0, 297) + "...";
+                    }
+                    
+                    // Create and add the card
+                    Component paperCard = createPaperCard(
+                        paper.getTitle(),
+                        displayContent,
+                        "PROCESSED".equals(paper.getStatus())
+                    );
+                    
+                    papersList.add(paperCard);
+                }
+            }
+        } else {
+            // If no user is logged in, show a login message
+            Paragraph loginMessage = new Paragraph("Please log in to see your papers.");
+            loginMessage.getStyle().set("text-align", "center");
+            loginMessage.getStyle().set("color", "var(--lumo-secondary-text-color)");
+            loginMessage.getStyle().set("padding", "var(--lumo-space-l)");
+            papersList.add(loginMessage);
+        }
         
         // Add all components to the section
         section.add(sectionHeader, papersList);
@@ -367,14 +435,26 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        // Get authentication directly - no need to check isAuthenticated since @PermitAll will handle
+        LoggingUtil.debug(LOG, "beforeEnter", "Getting authentication");
+        // Get authentication directly - no need to check isAuthenticated since @Secured will handle
         // access control through Spring Security 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        LoggingUtil.debug(LOG, "beforeEnter", "Authentication: %s", auth != null ? 
+                auth.getName() + " (authenticated: " + auth.isAuthenticated() + ")" : "null");
         
         // Try to get the current user - this is needed for the view to function properly
         try {
             if (auth != null) {
                 currentUser = userService.findByUsername(auth.getName()).orElse(null);
+                if (currentUser != null) {
+                    LoggingUtil.info(LOG, "beforeEnter", "Current user loaded: %s (ID: %s)", 
+                        currentUser.getUsername(), currentUser.getId());
+                    LoggingUtil.debug(LOG, "beforeEnter", "Dashboard loading paper count for user: %s", currentUser.getId());
+                } else {
+                    LoggingUtil.warn(LOG, "beforeEnter", "Could not find user with username: %s", auth.getName());
+                }
+            } else {
+                LoggingUtil.warn(LOG, "beforeEnter", "Authentication is null, cannot load current user");
             }
             
             // Initialize the view regardless of user status
@@ -383,9 +463,7 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
             
         } catch (Exception e) {
             // Log error but still initialize view
-            System.err.println("Error in DashboardView.beforeEnter: " + e.getMessage());
-            e.printStackTrace();
-            
+            LOG.error("Error in beforeEnter: {}", e.getMessage(), e);
             initializeView();
         }
     }

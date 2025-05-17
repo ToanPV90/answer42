@@ -1,21 +1,27 @@
 package com.samjdtechnologies.answer42.ui.service;
 
-import com.samjdtechnologies.answer42.controller.AuthController;
-import com.samjdtechnologies.answer42.service.UserService;
-import com.vaadin.flow.server.VaadinSession;
+import java.util.Map;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.Optional;
+import com.samjdtechnologies.answer42.controller.AuthController;
+import com.samjdtechnologies.answer42.service.UserService;
+import com.samjdtechnologies.answer42.util.LoggingUtil;
+import com.vaadin.flow.server.VaadinSession;
 
 /**
  * Service for handling authentication operations in the Vaadin UI.
  */
 @Service
 public class AuthenticationService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AuthenticationService.class);
 
     private final AuthController authController;
     private final UserService userService;
@@ -33,6 +39,7 @@ public class AuthenticationService {
      * @return an optional containing the JWT token if login was successful, empty otherwise
      */
     public Optional<String> login(String username, String password) {
+        LoggingUtil.debug(LOG, "login", "Attempting login for user: %s", username);
         try {
             AuthController.LoginRequest loginRequest = new AuthController.LoginRequest();
             loginRequest.setUsername(username);
@@ -116,7 +123,18 @@ public class AuthenticationService {
      */
     public boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && authentication.isAuthenticated() && 
-               !"anonymousUser".equals(authentication.getPrincipal());
+        boolean isAuth = authentication != null && 
+                        authentication.isAuthenticated() && 
+                        !"anonymousUser".equals(authentication.getPrincipal());
+        
+        LoggingUtil.debug(LOG, "isAuthenticated", 
+                "Authentication check: %s, Result: %s", 
+                (authentication != null ? 
+                    authentication.getName() + " (authenticated: " + authentication.isAuthenticated() + 
+                    ", principal: " + authentication.getPrincipal().getClass().getName() + ")" 
+                    : "null"), 
+                isAuth);
+        
+        return isAuth;
     }
 }

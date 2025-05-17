@@ -1,10 +1,13 @@
 package com.samjdtechnologies.answer42.ui.layout;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.service.AuthenticationService;
+import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -38,6 +41,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
  * Provides the main navigation structure for the application.
  */
 public class MainLayout extends AppLayout {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MainLayout.class);
     
     private final AuthenticationService authenticationService;
     private Div content;
@@ -104,6 +109,10 @@ public class MainLayout extends AppLayout {
         // User related components
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
+        
+        LoggingUtil.debug(LOG, "createRightSideComponents", 
+            "Creating right side components for authenticated user: %s (authenticated: %s)", 
+            username, auth.isAuthenticated());
         
         // Search field
         TextField search = new TextField();
@@ -355,6 +364,10 @@ public class MainLayout extends AppLayout {
      * Handles user logout
      */
     private void logout() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        LoggingUtil.debug(LOG, "logout", "Logging out user: %s", 
+                auth != null ? auth.getName() : "unknown");
+        
         // Log the user out
         authenticationService.logout();
 
@@ -363,6 +376,7 @@ public class MainLayout extends AppLayout {
 
         // Redirect to login page
         UI.getCurrent().navigate(UIConstants.ROUTE_LOGIN);
+        LoggingUtil.info(LOG, "logout", "User logged out and redirected to login page");
     }
 
     @Override

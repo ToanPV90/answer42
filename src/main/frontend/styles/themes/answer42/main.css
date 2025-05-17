@@ -50,8 +50,37 @@ vaadin-button.error {
 .content-container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: var(--lumo-space-m);
+  padding: var(--lumo-space-l);
   width: 100%;
+  box-sizing: border-box;
+}
+
+/* Section header with view-all link */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--lumo-space-m);
+  padding-right: var(--lumo-space-m);
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--lumo-body-text-color);
+  margin: 0;
+}
+
+.view-all {
+  color: var(--lumo-primary-color);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding-right: var(--lumo-space-s);
+}
+
+.view-all:hover {
+  text-decoration: underline;
 }
 
 /* Card styling */

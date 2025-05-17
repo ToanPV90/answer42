@@ -1,5 +1,8 @@
 package com.samjdtechnologies.answer42.ui.views;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +14,7 @@ import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
 import com.samjdtechnologies.answer42.ui.views.helpers.PapersHelper;
+import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -40,16 +44,15 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-import jakarta.annotation.security.PermitAll;
-
-
 /**
  * View for displaying and managing research papers.
  */
 @Route(value = UIConstants.ROUTE_PAPERS, layout = MainLayout.class)
 @PageTitle("Answer42 - Papers")
-@PermitAll
+@Secured("ROLE_USER")
 public class PapersView extends Div implements BeforeEnterObserver {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PapersView.class);
     
     private final PaperService paperService;
     private final UserService userService;
@@ -70,14 +73,28 @@ public class PapersView extends Div implements BeforeEnterObserver {
         this.paperService = paperService;
         this.userService = userService;
 
-        addClassName("papers-view");
+        LoggingUtil.debug(LOG, "PapersView", "PapersView initialized");
+        addClassName(UIConstants.CSS_PAPERS_VIEW);
         setSizeFull();
     }
     
     private void initializeView() {
+        LoggingUtil.debug(LOG, "initializeView", "Initializing view components");
         // Configure the view
         removeAll();
-        add(createToolbar(), createContent());
+        
+        // Create a container with proper padding for consistent layout with dashboard
+        Div container = new Div();
+        container.addClassName("content-container");
+        container.getStyle().set("padding", "var(--lumo-space-m)");
+        container.getStyle().set("max-width", "1200px");
+        container.getStyle().set("margin", "0 auto");
+        
+        // Add content to the container
+        container.add(createToolbar(), createContent());
+        
+        // Add container to the view
+        add(container);
 
         // Load initial data
         updateList();
@@ -199,6 +216,9 @@ public class PapersView extends Div implements BeforeEnterObserver {
         String searchTerm = searchField.getValue();
         String statusValue = statusFilter.getValue();
         
+        LoggingUtil.debug(LOG, "updateList", "Updating paper list with search: '%s', status: '%s', page: %d", 
+            searchTerm, statusValue, page);
+            
         // Use helper method to update the list, pagination, and grid
         PapersHelper.updateList(
             currentUser, 
@@ -480,14 +500,25 @@ public class PapersView extends Div implements BeforeEnterObserver {
     
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        // Get authentication directly - no need to check isAuthenticated since @PermitAll will handle
+        LoggingUtil.debug(LOG, "beforeEnter", "Getting authentication");
+        // Get authentication directly - no need to check isAuthenticated since @Secured will handle
         // access control through Spring Security 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        LoggingUtil.debug(LOG, "beforeEnter", "Authentication: %s", auth != null ? 
+                auth.getName() + " (authenticated: " + auth.isAuthenticated() + ")" : "null");
         
         // Try to get the current user - this is needed for the view to function properly
         try {
             if (auth != null) {
                 currentUser = userService.findByUsername(auth.getName()).orElse(null);
+                if (currentUser != null) {
+                    LoggingUtil.info(LOG, "beforeEnter", "Current user loaded: %s (ID: %s)", 
+                        currentUser.getUsername(), currentUser.getId());
+                } else {
+                    LoggingUtil.warn(LOG, "beforeEnter", "Could not find user with username: %s", auth.getName());
+                }
+            } else {
+                LoggingUtil.warn(LOG, "beforeEnter", "Authentication is null, cannot load current user");
             }
             
             // Initialize the view regardless of user status
@@ -496,9 +527,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
             
         } catch (Exception e) {
             // Log error but still initialize view
-            System.err.println("Error in PapersView.beforeEnter: " + e.getMessage());
-            e.printStackTrace();
-            
+            LOG.error("Error in beforeEnter: {}", e.getMessage(), e);
             initializeView();
         }
     }

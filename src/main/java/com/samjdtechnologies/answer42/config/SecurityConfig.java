@@ -5,6 +5,8 @@ import java.util.stream.Stream;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,10 +27,13 @@ import com.samjdtechnologies.answer42.security.CustomUserDetailsService;
 import com.samjdtechnologies.answer42.security.JwtAuthenticationFilter;
 import com.samjdtechnologies.answer42.security.JwtTokenUtil;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
+import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Autowired
     private JwtConfig jwtConfig;
@@ -38,6 +43,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        LoggingUtil.debug(LOG, "securityFilterChain", "Configuring security filter chain");
         // Vaadin specific request paths that should be accessible without authentication
         String[] allowedPaths = {
             // Vaadin Flow static resources
@@ -86,7 +92,15 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             ) 
             .sessionManagement(session -> session // VAADIN requires: IF_REQUIRED || ALWAYS
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS) 
+                .invalidSessionUrl("/" + UIConstants.ROUTE_LOGIN)
+            )
+            .formLogin(form -> form
+                .loginPage("/" + UIConstants.ROUTE_LOGIN)
+                .permitAll()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/" + UIConstants.ROUTE_LOGIN)
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -96,11 +110,13 @@ public class SecurityConfig {
     
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        LoggingUtil.debug(LOG, "jwtAuthenticationFilter", "Creating JwtAuthenticationFilter bean");
         return new JwtAuthenticationFilter(jwtTokenUtil(), jwtConfig);
     }
     
     @Bean
     public JwtTokenUtil jwtTokenUtil() {
+        LoggingUtil.debug(LOG, "jwtTokenUtil", "Creating JwtTokenUtil bean");
         return new JwtTokenUtil(jwtConfig);
     }
     

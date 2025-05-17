@@ -7,6 +7,7 @@
 @import url('./components/auth-forms.css');
 @import url('./components/main-layout.css');
 @import url('./components/dashboard.css');
+@import url('./components/search-icon.css');
 
 /* Component-specific style overrides for Vaadin components */
 

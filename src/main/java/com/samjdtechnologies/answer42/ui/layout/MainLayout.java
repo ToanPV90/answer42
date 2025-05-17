@@ -87,8 +87,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private HorizontalLayout createLogoLayout() {
         // App title with logo
         Image logo = new Image("frontend/images/answer42-logo.svg", "Answer42 Logo");
-        logo.setHeight("32px");
-        logo.setWidth("32px");
+        logo.setHeight("65px");
+        logo.setWidth("65px");
         
         H1 title = new H1("Answer42");
         title.addClassName(UIConstants.CSS_LOGO_LAYOUT_TITLE);
@@ -113,16 +113,24 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
             "Creating right side components for authenticated user: %s (authenticated: %s)", 
             username, auth.isAuthenticated());
         
-        // Search field
+        // Search field with enhanced colored icon
         TextField search = new TextField();
         search.setPlaceholder("Search papers, projects...");
-        search.setPrefixComponent(VaadinIcon.SEARCH.create());
-        search.addClassName("search-field");
+        
+        // Create and style the search icon
+        Icon searchIcon = VaadinIcon.SEARCH.create();
+        searchIcon.addClassName(UIConstants.CSS_SEARCH_ICON);
+        
+        // Add the enhanced icon to the search field
+        search.setPrefixComponent(searchIcon);
+        search.addClassName(UIConstants.CSS_SEARCH_FIELD);
         search.setWidth("300px");
         
         // Theme toggle button
         Button themeToggle = new Button(new Icon(VaadinIcon.MOON));
-        themeToggle.addClassName("theme-toggle");
+        themeToggle.addClassName(UIConstants.CSS_THEME_TOGGLE);
+        themeToggle.setHeight("32px");
+        themeToggle.setWidth("32px");
         themeToggle.addClickListener(e -> {
             ThemeList themeList = UI.getCurrent().getElement().getThemeList();
             if (themeList.contains(Lumo.DARK)) {
@@ -136,7 +144,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         
         // User avatar with dropdown menu
         Avatar avatar = new Avatar(username);
-        avatar.addClassName("user-avatar");
+        avatar.addClassName(UIConstants.CSS_USER_AVATAR);
+        avatar.setHeight("32px");
+        avatar.setWidth("32px");
         
         // Create dropdown menu for avatar click
         ContextMenu userMenu = new ContextMenu();
@@ -316,19 +326,19 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         VerticalLayout assistantInfo = new VerticalLayout();
         assistantInfo.setPadding(false);
         assistantInfo.setSpacing(false);
-        assistantInfo.addClassName("assistant-text");
+        assistantInfo.addClassName(UIConstants.CSS_ASSISTANT_TEXT);
         
         H3 assistantName = new H3("Answer42");
-        assistantName.addClassName("assistant-name");
+        assistantName.addClassName(UIConstants.CSS_ASSISTANT_NAME);
         
         Span assistantRole = new Span("Research Assistant");
-        assistantRole.addClassName("assistant-role");
+        assistantRole.addClassName(UIConstants.CSS_ASSISTANT_NAME);
         
         assistantInfo.add(assistantName, assistantRole);
         
         HorizontalLayout footerLayout = new HorizontalLayout(assistantAvatar, assistantInfo);
         footerLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName("assistant-container");
+        footerLayout.addClassName(UIConstants.CSS_ASSISTANT_CONTAINER);
         footerLayout.setSpacing(true);
         footer.add(footerLayout);
         

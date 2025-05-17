@@ -29,6 +29,7 @@ import com.vaadin.flow.server.PWA;
 @CssImport("./styles/themes/answer42/components/main-layout.css")
 @CssImport("./styles/themes/answer42/components/dashboard.css")
 @CssImport("./styles/themes/answer42/components/papers.css")
+@CssImport("./styles/themes/answer42/components/search-icon.css")
 
 @JavaScript("./sw-loader.js")
 @JavaScript("./jwt-injector.js")

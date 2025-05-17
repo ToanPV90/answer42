@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.PaperService;
+import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasComponents;
@@ -91,43 +92,47 @@ public class PapersHelper {
                                      Consumer<Paper> itemClickHandler) {
         LoggingUtil.debug(LOG, "configureGrid", "Configuring papers grid...");
         
-        grid.addClassName("papers-grid");
+        grid.addClassName(UIConstants.CSS_PAPERS_GRID);
         grid.setSizeFull();
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        // Define columns
-        grid.addColumn(Paper::getTitle).setHeader("Title").setAutoWidth(true).setFlexGrow(2);
+        // Define columns with optimized widths to fit container
+        // Actions column - compact
+        grid.addColumn(actionsRenderer)
+                .setHeader("Actions").setAutoWidth(false).setWidth("120px").setFlexGrow(0);
         
-        // Updated to handle List<String> instead of String[]
+        // Title - allow to grow more
+        grid.addColumn(Paper::getTitle).setHeader("Title").setAutoWidth(false).setFlexGrow(3);
+        
+        // Authors - moderate space
         grid.addColumn(paper -> {
             List<String> authors = paper.getAuthors();
             if (authors != null && !authors.isEmpty()) {
                 return String.join(", ", authors);
             }
             return "";
-        }).setHeader("Authors").setAutoWidth(true).setFlexGrow(1);
+        }).setHeader("Authors").setAutoWidth(false).setFlexGrow(2);
         
-        grid.addColumn(Paper::getJournal).setHeader("Journal").setAutoWidth(true);
-        grid.addColumn(Paper::getYear).setHeader("Year").setAutoWidth(true);
+        // Journal - moderate space
+        grid.addColumn(Paper::getJournal).setHeader("Journal").setAutoWidth(false).setFlexGrow(1);
         
-        // Status column with colored badge
+        // Year - fixed small width
+        grid.addColumn(Paper::getYear).setHeader("Year").setAutoWidth(false).setWidth("70px").setFlexGrow(0);
+        
+        // Status column with colored badge - fixed width
         grid.addColumn(new ComponentRenderer<>(paper -> {
             String status = paper.getStatus();
             Span badge = new Span(status);
             badge.getElement().getThemeList().add("badge " + status.toLowerCase());
             return badge;
-        })).setHeader("Status").setAutoWidth(true);
+        })).setHeader("Status").setAutoWidth(false).setWidth("100px").setFlexGrow(0);
         
-        // Created date column with formatter
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        // Created date column with formatter - fixed width
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
                 .withZone(ZoneId.systemDefault());
         grid.addColumn(paper -> paper.getCreatedAt() != null ? 
                 formatter.format(paper.getCreatedAt()) : "")
-                .setHeader("Uploaded").setAutoWidth(true);
-        
-        // Actions column
-        grid.addColumn(actionsRenderer)
-                .setHeader("Actions").setAutoWidth(true).setFlexGrow(0);
+                .setHeader("Uploaded").setAutoWidth(false).setWidth("100px").setFlexGrow(0);
 
         // Add selection listener for double-click
         grid.addItemClickListener(event -> {

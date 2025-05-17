@@ -139,7 +139,7 @@
   gap: var(--lumo-space-m);
 }
 
-.action-button {
+.dashboard-action-button {
   background-color: var(--lumo-base-color);
   border-radius: var(--lumo-border-radius-m);
   padding: var(--lumo-space-m);
@@ -154,41 +154,41 @@
   box-shadow: var(--lumo-box-shadow-xs);
 }
 
-.action-button-icon{
+.dashboard-action-button-icon{
   size: 20px;
 }
 
-.action-button:hover {
+.dashboard-action-button:hover {
   transform: translateY(-2px);
   box-shadow: var(--lumo-box-shadow-s);
 }
 
-.action-button.primary {
+.dashboard-action-button.primary {
   background-color: var(--lumo-primary-color);
   color: white;
 }
 
-.action-button.primary:hover {
+.dashboard-action-button.primary:hover {
   background-color: var(--lumo-primary-color);
   opacity: 0.9;
 }
 
-.action-button.success {
+.dashboard-action-button.success {
   background-color: var(--lumo-success-color);
   color: white;
 }
 
-.action-button.success:hover {
+.dashboard-action-button.success:hover {
   background-color: var(--lumo-success-color);
   opacity: 0.9;
 }
 
-.action-button.warning {
+.dashboard-action-button.warning {
   background-color: var(--lumo-warning-color);
   color: white;
 }
 
-.action-button.warning:hover {
+.dashboard-action-button.warning:hover {
   background-color: var(--lumo-warning-color);
   opacity: 0.9;
 }

@@ -1,13 +1,11 @@
 package com.samjdtechnologies.answer42.config;
 
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
-
-import javax.crypto.spec.SecretKeySpec;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,10 +16,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.samjdtechnologies.answer42.security.CustomUserDetailsService;
 import com.samjdtechnologies.answer42.security.JwtAuthenticationFilter;
@@ -35,11 +34,28 @@ public class SecurityConfig {
 
     private static final Logger LOG = LoggerFactory.getLogger(SecurityConfig.class);
 
+    @Value("${app.auth.jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${app.auth.jwt.expiration}")
+    private long jwtExpiration;
+
+    @Value("${app.auth.jwt.header}")
+    private String jwtHeader;
+
+    @Value("${app.auth.jwt.prefix}")
+    private String jwtPrefix;
+
     @Autowired
     private JwtConfig jwtConfig;
-    
+
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
+
+    @Bean
+    public JwtTokenUtil jwtTokenUtil() {
+        return new JwtTokenUtil(jwtSecret, jwtExpiration, jwtHeader, jwtPrefix);
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -73,6 +89,8 @@ public class SecurityConfig {
             "/icons/**",
             "/images/**",
             "/static/**",
+            // Our public WEB endpoints
+            "/public/**",
             // Our public API endpoints
             "/api/auth/**",
             "/api/test/public",
@@ -80,58 +98,66 @@ public class SecurityConfig {
             "/" + UIConstants.ROUTE_LOGIN + "/**",
             "/" + UIConstants.ROUTE_REGISTER + "/**"
         };
-        
-        http
-            .csrf(csrf -> csrf.disable()) // For API use
-            .authorizeHttpRequests(auth -> auth
-            .requestMatchers(Stream.concat(
-                Stream.of(allowedPaths),
-                Stream.of("/public/**", "/login", "/")
-            ).toArray(String[]::new)).permitAll()
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().authenticated()
-            ) 
+        // Disable CSRF as we're using JWT
+        http.csrf(csrf -> csrf.disable())
+            // Use stateless session management
             .sessionManagement(session -> session // VAADIN requires: IF_REQUIRED || ALWAYS
                 .sessionCreationPolicy(SessionCreationPolicy.ALWAYS) 
-                .invalidSessionUrl("/" + UIConstants.ROUTE_LOGIN)
-            )
+                .invalidSessionUrl("/" + UIConstants.ROUTE_LOGIN))
             .formLogin(form -> form
                 .loginPage("/" + UIConstants.ROUTE_LOGIN)
-                .permitAll()
-            )
+                .permitAll())
             .exceptionHandling(ex -> ex
-                .accessDeniedPage("/" + UIConstants.ROUTE_LOGIN)
+                .accessDeniedPage("/" + UIConstants.ROUTE_LOGIN))    
+            // Allow CORS
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .headers(headers -> headers
+                .frameOptions(frameOptions -> frameOptions.sameOrigin()))
+            // Configure authorization rules
+            .authorizeHttpRequests(authorize -> authorize
+                // Public endpoints
+                .requestMatchers(allowedPaths).permitAll()
+                // Allow Vaadin UI views that handle navigation
+                .requestMatchers("/").permitAll()
+                .requestMatchers("/?**").permitAll() // Support query parameters on root path
+                .requestMatchers("/HILLA/**").permitAll() // Hilla endpoints
+                .requestMatchers("/sw-runtime-resources-precache.js").permitAll()
+                .requestMatchers("/manifest.webmanifest").permitAll()
+                .requestMatchers("/icons/**").permitAll()
+                .requestMatchers("/error").permitAll() // Error page
+                // Require authentication for other endpoints
+                .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
+            // Add JWT filter before processing requests
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
-    
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         LoggingUtil.debug(LOG, "jwtAuthenticationFilter", "Creating JwtAuthenticationFilter bean");
         return new JwtAuthenticationFilter(jwtTokenUtil(), jwtConfig);
     }
-    
+
     @Bean
-    public JwtTokenUtil jwtTokenUtil() {
-        LoggingUtil.debug(LOG, "jwtTokenUtil", "Creating JwtTokenUtil bean");
-        return new JwtTokenUtil(jwtConfig);
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*")); // Adjust for production
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setExposedHeaders(Arrays.asList(jwtHeader));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
-    
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        byte[] keyBytes = jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8);
-        SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(secretKey).build();
-    }
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -139,9 +165,10 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
-    
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
+
 }

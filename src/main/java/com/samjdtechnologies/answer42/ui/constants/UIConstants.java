@@ -29,6 +29,28 @@ public class UIConstants {
     public static final String CSS_CONTENT = "content";
     public static final String CSS_CONTENT_WRAPPER = "content-wrapper";
     public static final String CSS_ARROW_ICON = "arrow-icon";
+    public static final String CSS_LOGO_LAYOUT = "logo-layout";
+    public static final String CSS_LOGO_LAYOUT_TITLE = "logo-layout-title";
+    public static final String CSS_NAV_SECTION_HEADER = "nav-section-header";
+    public static final String CSS_NAV_DIVIDER = "nav-divider";
+    public static final String CSS_TOOLBAR_RIGHT_ITEMS = "toolbar-right-items";
+    public static final String CSS_USER_AVATAR = "user-avatar";
+    public static final String CSS_MENU_ITEM_LAYOUT = "menu-item-layout";
+    public static final String CSS_SEARCH_FIELD = "search-field";
+    public static final String CSS_THEME_TOGGLE = "theme-toggle";
+    public static final String CSS_ASSISTANT_CONTAINER = "assistant-container";
+    public static final String CSS_ASSISTANT_AVATAR = "assistant-avatar";
+    public static final String CSS_ASSISTANT_TEXT = "assistant-text";
+    public static final String CSS_ASSISTANT_NAME = "assistant-name";
+    public static final String CSS_ASSISTANT_ROLE = "assistant-role";
+    public static final String CSS_LOGOUT_ITEM = "logout-item";
+    public static final String CSS_MAIN_NAV = "main-nav";
+    public static final String CSS_USER_NAV = "user-nav";
+    public static final String CSS_NAV_ITEM = "nav-item";
+    public static final String CSS_SIDEBAR_NAV_ITEM = "sidebar-nav-item";
+    public static final String CSS_DRAWER_FOOTER = "drawer-footer";
+    public static final String CSS_SIDEBAR_FOOTER = "sidebar-footer";
+    public static final String CSS_USER_INITIAL = "user-initial";
     
     // Dashboard related
     public static final String CSS_DASHBOARD_VIEW = "dashboard-view";

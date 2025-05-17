@@ -1,5 +1,13 @@
 /* Main layout styling for the application */
 
+/* Main layout constants */
+:root {
+  --answer42-topbar-height: 56px;
+  --answer42-sidebar-width: 280px;
+  --answer42-transition-fast: 0.15s;
+  --answer42-transition-normal: 0.3s;
+}
+
 /* Main view layout - using UIConstants.CSS_MAIN_VIEW */
 .main-view {
   height: 100%;
@@ -246,6 +254,60 @@
   gap: var(--lumo-space-l);
   flex: 1;
   overflow-y: auto;
+}
+
+/* Logo Layout */
+.logo-layout {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+}
+
+.logo-layout h1 {
+  font-size: var(--lumo-font-size-l);
+  margin: 0;
+}
+
+/* Navigation section headers */
+.nav-section-header {
+  color: var(--lumo-tertiary-text-color);
+  font-size: var(--lumo-font-size-xs);
+  font-weight: 500;
+  margin: var(--lumo-space-m) var(--lumo-space-s) var(--lumo-space-xs);
+  text-transform: uppercase;
+}
+
+/* Divider */
+.nav-divider {
+  margin: var(--lumo-space-m) 0;
+  height: 1px;
+  background-color: var(--lumo-contrast-10pct);
+}
+
+/* Right side toolbar items */
+.toolbar-right-items {
+  margin-left: auto;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-m);
+}
+
+/* User avatar */
+.user-avatar {
+  cursor: pointer;
+}
+
+/* Menu item layout for context menu */
+.menu-item-layout {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+}
+
+/* Logout item styling */
+.logout-item {
+  color: var(--lumo-error-color);
 }
 
 /* Responsive design */

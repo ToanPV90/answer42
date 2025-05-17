@@ -2,20 +2,13 @@
 
 /* Papers view container - using UIConstants.CSS_PAPERS_VIEW */
 .papers-view {
-  padding: 20px;
+  padding-right: 20px;
   max-width: 1100px;
-  margin: 0 auto;
+  margin: -15px;
   width: 100%;
   background-color: var(--lumo-contrast-5pct);
 }
 
-/* Content container for consistent layout with dashboard */
-.content-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--lumo-space-m);
-  width: 100%;
-}
 
 /* Toolbar styling */
 .toolbar {
@@ -113,11 +106,32 @@ vaadin-upload {
   padding: var(--lumo-space-s);
 }
 
-/* Paper details dialog */
-.paper-details-dialog {
-  width: 100%;
-  max-width: 600px;
+/* Dialog styling */
+.paper-dialog {
+  width: 500px;
 }
+
+.paper-details-dialog {
+  width: 600px;
+}
+
+.dialog-layout {
+  padding: var(--lumo-space-m);
+  spacing: var(--lumo-space-m);
+}
+
+.dialog-buttons {
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* Supported formats text */
+.supported-formats {
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-xs);
+}
+
+/* Paper details dialog */
 
 .paper-details-header {
   margin-bottom: var(--lumo-space-m);
@@ -178,34 +192,6 @@ vaadin-upload {
   font-size: 0.875rem;
   color: var(--lumo-secondary-text-color);
   line-height: 1.5;
-}
-
-/* Action buttons */
-.action-button-container {
-  display: flex;
-  gap: var(--lumo-space-xs);
-}
-
-/* .action-button {
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  background-color: var(--lumo-contrast-5pct);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--lumo-secondary-text-color);
-  cursor: pointer;
-  transition: background-color var(--answer42-transition-fast), color var(--answer42-transition-fast);
-} */
-
-.action-button:hover {
-  background-color: var(--lumo-primary-color);
-  color: white;
-}
-
-.action-button.delete:hover {
-  background-color: var(--lumo-error-color);
 }
 
 /* Pagination */

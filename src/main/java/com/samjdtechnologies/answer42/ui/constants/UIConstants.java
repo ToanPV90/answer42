@@ -28,6 +28,7 @@ public class UIConstants {
     public static final String CSS_SIDEBAR = "sidebar";
     public static final String CSS_CONTENT = "content";
     public static final String CSS_CONTENT_WRAPPER = "content-wrapper";
+    public static final String CSS_ARROW_ICON = "arrow-icon";
     
     // Dashboard related
     public static final String CSS_DASHBOARD_VIEW = "dashboard-view";
@@ -45,12 +46,25 @@ public class UIConstants {
     public static final String CSS_STAT_VALUE = "stat-value";
     public static final String CSS_STAT_FOOTER = "stat-footer";
     public static final String CSS_STAT_LINK = "stat-link";
+    public static final String CSS_ACTIONS_CONTAINER = "actions-container";
     public static final String CSS_QUICK_ACTIONS = "quick-actions";
     public static final String CSS_PAPERS_LIST = "papers-list";
     public static final String CSS_PAPER_CARD = "paper-card";
+    public static final String CSS_PAPER_HEADER = "paper-header";
+    public static final String CSS_PAPER_TITLE = "paper-title";
+    public static final String CSS_PAPER_STATUS = "paper-status";
+    public static final String CSS_PAPER_CONTENT = "paper-content";
+    public static final String CSS_PAPER_METADATA = "paper-metadata";
+    public static final String CSS_PAPER_METADATA_ITEM = "paper-metadata-item";
+    public static final String CSS_PAPER_METADATA_ICON = "paper-metadata-icon";
+    public static final String CSS_PAPER_FOOTER = "paper-footer";
+    public static final String CSS_PAPER_ACTION = "paper-action";
     public static final String CSS_SECTION_HEADER = "section-header";
     public static final String CSS_SECTION_TITLE = "section-title";
-
+    public static final String CSS_ACTION_BTN = "action-button";
+    public static final String CSS_ACTION_BTN_ICON = "action-button-icon";
+    public static final String CSS_EMPTY_STATE_MSG = "empty-state-message";
+    public static final String CSS_VIEW_ALL = "view-all";
     
     // Papers view related
     public static final String CSS_PAPERS_VIEW = "papers-view";
@@ -58,7 +72,11 @@ public class UIConstants {
     public static final String CSS_TOOLBAR = "toolbar";
     public static final String CSS_STATUS_BADGE = "status-badge";
     public static final String CSS_UPLOAD_DIALOG = "upload-dialog";
+    public static final String CSS_PAPER_DIALOG = "paper-dialog";
     public static final String CSS_PAPER_DETAILS_DIALOG = "paper-details-dialog";
+    public static final String CSS_DIALOG_LAYOUT = "dialog-layout";
+    public static final String CSS_DIALOG_BUTTONS = "dialog-buttons";
+    public static final String CSS_SUPPORTED_FORMATS = "supported-formats";
     public static final String CSS_METADATA_CONTAINER = "metadata-container";
     
     // Form field widths

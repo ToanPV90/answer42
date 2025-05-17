@@ -32,11 +32,34 @@ public class UIConstants {
     // Dashboard related
     public static final String CSS_DASHBOARD_VIEW = "dashboard-view";
     public static final String CSS_WELCOME_SECTION = "welcome-section";
+    public static final String CSS_WELCOME_TITLE = "welcome-title";
+    public static final String CSS_WELCOME_SUBTITLE = "welcome-subtitle";
     public static final String CSS_STATS_CONTAINER = "stats-container";
     public static final String CSS_STAT_CARD = "stat-card";
+    public static final String CSS_STAT_HEADER = "stat-header";
+    public static final String CSS_STAT_TITLE = "stat-title";
+    public static final String CSS_STAT_ICON = "stat-icon";
+    public static final String CSS_STAT_ICON_PAPERS = "papers";
+    public static final String CSS_STAT_ICON_PROJECTS = "projects";
+    public static final String CSS_STAT_ICON_CHAT = "chat";
+    public static final String CSS_STAT_VALUE = "stat-value";
+    public static final String CSS_STAT_FOOTER = "stat-footer";
+    public static final String CSS_STAT_LINK = "stat-link";
     public static final String CSS_QUICK_ACTIONS = "quick-actions";
     public static final String CSS_PAPERS_LIST = "papers-list";
     public static final String CSS_PAPER_CARD = "paper-card";
+    public static final String CSS_SECTION_HEADER = "section-header";
+    public static final String CSS_SECTION_TITLE = "section-title";
+
+    
+    // Papers view related
+    public static final String CSS_PAPERS_VIEW = "papers-view";
+    public static final String CSS_CONTENT_CONTAINER = "content-container";
+    public static final String CSS_TOOLBAR = "toolbar";
+    public static final String CSS_STATUS_BADGE = "status-badge";
+    public static final String CSS_UPLOAD_DIALOG = "upload-dialog";
+    public static final String CSS_PAPER_DETAILS_DIALOG = "paper-details-dialog";
+    public static final String CSS_METADATA_CONTAINER = "metadata-container";
     
     // Form field widths
     public static final String FORM_FIELD_WIDTH = "100%";

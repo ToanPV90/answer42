@@ -2,10 +2,8 @@
 
 /* Main view layout - using UIConstants.CSS_MAIN_VIEW */
 .main-view {
-  display: flex;
   height: 100%;
   width: 100%;
-  background-color: var(--lumo-contrast-5pct);
 }
 
 /* Sidebar styling - using UIConstants.CSS_SIDEBAR */

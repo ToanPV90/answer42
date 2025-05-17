@@ -373,20 +373,31 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
             return;
         }
         
-        // Check if the user is anonymous or lacks required role
+        // Get authentication 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        LoggingUtil.debug(LOG, "beforeEnter", "Authentication: %s", 
+                auth != null ? auth.getName() + " (authenticated: " + auth.isAuthenticated() + ")" : "null");
         
-        // Check for proper authentication - anonymous users shouldn't access the main layout
-        boolean isAuthenticated = false;
-        
-        if (auth != null && auth.getAuthorities() != null) {
-            // Check if user has the required ROLE_USER authority
-            isAuthenticated = auth.getAuthorities().stream()
-                    .anyMatch(grantedAuth -> "ROLE_USER".equals(grantedAuth.getAuthority()));
+        // Check if user is anonymous or lacks required role
+        if (auth == null || "anonymousUser".equals(auth.getPrincipal().toString())) {
+            LoggingUtil.debug(LOG, "beforeEnter", "Unauthenticated user, redirecting to login");
+            event.forwardTo(UIConstants.ROUTE_LOGIN);
+            return;
         }
         
-        if (!isAuthenticated) {
-            LoggingUtil.debug(LOG, "MainLayout", "User not properly authenticated, redirecting to login page");
+        try {
+            // Check for proper authentication
+            boolean hasUserRole = auth.getAuthorities().stream()
+                    .anyMatch(grantedAuth -> "ROLE_USER".equals(grantedAuth.getAuthority()));
+            
+            if (!hasUserRole) {
+                LoggingUtil.debug(LOG, "beforeEnter", "User lacks ROLE_USER authority, redirecting to login");
+                event.forwardTo(UIConstants.ROUTE_LOGIN);
+            } else {
+                LoggingUtil.debug(LOG, "beforeEnter", "User authenticated and has ROLE_USER authority");
+            }
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "beforeEnter", "Error checking authentication", e);
             event.forwardTo(UIConstants.ROUTE_LOGIN);
         }
     }

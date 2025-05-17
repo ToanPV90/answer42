@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -103,21 +104,60 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
      
-        final String authorizationHeader = request.getHeader(jwtTokenUtil.getHeader());
-
+        // First try to get the token from the Authorization header
+        String authorizationHeader = request.getHeader(jwtTokenUtil.getHeader());
+        
         String username = null;
         String jwtToken = null;
 
+        LoggingUtil.debug(LOG, "doFilterInternal", "Processing request: %s %s", request.getMethod(), request.getRequestURI());
+        
         // Extract JWT token if authorization header exists and has correct format
         if (authorizationHeader != null && authorizationHeader.startsWith(jwtTokenUtil.getPrefix())) {
             jwtToken = authorizationHeader.substring(jwtTokenUtil.getPrefix().length()).trim();
             try {
                 username = jwtTokenUtil.extractUsername(jwtToken);
+                LoggingUtil.debug(LOG, "doFilterInternal", "Found valid authorization header with username: %s", username);
             } catch (Exception e) {
-                LoggingUtil.warn(LOG, "doFilterInternal", "Error extracting username from token: %s", e.getMessage());
+                LoggingUtil.warn(LOG, "doFilterInternal", "Error extracting username from token in header: %s", e.getMessage());
             }
         } else {
-            LoggingUtil.debug(LOG, "doFilterInternal", "No valid authentication header found");
+            // If not found in header, try to get it from the Vaadin session
+            try {
+                Object sessionToken = request.getSession().getAttribute("jwt_token");
+                if (sessionToken != null) {
+                    jwtToken = sessionToken.toString();
+                    // Validate and extract username
+                    username = jwtTokenUtil.extractUsername(jwtToken);
+                    LoggingUtil.debug(LOG, "doFilterInternal", "Using JWT token from session for user: %s", username);
+                    
+                    // If token was found in session but not in header, add it to the response
+                    // to ensure it's available for the client on subsequent requests
+                    if (authorizationHeader == null || !authorizationHeader.startsWith(jwtTokenUtil.getPrefix())) {
+                        response.setHeader("X-JWT-Refresh", "true");
+                    }
+                } else {
+                    // If we couldn't find the token in session, check for any existing authentication
+                    Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
+                    if (existingAuth != null && existingAuth.isAuthenticated() && 
+                        existingAuth.getPrincipal() != null && 
+                        !"anonymousUser".equals(existingAuth.getPrincipal().toString())) {
+                        
+                        LoggingUtil.debug(LOG, "doFilterInternal", 
+                            "No token found but authenticated user exists: %s", existingAuth.getName());
+                        
+                        // Allow the request to proceed with existing authentication
+                        chain.doFilter(request, response);
+                        return;
+                    } else {
+                        LoggingUtil.debug(LOG, "doFilterInternal", 
+                            "No valid authentication header or session token found for: %s", 
+                            request.getRequestURI());
+                    }
+                }
+            } catch (Exception e) {
+                LoggingUtil.warn(LOG, "doFilterInternal", "Error using session token: %s", e.getMessage());
+            }
         }
 
         // Validate token and set up authentication if needed

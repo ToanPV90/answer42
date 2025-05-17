@@ -3,12 +3,19 @@ import { injectGlobalCss } from 'Frontend/generated/jar-resources/theme-util.js'
 import { css, unsafeCSS, registerStyles } from '@vaadin/vaadin-themable-mixin';
 import $cssFromFile_0 from 'Frontend/styles/themes/answer42/main.css?inline';
 import $cssFromFile_1 from 'Frontend/styles/themes/answer42/styles.css?inline';
-import $cssFromFile_2 from 'Frontend/styles/themes/answer42/components/auth-forms.css?inline';
-import $cssFromFile_3 from 'Frontend/styles/themes/answer42/components/main-layout.css?inline';
-import $cssFromFile_4 from 'Frontend/styles/themes/answer42/components/dashboard.css?inline';
-import $cssFromFile_5 from 'Frontend/styles/themes/answer42/components/papers.css?inline';
+import $cssFromFile_2 from 'Frontend/styles/themes/answer42/answer42-dark.css?inline';
+import $cssFromFile_3 from 'Frontend/styles/themes/answer42/components/auth-forms.css?inline';
+import $cssFromFile_4 from 'Frontend/styles/themes/answer42/components/main-layout.css?inline';
+import $cssFromFile_5 from 'Frontend/styles/themes/answer42/components/dashboard.css?inline';
+import $cssFromFile_6 from 'Frontend/styles/themes/answer42/components/papers.css?inline';
 import '@vaadin/polymer-legacy-adapter/style-modules.js';
 import '@vaadin/app-layout/theme/lumo/vaadin-app-layout.js';
+import '@vaadin/vaadin-lumo-styles/color-global.js';
+import '@vaadin/vaadin-lumo-styles/typography-global.js';
+import '@vaadin/vaadin-lumo-styles/sizing.js';
+import '@vaadin/vaadin-lumo-styles/spacing.js';
+import '@vaadin/vaadin-lumo-styles/style.js';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
 import '@vaadin/vertical-layout/theme/lumo/vaadin-vertical-layout.js';
 import '@vaadin/field-highlighter/theme/lumo/vaadin-field-highlighter.js';
 import '@vaadin/common-frontend/ConnectionIndicator.js';
@@ -88,12 +95,6 @@ import '@vaadin/grid/theme/lumo/vaadin-grid-tree-toggle.js';
 import '@vaadin/upload/theme/lumo/vaadin-upload.js';
 import '@vaadin/virtual-list/theme/lumo/vaadin-virtual-list.js';
 import 'Frontend/generated/jar-resources/virtualListConnector.js';
-import '@vaadin/vaadin-lumo-styles/color-global.js';
-import '@vaadin/vaadin-lumo-styles/typography-global.js';
-import '@vaadin/vaadin-lumo-styles/sizing.js';
-import '@vaadin/vaadin-lumo-styles/spacing.js';
-import '@vaadin/vaadin-lumo-styles/style.js';
-import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
 import 'Frontend/generated/jar-resources/sw-loader.js';
 import 'Frontend/generated/jar-resources/jwt-injector.js';
 import 'Frontend/generated/jar-resources/sw-register.js';
@@ -109,6 +110,8 @@ injectGlobalCss($cssFromFile_3.toString(), 'CSSImport end', document);
 injectGlobalCss($cssFromFile_4.toString(), 'CSSImport end', document);
 
 injectGlobalCss($cssFromFile_5.toString(), 'CSSImport end', document);
+
+injectGlobalCss($cssFromFile_6.toString(), 'CSSImport end', document);
 const loadOnDemand = (key) => { return Promise.resolve(0); }
 window.Vaadin = window.Vaadin || {};
 window.Vaadin.Flow = window.Vaadin.Flow || {};

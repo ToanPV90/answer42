@@ -73,6 +73,9 @@ vaadin-*.json
 vite.generated.ts
 frontend/generated/
 src/main/frontend/generated/
+src/main/bundles/dev.bundle
+src/main/frontend/generated/flow/generated-flow-imports.js
+src/main/frontend/generated/flow/generated-flow-webcomponent-imports.js
 
 # Environment variables
 .env

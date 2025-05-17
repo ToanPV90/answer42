@@ -46,8 +46,8 @@
 }
 
 .sidebar-logo img {
-  height: 32px;
-  width: 32px;
+  height: 65px;
+  width: 65px;
 }
 
 .sidebar-logo-text {
@@ -172,6 +172,17 @@
 .search-field input {
   background-color: var(--lumo-contrast-5pct);
   border-radius: var(--lumo-border-radius-m);
+}
+
+/* Enhanced search icon styling */
+.search-icon {
+  color: var(--lumo-primary-color);
+  transition: transform 0.2s ease;
+}
+
+.search-icon:hover {
+  transform: scale(1.1);
+  color: var(--lumo-primary-color-50pct);
 }
 
 /* Header right section */

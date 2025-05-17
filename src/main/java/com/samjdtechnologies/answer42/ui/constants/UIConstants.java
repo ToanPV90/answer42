@@ -43,6 +43,7 @@ public class UIConstants {
     public static final String CSS_USER_AVATAR = "user-avatar";
     public static final String CSS_MENU_ITEM_LAYOUT = "menu-item-layout";
     public static final String CSS_SEARCH_FIELD = "search-field";
+    public static final String CSS_SEARCH_ICON = "search-icon";
     public static final String CSS_THEME_TOGGLE = "theme-toggle";
     public static final String CSS_ASSISTANT_CONTAINER = "assistant-container";
     public static final String CSS_ASSISTANT_AVATAR = "assistant-avatar";

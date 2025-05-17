@@ -1,0 +1,40 @@
+/* Enhanced search icon component styles */
+
+/* Primary styling for the enhanced search icon */
+vaadin-icon[icon="vaadin:search"] {
+  color: var(--lumo-primary-color);
+  transition: transform 0.2s ease, color 0.2s ease;
+  font-size: 27px; /* 50% larger than original 18px */
+}
+
+/* Hover effect */
+vaadin-icon[icon="vaadin:search"]:hover {
+  transform: scale(1.1);
+  color: var(--lumo-primary-color-50pct);
+}
+
+/* Active/focus effect */
+vaadin-icon[icon="vaadin:search"]:active,
+vaadin-icon[icon="vaadin:search"]:focus-visible {
+  color: var(--lumo-primary-color);
+  transform: scale(0.95);
+}
+
+/* Special styling for when it's used as a prefix in input fields */
+[slot="prefix"] vaadin-icon[icon="vaadin:search"],
+vaadin-icon[icon="vaadin:search"][slot="prefix"] {
+  margin-left: var(--lumo-space-xs);
+  margin-right: var(--lumo-space-xs);
+}
+
+/* Animation for focus - subtle pulse effect */
+@keyframes search-icon-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Apply animation on parent focus */
+:focus-within vaadin-icon[icon="vaadin:search"] {
+  animation: search-icon-pulse 1s ease-in-out infinite;
+}

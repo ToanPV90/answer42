@@ -7,6 +7,7 @@ import $cssFromFile_2 from 'Frontend/styles/themes/answer42/components/auth-form
 import $cssFromFile_3 from 'Frontend/styles/themes/answer42/components/main-layout.css?inline';
 import $cssFromFile_4 from 'Frontend/styles/themes/answer42/components/dashboard.css?inline';
 import $cssFromFile_5 from 'Frontend/styles/themes/answer42/components/papers.css?inline';
+import $cssFromFile_6 from 'Frontend/styles/themes/answer42/components/search-icon.css?inline';
 import '@vaadin/polymer-legacy-adapter/style-modules.js';
 import '@vaadin/app-layout/theme/lumo/vaadin-app-layout.js';
 import '@vaadin/vertical-layout/theme/lumo/vaadin-vertical-layout.js';
@@ -109,6 +110,8 @@ injectGlobalCss($cssFromFile_3.toString(), 'CSSImport end', document);
 injectGlobalCss($cssFromFile_4.toString(), 'CSSImport end', document);
 
 injectGlobalCss($cssFromFile_5.toString(), 'CSSImport end', document);
+
+injectGlobalCss($cssFromFile_6.toString(), 'CSSImport end', document);
 const loadOnDemand = (key) => { return Promise.resolve(0); }
 window.Vaadin = window.Vaadin || {};
 window.Vaadin.Flow = window.Vaadin.Flow || {};

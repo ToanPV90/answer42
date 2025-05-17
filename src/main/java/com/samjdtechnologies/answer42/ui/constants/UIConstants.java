@@ -52,6 +52,7 @@ public class UIConstants {
     public static final String CSS_SIDEBAR_FOOTER = "sidebar-footer";
     public static final String CSS_USER_INITIAL = "user-initial";
     
+    
     // Dashboard related
     public static final String CSS_DASHBOARD_VIEW = "dashboard-view";
     public static final String CSS_WELCOME_SECTION = "welcome-section";

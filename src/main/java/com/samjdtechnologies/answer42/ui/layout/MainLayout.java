@@ -181,9 +181,7 @@ public class MainLayout extends AppLayout {
         logoutLayout.setSpacing(true);
         userMenu.addItem(logoutLayout, e -> logout());
         
-        // Make avatar appear clickable
-        avatar.getElement().setAttribute("style", "cursor: pointer;");
-        
+                
         // Right side items
         HorizontalLayout rightItems = new HorizontalLayout(search, themeToggle, avatar);
         rightItems.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);

@@ -15,7 +15,7 @@
 
 /* Content container for the dashboard */
 .content-container {
-  padding: var(--lumo-space-m);
+  padding: var(--lumo-space-s);
   margin: 0 auto;
   width: 100%;
   max-width: 1200px;
@@ -23,7 +23,8 @@
 
 /* Welcome section - using UIConstants.CSS_WELCOME_SECTION */
 .welcome-section {
-  margin-bottom: var(--lumo-space-l);
+  margin-bottom: var(--lumo-space-m);
+  padding: var(--lumo-space-s) 0;
 }
 
 .welcome-title {
@@ -42,19 +43,19 @@
 .stats-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--lumo-space-m);
-  margin-bottom: var(--lumo-space-l);
+  gap: var(--lumo-space-s);
+  margin-bottom: var(--lumo-space-m);
 }
 
 /* Stat card - using UIConstants.CSS_STAT_CARD */
 .stat-card {
   background-color: var(--lumo-base-color);
   border-radius: var(--lumo-border-radius-l);
-  padding: var(--lumo-space-l);
+  padding: var(--lumo-space-m);
   box-shadow: var(--lumo-box-shadow-s);
   display: flex;
   flex-direction: column;
-  gap: var(--lumo-space-s);
+  gap: var(--lumo-space-xs);
   transition: transform var(--answer42-transition-normal), box-shadow var(--answer42-transition-normal);
   height: 100%;
 }
@@ -127,8 +128,17 @@
 
 /* Quick actions - using UIConstants.CSS_QUICK_ACTIONS */
 .quick-actions {
-  margin-bottom: var(--lumo-space-l);
-  margin-top: 60px;
+  margin-bottom: var(--lumo-space-m);
+  margin-top: var(--lumo-space-xxl);
+  padding-top: var(--lumo-space-m);
+  clear: both;
+  position: relative;
+}
+
+/* Ensure section header has proper spacing */
+.quick-actions .section-header {
+  margin-top: var(--lumo-space-s);
+  margin-bottom: var(--lumo-space-s);
 }
 
 /* Section header and view-all link are now defined in main.css */
@@ -136,13 +146,14 @@
 .actions-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--lumo-space-m);
+  gap: var(--lumo-space-s);
 }
 
 .dashboard-action-button {
   background-color: var(--lumo-base-color);
   border-radius: var(--lumo-border-radius-m);
-  padding: var(--lumo-space-m);
+  padding: var(--lumo-space-s);
+  height: 44px;
   display: flex;
   align-items: center;
   gap: var(--lumo-space-s);
@@ -197,7 +208,7 @@
 .papers-list {
   display: flex;
   flex-direction: column;
-  gap: var(--lumo-space-m);
+  gap: var(--lumo-space-xs);
   margin-top: var(--lumo-space-xs);
 }
 
@@ -205,7 +216,7 @@
 .paper-card {
   background-color: var(--lumo-base-color);
   border-radius: var(--lumo-border-radius-m);
-  padding: var(--lumo-space-m);
+  padding: var(--lumo-space-s);
   box-shadow: var(--lumo-box-shadow-xs);
   transition: transform var(--answer42-transition-normal), box-shadow var(--answer42-transition-normal);
   display: flex;
@@ -252,8 +263,8 @@
 .paper-content {
   font-size: 0.875rem;
   color: var(--lumo-secondary-text-color);
-  margin-bottom: var(--lumo-space-m);
-  line-height: 1.5;
+  margin-bottom: var(--lumo-space-s);
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -289,9 +300,9 @@
 .paper-metadata {
   display: flex;
   align-items: center;
-  gap: var(--lumo-space-m);
-  margin-top: var(--lumo-space-s);
-  margin-bottom: var(--lumo-space-s);
+  gap: var(--lumo-space-s);
+  margin-top: var(--lumo-space-xs);
+  margin-bottom: var(--lumo-space-xs);
   font-size: 0.75rem;
   color: var(--lumo-tertiary-text-color);
 }

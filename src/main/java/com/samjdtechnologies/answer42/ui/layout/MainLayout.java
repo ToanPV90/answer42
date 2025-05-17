@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.service.AuthenticationService;
+import com.samjdtechnologies.answer42.ui.theme.Answer42Theme;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.UI;
@@ -34,7 +35,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.dom.ThemeList;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.theme.lumo.Lumo;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
 /**
@@ -125,11 +125,11 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         themeToggle.addClassName("theme-toggle");
         themeToggle.addClickListener(e -> {
             ThemeList themeList = UI.getCurrent().getElement().getThemeList();
-            if (themeList.contains(Lumo.DARK)) {
-                themeList.remove(Lumo.DARK);
+            if (themeList.contains(Answer42Theme.DARK)) {
+                themeList.remove(Answer42Theme.DARK);
                 themeToggle.setIcon(new Icon(VaadinIcon.MOON));
             } else {
-                themeList.add(Lumo.DARK);
+                themeList.add(Answer42Theme.DARK);
                 themeToggle.setIcon(new Icon(VaadinIcon.SUN_O));
             }
         });

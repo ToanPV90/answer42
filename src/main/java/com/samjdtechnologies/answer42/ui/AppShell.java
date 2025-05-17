@@ -1,6 +1,5 @@
 package com.samjdtechnologies.answer42.ui;
 
-import com.samjdtechnologies.answer42.ui.theme.Answer42Theme;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.page.AppShellConfigurator;
@@ -8,7 +7,6 @@ import com.vaadin.flow.component.page.Meta;
 import com.vaadin.flow.component.page.Viewport;
 import com.vaadin.flow.server.AppShellSettings;
 import com.vaadin.flow.server.PWA;
-import com.vaadin.flow.theme.Theme;
 
 /**
  * Application shell configuration.
@@ -27,12 +25,11 @@ import com.vaadin.flow.theme.Theme;
 )
 @CssImport("./styles/themes/answer42/main.css")
 @CssImport("./styles/themes/answer42/styles.css")
-@CssImport("./styles/themes/answer42/answer42-dark.css")
 @CssImport("./styles/themes/answer42/components/auth-forms.css")
 @CssImport("./styles/themes/answer42/components/main-layout.css")
 @CssImport("./styles/themes/answer42/components/dashboard.css")
 @CssImport("./styles/themes/answer42/components/papers.css")
-@Theme(themeClass = Answer42Theme.class)
+
 @JavaScript("./sw-loader.js")
 @JavaScript("./jwt-injector.js")
 @JavaScript("./sw-register.js")
@@ -62,5 +59,8 @@ public class AppShell implements AppShellConfigurator {
         
         // Link to the manifest
         settings.addLink("manifest", "manifest.webmanifest");
+
+        // settings.addLink("./sw-register.js", Map.of("rel", "preload", "as", "script"));
+
     }
 }

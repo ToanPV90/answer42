@@ -1,0 +1,241 @@
+/* Papers view styling */
+
+/* Papers view container - using UIConstants.CSS_PAPERS_VIEW */
+.papers-view {
+  padding: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  background-color: var(--lumo-contrast-5pct);
+}
+
+/* Content container for consistent layout with dashboard */
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--lumo-space-m);
+  width: 100%;
+}
+
+/* Toolbar styling */
+.toolbar {
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius-m);
+  padding: var(--lumo-space-m);
+  box-shadow: var(--lumo-box-shadow-xs);
+  margin-bottom: var(--lumo-space-m);
+}
+
+/* Grid styling */
+vaadin-grid {
+  border-radius: var(--lumo-border-radius-m);
+  overflow: hidden;
+  box-shadow: var(--lumo-box-shadow-xs);
+  background-color: var(--lumo-base-color);
+}
+
+vaadin-grid::part(header-cell) {
+  background-color: var(--lumo-contrast-5pct);
+  font-weight: 600;
+}
+
+vaadin-grid::part(row) {
+  cursor: pointer;
+  transition: background-color var(--answer42-transition-fast);
+}
+
+vaadin-grid::part(row):hover {
+  background-color: var(--lumo-contrast-5pct);
+}
+
+/* Paper status badges */
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.status-badge.processed {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--lumo-success-color);
+}
+
+.status-badge.pending {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--lumo-warning-color);
+}
+
+.status-badge.processing {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--lumo-primary-color);
+}
+
+.status-badge.failed {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--lumo-error-color);
+}
+
+/* Upload dialog styling */
+.upload-dialog {
+  width: 100%;
+  max-width: 500px;
+}
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lumo-space-m);
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lumo-space-s);
+}
+
+.form-field {
+  width: 100%;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--lumo-space-s);
+  margin-top: var(--lumo-space-m);
+}
+
+/* Custom upload styling */
+vaadin-upload {
+  box-shadow: var(--lumo-box-shadow-xs);
+  border-radius: var(--lumo-border-radius-m);
+  padding: var(--lumo-space-s);
+}
+
+/* Paper details dialog */
+.paper-details-dialog {
+  width: 100%;
+  max-width: 600px;
+}
+
+.paper-details-header {
+  margin-bottom: var(--lumo-space-m);
+}
+
+.paper-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--lumo-body-text-color);
+  margin: 0;
+  margin-bottom: var(--lumo-space-xs);
+}
+
+.paper-authors {
+  font-size: 0.875rem;
+  color: var(--lumo-secondary-text-color);
+}
+
+.metadata-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lumo-space-xs);
+  background-color: var(--lumo-contrast-5pct);
+  padding: var(--lumo-space-s);
+  border-radius: var(--lumo-border-radius-m);
+  margin: var(--lumo-space-m) 0;
+}
+
+.metadata-item {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+}
+
+.metadata-label {
+  font-weight: 600;
+  color: var(--lumo-secondary-text-color);
+  min-width: 100px;
+}
+
+.metadata-value {
+  color: var(--lumo-body-text-color);
+}
+
+/* Abstract section */
+.abstract-section {
+  margin-top: var(--lumo-space-m);
+}
+
+.abstract-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--lumo-body-text-color);
+  margin-bottom: var(--lumo-space-s);
+}
+
+.abstract-content {
+  font-size: 0.875rem;
+  color: var(--lumo-secondary-text-color);
+  line-height: 1.5;
+}
+
+/* Action buttons */
+.action-button-container {
+  display: flex;
+  gap: var(--lumo-space-xs);
+}
+
+/* .action-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background-color: var(--lumo-contrast-5pct);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lumo-secondary-text-color);
+  cursor: pointer;
+  transition: background-color var(--answer42-transition-fast), color var(--answer42-transition-fast);
+} */
+
+.action-button:hover {
+  background-color: var(--lumo-primary-color);
+  color: white;
+}
+
+.action-button.delete:hover {
+  background-color: var(--lumo-error-color);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--lumo-space-m);
+  gap: var(--lumo-space-s);
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: var(--lumo-secondary-text-color);
+  margin: 0 var(--lumo-space-s);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .content-container {
+    padding: var(--lumo-space-s);
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--lumo-space-s);
+  }
+  
+  .action-button-container {
+    justify-content: center;
+  }
+}

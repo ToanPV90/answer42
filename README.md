@@ -96,15 +96,16 @@ Answer42 follows a modern layered architecture with clear separation of concerns
 
 ```
 answer42/
-├── frontend/
-│   └── themes/
-│       └── answer42/             # Custom theme
-│           ├── theme.json        # Theme configuration
-│           ├── styles.css        # Global variables
-│           ├── main.css          # Main styles
-│           └── components/       # Component-specific styles
 ├── src/
 │   ├── main/
+|   |   └── frontend/
+|   |   |    └── styles/
+|   |   |        └── themes/
+│   |   |           └── answer42/           # Custom theme
+|   |   |             ├── theme.json        # Theme configuration
+│   |   |             ├── styles.css        # Global variables
+|   │   |             ├── main.css          # Main styles
+|   │   |             └── components/       # Component-specific styles
 │   │   ├── java/
 │   │   │   └── com/samjdtechnologies/answer42/
 │   │   │       ├── config/              # Configuration classes
@@ -175,16 +176,16 @@ import org.hibernate.type.SqlTypes;
 
 @Entity
 public class YourEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    
+
     // Use JdbcTypeCode annotation for JSON object fields
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> attributes;
-    
+
     // Rest of your entity...
 }
 ```
@@ -197,14 +198,14 @@ For array types stored as JSONB, we use List<String> with the same annotations:
 @Entity
 @Table(name = "papers", schema = "answer42")
 public class Paper {
-    
+
     // Other fields...
-    
+
     // Changed from String[] to List<String>
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private List<String> topics;
-    
+
     public List<String> getTopics() {
         return topics;
     }
@@ -212,7 +213,7 @@ public class Paper {
     public void setTopics(List<String> topics) {
         this.topics = topics;
     }
-    
+
     // Rest of your entity...
 }
 ```
@@ -224,10 +225,12 @@ This approach provides the flexibility of schema-less data within a relational d
 Answer42 integrates with multiple AI models:
 
 1. **Anthropic Claude**: 
+   
    - Model: claude-3-7-sonnet-latest
    - Features: Advanced conversation and research assistance
 
 2. **Perplexity API**: 
+   
    - Model: llama-3.1-sonar-small-128k-online
    - Features: Knowledge retrieval and research support
 
@@ -438,7 +441,7 @@ Each chat interface operates independently from the agent system, providing spec
 Answer42 uses a structured theme system based on Vaadin best practices:
 
 ```
-frontend/themes/answer42/
+src/main/frontend/styles/themes/answer42/
 ├── theme.json            # Theme configuration
 ├── styles.css            # Global variables and utility classes
 ├── main.css              # Main imports and component overrides
@@ -456,7 +459,19 @@ frontend/themes/answer42/
 4. **Responsive Design**: Mobile-first approach with responsive breakpoints
 5. **Design System Integration**: Leverages Vaadin Lumo design system
 
-The theme is activated via the `@Theme("answer42")` annotation in the AppShell class.
+The theme is activated by loading each css inthe AppShell class.
+
+@CssImport("./styles/themes/answer42/main.css")
+
+@CssImport("./styles/themes/answer42/styles.css")
+
+@CssImport("./styles/themes/answer42/components/auth-forms.css")
+
+@CssImport("./styles/themes/answer42/components/main-layout.css")
+
+@CssImport("./styles/themes/answer42/components/dashboard.css")
+
+@CssImport("./styles/themes/answer42/components/papers.css")
 
 ## Getting Started
 
@@ -487,6 +502,7 @@ The application includes an `EnvironmentConfig` class that loads variables from 
 ### Installation
 
 1. Clone the repository:
+   
    ```
    git clone https://github.com/yourusername/answer42.git
    cd answer42
@@ -495,11 +511,13 @@ The application includes an `EnvironmentConfig` class that loads variables from 
 2. Set up the environment variables described above
 
 3. Build the application:
+   
    ```
    mvn clean install
    ```
 
 4. Run the application:
+   
    ```
    mvn spring-boot:run
    ```
@@ -537,6 +555,7 @@ mvn clean package -Pproduction
 ```
 
 This builds an optimized version with:
+
 - Minified frontend resources
 - Production-ready settings
 - WAR file for deployment

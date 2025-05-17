@@ -28,6 +28,7 @@ import com.vaadin.flow.server.PWA;
 @CssImport("./styles/themes/answer42/components/auth-forms.css")
 @CssImport("./styles/themes/answer42/components/main-layout.css")
 @CssImport("./styles/themes/answer42/components/dashboard.css")
+@CssImport("./styles/themes/answer42/components/papers.css")
 
 @JavaScript("./sw-loader.js")
 @Meta(name = "author", content = "SAMJD Technologies")

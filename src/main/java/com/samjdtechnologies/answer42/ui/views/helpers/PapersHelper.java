@@ -10,7 +10,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.PaperService;
+import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.UI;
@@ -37,6 +41,8 @@ import com.vaadin.flow.server.StreamResource;
  * Helper class for PapersView to handle non-UI rendering logic
  */
 public class PapersHelper {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(PapersHelper.class);
 
     /**
      * Update list of papers and refresh the grid based on search and filter criteria
@@ -53,11 +59,16 @@ public class PapersHelper {
                                PaperService paperService,
                                Consumer<Integer> pageUpdateCallback) {
         
+        LoggingUtil.debug(LOG, "updateList", "Updating with user: " + (currentUser != null ? currentUser.getUsername() : "null") + 
+            ", search: '" + searchTerm + "', status: '" + statusValue + "'");
+            
         // Use helper to fetch papers list
         Page<Paper> papers = fetchPapersList(
             currentUser, searchTerm, statusValue, page, pageSize, paperService);
         
         // Update grid
+        int contentSize = papers.getContent().size();
+        LoggingUtil.info(LOG, "updateList", "Setting grid with " + contentSize + " papers");
         grid.setItems(papers.getContent());
         
         // Update pagination and potentially adjust page if beyond bounds
@@ -67,6 +78,7 @@ public class PapersHelper {
         
         // If page changed, update the current page and refresh
         if (adjustedPage != page && pageUpdateCallback != null) {
+            LoggingUtil.debug(LOG, "updateList", "Page adjustment needed: " + page + " -> " + adjustedPage);
             pageUpdateCallback.accept(adjustedPage);
         }
     }
@@ -77,6 +89,8 @@ public class PapersHelper {
     public static void configureGrid(Grid<Paper> grid, 
                                      ComponentRenderer<Component, Paper> actionsRenderer,
                                      Consumer<Paper> itemClickHandler) {
+        LoggingUtil.debug(LOG, "configureGrid", "Configuring papers grid...");
+        
         grid.addClassName("papers-grid");
         grid.setSizeFull();
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
@@ -121,6 +135,8 @@ public class PapersHelper {
                 itemClickHandler.accept(event.getItem());
             }
         });
+        
+        LoggingUtil.debug(LOG, "configureGrid", "Grid configuration completed");
     }
 
     /**
@@ -128,32 +144,66 @@ public class PapersHelper {
      */
     public static Page<Paper> fetchPapersList(User currentUser, String searchTerm, String statusValue, 
                                              int page, int pageSize, PaperService paperService) {
-        // Fetch papers based on filters
-        PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        
-        if (!searchTerm.isEmpty() && !"All".equals(statusValue)) {
-            // Search with status filter
-            Page<Paper> searchResults = paperService.searchPapersByUser(currentUser, searchTerm, pageRequest);
-            // Since we can't filter a Page directly, we'll load all matching papers and filter
-            List<Paper> filteredPapers = searchResults.getContent().stream()
-                    .filter(paper -> paper.getStatus().equals(statusValue))
-                    .toList();
+        LoggingUtil.debug(LOG, "fetchPapersList", "Fetching papers for user: " + 
+            (currentUser != null ? currentUser.getUsername() + " (ID: " + currentUser.getId() + ")" : "null"));
             
-            // Apply pagination manually (this is simplified and not ideal for large datasets)
-            return new org.springframework.data.domain.PageImpl<>(
-                filteredPapers, 
-                pageRequest, 
-                searchResults.getTotalElements()
-            );
-        } else if (!searchTerm.isEmpty()) {
-            // Search without status filter
-            return paperService.searchPapersByUser(currentUser, searchTerm, pageRequest);
-        } else if (!"All".equals(statusValue)) {
-            // Status filter without search
-            return paperService.getPapersByUserAndStatus(currentUser, statusValue, pageRequest);
-        } else {
-            // No filters
-            return paperService.getPapersByUser(currentUser, pageRequest);
+        if (currentUser == null) {
+            LoggingUtil.error(LOG, "fetchPapersList", "Cannot fetch papers: Current user is null");
+            return Page.empty(PageRequest.of(0, pageSize));
+        }
+        
+        try {
+            // Ensure params are not null to avoid NPE
+            final String finalSearchTerm = searchTerm == null ? "" : searchTerm;
+            final String finalStatusValue = statusValue == null ? "All" : statusValue;
+            
+            LoggingUtil.debug(LOG, "fetchPapersList", 
+                "Using parameters: searchTerm='" + finalSearchTerm + 
+                "', statusValue='" + finalStatusValue + 
+                "', page=" + page +
+                ", pageSize=" + pageSize);
+            
+            // Fetch papers based on filters
+            PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+            Page<Paper> result;
+            
+            if (!finalSearchTerm.isEmpty() && !"All".equals(finalStatusValue)) {
+                // Search with status filter
+                LoggingUtil.debug(LOG, "fetchPapersList", "Using search with status filter");
+                Page<Paper> searchResults = paperService.searchPapersByUser(currentUser, finalSearchTerm, pageRequest);
+                
+                // Since we can't filter a Page directly, we'll load all matching papers and filter
+                List<Paper> filteredPapers = searchResults.getContent().stream()
+                        .filter(paper -> paper.getStatus().equals(finalStatusValue))
+                        .toList();
+                
+                // Apply pagination manually (this is simplified and not ideal for large datasets)
+                result = new PageImpl<>(
+                    filteredPapers, 
+                    pageRequest, 
+                    searchResults.getTotalElements()
+                );
+            } else if (!finalSearchTerm.isEmpty()) {
+                // Search without status filter
+                LoggingUtil.debug(LOG, "fetchPapersList", "Using search without status filter");
+                result = paperService.searchPapersByUser(currentUser, finalSearchTerm, pageRequest);
+            } else if (!"All".equals(finalStatusValue)) {
+                // Status filter without search
+                LoggingUtil.debug(LOG, "fetchPapersList", "Using status filter without search");
+                result = paperService.getPapersByUserAndStatus(currentUser, finalStatusValue, pageRequest);
+            } else {
+                // No filters
+                LoggingUtil.debug(LOG, "fetchPapersList", "No filters, retrieving all user papers");
+                result = paperService.getPapersByUser(currentUser, pageRequest);
+            }
+            
+            LoggingUtil.info(LOG, "fetchPapersList", "Retrieved " + result.getContent().size() + 
+                " papers for user " + currentUser.getUsername() + " (total: " + result.getTotalElements() + ")");
+            
+            return result;
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "fetchPapersList", "Error fetching papers: " + e.getMessage(), e);
+            return Page.empty(PageRequest.of(page, pageSize));
         }
     }
 
@@ -162,13 +212,18 @@ public class PapersHelper {
      */
     public static int updatePagination(int currentPage, int totalPages, long totalItems, Span pageInfo,
                                     Button prevButton, Button nextButton) {
+        LoggingUtil.debug(LOG, "updatePagination", "Page: " + (currentPage + 1) + "/" + 
+            totalPages + " (Total items: " + totalItems + ")");
+            
         pageInfo.setText((currentPage + 1) + " of " + totalPages + " (" + totalItems + " items)");
         prevButton.setEnabled(currentPage > 0);
         nextButton.setEnabled(currentPage + 1 < totalPages);
         
         // If current page is beyond total pages, adjust and return new page
         if (totalPages > 0 && currentPage >= totalPages) {
-            return totalPages - 1;
+            int adjustedPage = totalPages - 1;
+            LoggingUtil.debug(LOG, "updatePagination", "Adjusting page from " + currentPage + " to " + adjustedPage);
+            return adjustedPage;
         }
         
         return currentPage;
@@ -291,6 +346,7 @@ public class PapersHelper {
                     .addThemeVariants(NotificationVariant.LUMO_WARNING);
             }
         } catch (Exception e) {
+            LoggingUtil.error(LOG, "downloadPaper", "Download failed: " + e.getMessage(), e);
             Notification.show("Error: " + e.getMessage(), 
                 3000, Notification.Position.BOTTOM_START)
                 .addThemeVariants(NotificationVariant.LUMO_ERROR);

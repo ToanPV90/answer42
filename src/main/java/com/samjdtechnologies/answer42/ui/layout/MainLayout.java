@@ -90,14 +90,12 @@ public class MainLayout extends AppLayout {
         logo.setWidth("32px");
         
         H1 title = new H1("Answer42");
-        title.getStyle()
-            .set("font-size", "var(--lumo-font-size-l)")
-            .set("margin", "0");
+        title.addClassName(UIConstants.CSS_LOGO_LAYOUT_TITLE);
         
         // Header layout
         HorizontalLayout logoLayout = new HorizontalLayout(logo, title);
         logoLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        logoLayout.addClassName("logo-layout");
+        logoLayout.addClassName(UIConstants.CSS_LOGO_LAYOUT);
         
         return logoLayout;
     }
@@ -190,11 +188,7 @@ public class MainLayout extends AppLayout {
         HorizontalLayout rightItems = new HorizontalLayout(search, themeToggle, avatar);
         rightItems.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         rightItems.setSpacing(true);
-        
-        // Right align the components using CSS margin-left: auto
-        rightItems.getStyle()
-            .set("margin-left", "auto")
-            .set("padding", "10px");
+        rightItems.addClassName(UIConstants.CSS_TOOLBAR_RIGHT_ITEMS);
         
         return rightItems;
     }
@@ -233,29 +227,24 @@ public class MainLayout extends AppLayout {
         
         // Create MAIN section
         Span mainHeader = new Span("MAIN");
-        mainHeader.getStyle()
-            .set("color", "var(--lumo-tertiary-text-color)")
-            .set("font-size", "var(--lumo-font-size-xs)")
-            .set("font-weight", "500")
-            .set("margin", "var(--lumo-space-m) var(--lumo-space-s) var(--lumo-space-xs)")
-            .set("text-transform", "uppercase");
+        mainHeader.addClassName(UIConstants.CSS_NAV_SECTION_HEADER);
         sidebarLayout.add(mainHeader);
         
         // Create main nav items
         SideNav mainNav = new SideNav();
-        mainNav.addClassNames("main-nav");
+        mainNav.addClassNames(UIConstants.CSS_MAIN_NAV);
         
         SideNavItem dashboardItem = new SideNavItem("Dashboard", UIConstants.ROUTE_MAIN, VaadinIcon.DASHBOARD.create());
-        dashboardItem.addClassNames("nav-item", "sidebar-nav-item");
+        dashboardItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         SideNavItem papersItem = new SideNavItem("Papers", UIConstants.ROUTE_PAPERS, VaadinIcon.FILE_TEXT.create());
-        papersItem.addClassNames("nav-item", "sidebar-nav-item");
+        papersItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         SideNavItem projectsItem = new SideNavItem("Projects", UIConstants.ROUTE_PROJECTS, VaadinIcon.FOLDER.create());
-        projectsItem.addClassNames("nav-item", "sidebar-nav-item");
+        projectsItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         SideNavItem aiChatItem = new SideNavItem("AI Chat", UIConstants.ROUTE_AI_CHAT, VaadinIcon.COMMENTS.create());
-        aiChatItem.addClassNames("nav-item", "sidebar-nav-item");
+        aiChatItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         mainNav.addItem(dashboardItem);
         mainNav.addItem(papersItem);
@@ -266,42 +255,33 @@ public class MainLayout extends AppLayout {
         
         // Add divider
         Div divider = new Div();
-        divider.getStyle()
-            .set("margin", "var(--lumo-space-m) 0")
-            .set("height", "1px")
-            .set("background-color", "var(--lumo-contrast-10pct)");
+        divider.addClassName(UIConstants.CSS_NAV_DIVIDER);
         sidebarLayout.add(divider);
         
         // Create USER section
         Span userHeader = new Span("USER");
-        userHeader.getStyle()
-            .set("color", "var(--lumo-tertiary-text-color)")
-            .set("font-size", "var(--lumo-font-size-xs)")
-            .set("font-weight", "500")
-            .set("margin", "var(--lumo-space-m) var(--lumo-space-s) var(--lumo-space-xs)")
-            .set("text-transform", "uppercase");
+        userHeader.addClassName(UIConstants.CSS_NAV_SECTION_HEADER);
         sidebarLayout.add(userHeader);
         
         // Create user nav items
         SideNav userNav = new SideNav();
-        userNav.addClassNames("user-nav");
+        userNav.addClassNames(UIConstants.CSS_USER_NAV);
         
         SideNavItem profileItem = new SideNavItem("Profile", UIConstants.ROUTE_PROFILE, VaadinIcon.USER.create());
-        profileItem.addClassNames("nav-item", "sidebar-nav-item");
+        profileItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         SideNavItem subscriptionItem = new SideNavItem("Subscription", UIConstants.ROUTE_PROFILE, VaadinIcon.CREDIT_CARD.create());
-        subscriptionItem.addClassNames("nav-item", "sidebar-nav-item");
+        subscriptionItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         SideNavItem creditsItem = new SideNavItem("Credits", UIConstants.ROUTE_PROFILE, VaadinIcon.COIN_PILES.create());
-        creditsItem.addClassNames("nav-item", "sidebar-nav-item");
+        creditsItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         SideNavItem settingsItem = new SideNavItem("Settings", UIConstants.ROUTE_SETTINGS, VaadinIcon.COG.create());
-        settingsItem.addClassNames("nav-item", "sidebar-nav-item");
+        settingsItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         // Create a special SideNavItem for logout with a custom click listener
         SideNavItem logoutItem = new SideNavItem("Logout", "javascript:void(0)", VaadinIcon.SIGN_OUT.create());
-        logoutItem.addClassNames("nav-item", "sidebar-nav-item");
-        logoutItem.getStyle().set("color", "var(--lumo-error-color)");
+        logoutItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM, UIConstants.CSS_LOGOUT_ITEM);
         logoutItem.getElement().addEventListener("click", e -> logout());
         
         userNav.addItem(profileItem);
@@ -329,14 +309,10 @@ public class MainLayout extends AppLayout {
      */
     private Footer createAssistantFooter() {
         Footer footer = new Footer();
-        footer.addClassNames("drawer-footer", "sidebar-footer");
+        footer.addClassNames(UIConstants.CSS_DRAWER_FOOTER, UIConstants.CSS_SIDEBAR_FOOTER);
         
         Avatar assistantAvatar = new Avatar("A");
-        assistantAvatar.addClassNames("assistant-avatar", "user-initial");
-        assistantAvatar.getStyle()
-            .set("background-color", "var(--lumo-primary-color)")
-            .set("color", "white")
-            .set("font-weight", "600");
+        assistantAvatar.addClassNames(UIConstants.CSS_ASSISTANT_AVATAR, UIConstants.CSS_USER_INITIAL);
         
         VerticalLayout assistantInfo = new VerticalLayout();
         assistantInfo.setPadding(false);

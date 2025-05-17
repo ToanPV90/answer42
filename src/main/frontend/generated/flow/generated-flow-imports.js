@@ -95,6 +95,8 @@ import '@vaadin/vaadin-lumo-styles/spacing.js';
 import '@vaadin/vaadin-lumo-styles/style.js';
 import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
 import 'Frontend/generated/jar-resources/sw-loader.js';
+import 'Frontend/generated/jar-resources/jwt-injector.js';
+import 'Frontend/generated/jar-resources/sw-register.js';
 
 injectGlobalCss($cssFromFile_0.toString(), 'CSSImport end', document);
 

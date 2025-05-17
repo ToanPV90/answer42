@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.samjdtechnologies.answer42.controller.AuthController;
 import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinSession;
 
 /**
@@ -52,8 +53,20 @@ public class AuthenticationService {
                 Map<String, Object> responseMap = (Map<String, Object>) response.getBody();
                 String token = (String) responseMap.get("token");
                 
-                // Store the token in the Vaadin session
+                // Store the token in the Vaadin session and HTTP session
                 VaadinSession.getCurrent().setAttribute("jwt_token", token);
+                
+                // Ensure token is also in the HTTP session for filter access
+                if (VaadinSession.getCurrent() != null && 
+                    VaadinSession.getCurrent().getSession() != null) {
+                    VaadinSession.getCurrent().getSession().setAttribute("jwt_token", token);
+                }
+                
+                // Store token in localStorage and sessionStorage for client-side requests
+                UI.getCurrent().getPage().executeJs(
+                    "window.storeJwtToken($0)", token);
+                
+                LoggingUtil.debug(LOG, "login", "JWT token stored in session and localStorage for user: %s", username);
                 
                 return Optional.of(token);
             }
@@ -114,6 +127,8 @@ public class AuthenticationService {
         VaadinSession.getCurrent().getSession().invalidate();
         // Clear Spring Security context
         SecurityContextHolder.clearContext();
+        // Clear the JWT token from localStorage
+        UI.getCurrent().getPage().executeJs("window.clearJwtToken()");
     }
 
     /**

@@ -15,6 +15,12 @@ public class UIConstants {
     public static final String ROUTE_PROFILE = "profile";
     public static final String ROUTE_SETTINGS = "settings";
     
+    // API routes and public endpoints
+    public static final String ROUTE_PUBLIC = "public";
+    public static final String ROUTE_API_AUTH = "api/auth";
+    public static final String ROUTE_API_TEST_PUBLIC = "api/test/public";
+    public static final String ROUTE_HEARTBEAT = "heartbeat";
+    
     // CSS classes and styles
     // Auth related
     public static final String CSS_FORM_LAYOUT = "auth-form-layout";

@@ -90,13 +90,15 @@ public class SecurityConfig {
             "/images/**",
             "/static/**",
             // Our public WEB endpoints
-            "/public/**",
+            "/" + UIConstants.ROUTE_PUBLIC + "/**",
             // Our public API endpoints
-            "/api/auth/**",
-            "/api/test/public",
+            "/" + UIConstants.ROUTE_API_AUTH + "/**",
+            "/" + UIConstants.ROUTE_API_TEST_PUBLIC,
             // Login and registration pages
             "/" + UIConstants.ROUTE_LOGIN + "/**",
-            "/" + UIConstants.ROUTE_REGISTER + "/**"
+            "/" + UIConstants.ROUTE_REGISTER + "/**",
+            // Heartbeat endpoint for session maintenance
+            "/" + UIConstants.ROUTE_HEARTBEAT
         };
         // Disable CSRF as we're using JWT
         http.csrf(csrf -> csrf.disable())
@@ -138,7 +140,10 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         LoggingUtil.debug(LOG, "jwtAuthenticationFilter", "Creating JwtAuthenticationFilter bean");
-        return new JwtAuthenticationFilter(jwtTokenUtil(), jwtConfig);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtTokenUtil(), jwtConfig);
+        filter.setUserDetailsService(customUserDetailsService);
+        LoggingUtil.debug(LOG, "jwtAuthenticationFilter", "UserDetailsService set on JwtAuthenticationFilter");
+        return filter;
     }
 
     @Bean

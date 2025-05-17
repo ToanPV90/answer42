@@ -1,6 +1,5 @@
 package com.samjdtechnologies.answer42.config;
 
-// Import correct classes for Spring AI 1.0.0-M8
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.anthropic.api.AnthropicApi;

@@ -26,7 +26,7 @@ public class EnvironmentConfig {
     @Value("${ANTHROPIC_API_KEY:#{null}}")
     private String anthropicApiKey;
 
-    @Value("${PERPLEXITY_API_KEY:#{null}}")
+    @Value("${OPENAI_API_KEY:#{null}}")
     private String perplexityApiKey;
 
     @EventListener(ContextRefreshedEvent.class)
@@ -42,9 +42,9 @@ public class EnvironmentConfig {
         
         if (perplexityApiKey != null && !perplexityApiKey.isEmpty()) {
             String maskedKey = maskApiKey(perplexityApiKey);
-            LOG.info("PERPLEXITY_API_KEY is set " + maskedKey);
+            LOG.info("OPENAI_API_KEY is set " + maskedKey);
         } else {
-            LOG.warning("PERPLEXITY_API_KEY is not set");
+            LOG.warning("OPENAI_API_KEY is not set");
         }
     }
 

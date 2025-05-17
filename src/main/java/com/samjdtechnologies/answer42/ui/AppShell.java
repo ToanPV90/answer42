@@ -1,7 +1,5 @@
 package com.samjdtechnologies.answer42.ui;
 
-import java.util.Map;
-
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.page.AppShellConfigurator;
@@ -33,6 +31,8 @@ import com.vaadin.flow.server.PWA;
 @CssImport("./styles/themes/answer42/components/papers.css")
 
 @JavaScript("./sw-loader.js")
+@JavaScript("./jwt-injector.js")
+@JavaScript("./sw-register.js")
 @Meta(name = "author", content = "SAMJD Technologies")
 @Meta(name = "application-name", content = "Answer42")
 @Meta(name = "apple-mobile-web-app-title", content = "Answer42")
@@ -60,7 +60,7 @@ public class AppShell implements AppShellConfigurator {
         // Link to the manifest
         settings.addLink("manifest", "manifest.webmanifest");
 
-        settings.addLink("sw-register.js", Map.of("rel", "preload", "as", "script"));
+        // settings.addLink("./sw-register.js", Map.of("rel", "preload", "as", "script"));
 
     }
 }

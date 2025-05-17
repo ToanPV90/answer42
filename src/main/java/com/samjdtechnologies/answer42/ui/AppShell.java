@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.ui;
 
+import com.samjdtechnologies.answer42.ui.theme.Answer42Theme;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.page.AppShellConfigurator;
@@ -8,7 +9,6 @@ import com.vaadin.flow.component.page.Viewport;
 import com.vaadin.flow.server.AppShellSettings;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.theme.Theme;
-import com.vaadin.flow.theme.lumo.Lumo;
 
 /**
  * Application shell configuration.
@@ -31,17 +31,14 @@ import com.vaadin.flow.theme.lumo.Lumo;
 @CssImport("./styles/themes/answer42/components/main-layout.css")
 @CssImport("./styles/themes/answer42/components/dashboard.css")
 @CssImport("./styles/themes/answer42/components/papers.css")
-@Theme(themeClass = Lumo.class)
-
+@Theme(themeClass = Answer42Theme.class, variant = Answer42Theme.DARK)
 @JavaScript("./sw-loader.js")
 @JavaScript("./jwt-injector.js")
 @JavaScript("./sw-register.js")
-
 @Meta(name = "author", content = "SAMJD Technologies")
 @Meta(name = "application-name", content = "Answer42")
 @Meta(name = "apple-mobile-web-app-title", content = "Answer42")
 @Meta(name = "msapplication-TileColor", content="#6366f1")
-
 @Viewport("width=device-width, initial-scale=1.0")
 public class AppShell implements AppShellConfigurator {
     
@@ -64,8 +61,5 @@ public class AppShell implements AppShellConfigurator {
         
         // Link to the manifest
         settings.addLink("manifest", "manifest.webmanifest");
-
-        // settings.addLink("./sw-register.js", Map.of("rel", "preload", "as", "script"));
-
     }
 }

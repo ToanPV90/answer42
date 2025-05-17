@@ -1,5 +1,7 @@
 package com.samjdtechnologies.answer42.ui;
 
+import java.util.Map;
+
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.page.AppShellConfigurator;
@@ -57,8 +59,8 @@ public class AppShell implements AppShellConfigurator {
         
         // Link to the manifest
         settings.addLink("manifest", "manifest.webmanifest");
-        
-        // Add custom service worker registration script
-        settings.addLink("preload", "sw-register.js");
+
+        settings.addLink("sw-register.js", Map.of("rel", "preload", "as", "script"));
+
     }
 }

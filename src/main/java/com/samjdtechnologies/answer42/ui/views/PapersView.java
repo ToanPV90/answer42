@@ -488,11 +488,25 @@ public class PapersView extends Div implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         LoggingUtil.debug(LOG, "beforeEnter", "Getting authentication");
-        // Get authentication directly - no need to check isAuthenticated since @Secured will handle
-        // access control through Spring Security 
+        
+        // Get authentication 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         LoggingUtil.debug(LOG, "beforeEnter", "Authentication: %s", auth != null ? 
                 auth.getName() + " (authenticated: " + auth.isAuthenticated() + ")" : "null");
+        
+        // Check if user is anonymous or lacks required role - @Secured isn't enough since anonymous users are "authenticated"
+        boolean hasAccess = false;
+        if (auth != null && auth.getAuthorities() != null) {
+            hasAccess = auth.getAuthorities().stream()
+                    .anyMatch(grantedAuth -> "ROLE_USER".equals(grantedAuth.getAuthority()));
+        }
+        
+        // Redirect to login if not authorized
+        if (!hasAccess) {
+            LoggingUtil.info(LOG, "beforeEnter", "User lacks required role, redirecting to login");
+            event.forwardTo(UIConstants.ROUTE_LOGIN); 
+            return;
+        }
         
         // Try to get the current user - this is needed for the view to function properly
         try {
@@ -503,19 +517,23 @@ public class PapersView extends Div implements BeforeEnterObserver {
                         currentUser.getUsername(), currentUser.getId());
                 } else {
                     LoggingUtil.warn(LOG, "beforeEnter", "Could not find user with username: %s", auth.getName());
+                    // If we can't find the user in the database, redirect to login
+                    event.forwardTo(UIConstants.ROUTE_LOGIN);
+                    return;
                 }
             } else {
                 LoggingUtil.warn(LOG, "beforeEnter", "Authentication is null, cannot load current user");
+                event.forwardTo(UIConstants.ROUTE_LOGIN);
+                return;
             }
             
-            // Initialize the view regardless of user status
-            // This will be controlled by Spring Security annotations
+            // Initialize the view only when user is authenticated and authorized
             initializeView();
             
         } catch (Exception e) {
-            // Log error but still initialize view
+            // Log error and redirect to login
             LOG.error("Error in beforeEnter: {}", e.getMessage(), e);
-            initializeView();
+            event.forwardTo(UIConstants.ROUTE_LOGIN);
         }
     }
 }

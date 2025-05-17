@@ -32,7 +32,8 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.dom.ThemeList;
-import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.theme.lumo.Lumo;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
@@ -40,7 +41,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
  * Main layout configuration class using Vaadin AppLayout component.
  * Provides the main navigation structure for the application.
  */
-public class MainLayout extends AppLayout {
+public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
     private static final Logger LOG = LoggerFactory.getLogger(MainLayout.class);
     
@@ -336,25 +337,57 @@ public class MainLayout extends AppLayout {
     
     /**
      * Handles user logout
+     * 
+     * Note: VaadinSession invalidation is handled by AuthenticationService.logout(),
+     * so we don't need to invalidate it again here.
      */
     private void logout() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         LoggingUtil.debug(LOG, "logout", "Logging out user: %s", 
                 auth != null ? auth.getName() : "unknown");
         
-        // Log the user out
-        authenticationService.logout();
-
-        // Clear session
-        VaadinSession.getCurrent().getSession().invalidate();
-
-        // Redirect to login page
-        UI.getCurrent().navigate(UIConstants.ROUTE_LOGIN);
-        LoggingUtil.info(LOG, "logout", "User logged out and redirected to login page");
+        try {
+            // Log the user out (includes session invalidation)
+            authenticationService.logout();
+            
+            // Redirect to login page
+            UI.getCurrent().navigate(UIConstants.ROUTE_LOGIN);
+            LoggingUtil.info(LOG, "logout", "User logged out and redirected to login page");
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "logout", "Error during logout", e);
+            // Still try to redirect to login page in case of errors
+            UI.getCurrent().navigate(UIConstants.ROUTE_LOGIN);
+        }
     }
 
     @Override
     public void showRouterLayoutContent(HasElement content) {
         this.content.getElement().appendChild(content.getElement());
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        // Skip authentication check for login and register pages
+        String path = event.getLocation().getPath();
+        if (path.equals(UIConstants.ROUTE_LOGIN) || path.equals(UIConstants.ROUTE_REGISTER)) {
+            return;
+        }
+        
+        // Check if the user is anonymous or lacks required role
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        // Check for proper authentication - anonymous users shouldn't access the main layout
+        boolean isAuthenticated = false;
+        
+        if (auth != null && auth.getAuthorities() != null) {
+            // Check if user has the required ROLE_USER authority
+            isAuthenticated = auth.getAuthorities().stream()
+                    .anyMatch(grantedAuth -> "ROLE_USER".equals(grantedAuth.getAuthority()));
+        }
+        
+        if (!isAuthenticated) {
+            LoggingUtil.debug(LOG, "MainLayout", "User not properly authenticated, redirecting to login page");
+            event.forwardTo(UIConstants.ROUTE_LOGIN);
+        }
     }
 }

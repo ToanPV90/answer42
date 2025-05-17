@@ -1,80 +1,104 @@
 package com.samjdtechnologies.answer42.config;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Properties;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 
 import jakarta.annotation.PostConstruct;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.PropertiesPropertySource;
-
-/**
- * Configuration class to load environment variables from .env file.
- * This ensures API keys are loaded from the .env file if not already
- * set in the environment.
- */
 @Configuration
+@PropertySource(value = "file:.env", ignoreResourceNotFound = true)
 public class EnvironmentConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(EnvironmentConfig.class);
-    private final ConfigurableEnvironment environment;
+    private static final Logger LOG = Logger.getLogger(EnvironmentConfig.class.getName());
 
-    public EnvironmentConfig(ConfigurableEnvironment environment) {
-        this.environment = environment;
+    @Value("${ANTHROPIC_API_KEY:#{null}}")
+    private String anthropicApiKey;
+
+    @Value("${PERPLEXITY_API_KEY:#{null}}")
+    private String perplexityApiKey;
+
+    @EventListener(ContextRefreshedEvent.class)
+    public void logEnvironmentSetup() {
+        LOG.info("Loaded environment variables from .env file");
+        
+        if (anthropicApiKey != null && !anthropicApiKey.isEmpty()) {
+            String maskedKey = maskApiKey(anthropicApiKey);
+            LOG.info("ANTHROPIC_API_KEY is set " + maskedKey);
+        } else {
+            LOG.warning("ANTHROPIC_API_KEY is not set");
+        }
+        
+        if (perplexityApiKey != null && !perplexityApiKey.isEmpty()) {
+            String maskedKey = maskApiKey(perplexityApiKey);
+            LOG.info("PERPLEXITY_API_KEY is set " + maskedKey);
+        } else {
+            LOG.warning("PERPLEXITY_API_KEY is not set");
+        }
     }
 
     @PostConstruct
     public void init() {
-        File envFile = new File(".env");
-        if (envFile.exists()) {
-            Properties props = new Properties();
-            try (FileInputStream fis = new FileInputStream(envFile)) {
-                props.load(fis);
-                logger.info("Loaded environment variables from .env file");
+        // Load .env file manually if PropertySource wasn't able to
+        if (anthropicApiKey == null && perplexityApiKey == null) {
+            loadEnvironmentVariables();
+        }
+    }
+
+    private void loadEnvironmentVariables() {
+        try {
+            Path dotEnvPath = Paths.get(".env");
+            if (Files.exists(dotEnvPath)) {
+                Map<String, String> env = new HashMap<>();
+                try (Stream<String> lines = Files.lines(dotEnvPath)) {
+                    lines.filter(line -> !line.startsWith("#") && line.contains("="))
+                         .forEach(line -> {
+                             String[] keyValue = line.split("=", 2);
+                             if (keyValue.length == 2) {
+                                 String key = keyValue[0].trim();
+                                 String value = keyValue[1].trim();
+                                 // Remove quotes if present
+                                 if (value.startsWith("\"") && value.endsWith("\"") || 
+                                     value.startsWith("'") && value.endsWith("'")) {
+                                     value = value.substring(1, value.length() - 1);
+                                 }
+                                 env.put(key, value);
+                             }
+                         });
+                }
                 
-                // Only set properties that aren't already in the environment
-                props.forEach((key, value) -> {
-                    if (environment.getProperty(key.toString()) == null) {
-                        System.setProperty(key.toString(), value.toString());
+                // Set as system properties if they don't exist already
+                env.forEach((key, value) -> {
+                    if (System.getProperty(key) == null) {
+                        System.setProperty(key, value);
                     }
                 });
                 
-                // Add as a property source with lower precedence than system environment
-                environment.getPropertySources().addLast(new PropertiesPropertySource(".env", props));
-                
-            } catch (IOException e) {
-                logger.error("Error loading .env file", e);
+                LOG.info("Manually loaded " + env.size() + " environment variables from .env file");
+            } else {
+                LOG.warning(".env file not found at path: " + dotEnvPath.toAbsolutePath());
             }
-        } else {
-            logger.warn(".env file not found. Make sure environment variables are set through other means.");
-        }
-        
-        // Log important environment variables (without revealing full values)
-        checkAndLogEnvVar("OPENAI_API_KEY");
-        checkAndLogEnvVar("ANTHROPIC_API_KEY");
-    }
-    
-    private void checkAndLogEnvVar(String varName) {
-        String value = environment.getProperty(varName);
-        if (value != null && !value.isEmpty()) {
-            String maskedValue = maskApiKey(value);
-            logger.info("{} is set {}", varName, maskedValue);
-        } else {
-            logger.warn("{} is not set", varName);
+        } catch (IOException e) {
+            LOG.severe("Error loading .env file: " + e.getMessage());
         }
     }
     
     private String maskApiKey(String apiKey) {
-        if (apiKey == null || apiKey.length() < 10) {
-            return "[INVALID_KEY]";
+        if (apiKey == null || apiKey.length() < 8) {
+            return "********";
         }
         
-        // Show only first 4 and last 4 characters
         return apiKey.substring(0, 4) + "..." + apiKey.substring(apiKey.length() - 4);
     }
 }

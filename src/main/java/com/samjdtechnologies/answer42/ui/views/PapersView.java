@@ -83,12 +83,9 @@ public class PapersView extends Div implements BeforeEnterObserver {
         // Configure the view
         removeAll();
         
-        // Create a container with proper padding for consistent layout with dashboard
+        // Create a container with proper padding for consistent layout
         Div container = new Div();
-        container.addClassName("content-container");
-        container.getStyle().set("padding", "var(--lumo-space-m)");
-        container.getStyle().set("max-width", "1200px");
-        container.getStyle().set("margin", "0 auto");
+        container.addClassName(UIConstants.CSS_CONTENT_CONTAINER);
         
         // Add content to the container
         container.add(createToolbar(), createContent());
@@ -124,7 +121,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
         toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         toolbar.setWidthFull();
         toolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        toolbar.addClassName("toolbar");
+        toolbar.addClassName(UIConstants.CSS_TOOLBAR);
 
         return toolbar;
     }
@@ -245,8 +242,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
         dialog.setHeaderTitle("Upload Paper");
         
         VerticalLayout dialogLayout = new VerticalLayout();
-        dialogLayout.setPadding(true);
-        dialogLayout.setSpacing(true);
+        dialogLayout.addClassName(UIConstants.CSS_DIALOG_LAYOUT);
         
         // Title field
         TextField titleField = new TextField("Title");
@@ -266,8 +262,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
         upload.setMaxFiles(1);
         
         Paragraph supportedFormats = new Paragraph("Supported formats: PDF, DOC, DOCX");
-        supportedFormats.getStyle().set("color", "var(--lumo-secondary-text-color)");
-        supportedFormats.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        supportedFormats.addClassName(UIConstants.CSS_SUPPORTED_FORMATS);
         
         Button submitButton = new Button("Upload");
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -329,13 +324,11 @@ public class PapersView extends Div implements BeforeEnterObserver {
         Button cancelButton = new Button("Cancel", e -> dialog.close());
         
         HorizontalLayout buttons = new HorizontalLayout(cancelButton, submitButton);
-        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        buttons.setWidthFull();
+        buttons.addClassName(UIConstants.CSS_DIALOG_BUTTONS);
         
         dialogLayout.add(titleField, authorsField, upload, supportedFormats, buttons);
+        dialog.addClassName(UIConstants.CSS_PAPER_DIALOG);
         dialog.add(dialogLayout);
-        dialog.setWidth("500px");
-        
         dialog.open();
     }
     
@@ -349,12 +342,11 @@ public class PapersView extends Div implements BeforeEnterObserver {
         dialog.setHeaderTitle("Paper Details");
         
         VerticalLayout dialogLayout = new VerticalLayout();
-        dialogLayout.setPadding(true);
-        dialogLayout.setSpacing(true);
+        dialogLayout.addClassName(UIConstants.CSS_DIALOG_LAYOUT);
         
         // Paper title
         H2 title = new H2(paper.getTitle());
-        title.getStyle().set("margin", "0");
+        title.addClassName(UIConstants.CSS_PAPER_TITLE);
         
         // Paper authors
         String authors = paper.getAuthors() != null ? 
@@ -363,7 +355,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
         
         // Paper metadata
         Div metadata = new Div();
-        metadata.addClassName("metadata-container");
+        metadata.addClassName(UIConstants.CSS_METADATA_CONTAINER);
         
         if (paper.getJournal() != null) {
             metadata.add(new Paragraph("Journal: " + paper.getJournal()));
@@ -394,10 +386,8 @@ public class PapersView extends Div implements BeforeEnterObserver {
         closeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         
         dialogLayout.add(title, authorsPara, metadata, status, processingStatus, closeButton);
+        dialog.addClassName(UIConstants.CSS_PAPER_DETAILS_DIALOG);
         dialog.add(dialogLayout);
-        dialog.setWidth("600px");
-        dialog.setHeight("auto");
-        
         dialog.open();
     }
 
@@ -406,8 +396,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
         dialog.setHeaderTitle("Edit Paper Metadata");
         
         VerticalLayout dialogLayout = new VerticalLayout();
-        dialogLayout.setPadding(true);
-        dialogLayout.setSpacing(true);
+        dialogLayout.addClassName(UIConstants.CSS_DIALOG_LAYOUT);
         
         // Title field
         TextField titleField = new TextField("Title");
@@ -479,17 +468,15 @@ public class PapersView extends Div implements BeforeEnterObserver {
         Button cancelButton = new Button("Cancel", e -> dialog.close());
         
         HorizontalLayout buttons = new HorizontalLayout(cancelButton, saveButton);
-        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        buttons.setWidthFull();
+        buttons.addClassName(UIConstants.CSS_DIALOG_BUTTONS);
         
         dialogLayout.add(
             titleField, authorsField, journalField, yearField, 
             doiField, abstractField, buttons
         );
         
+        dialog.addClassName(UIConstants.CSS_PAPER_DIALOG);
         dialog.add(dialogLayout);
-        dialog.setWidth("500px");
-        
         dialog.open();
     }
 

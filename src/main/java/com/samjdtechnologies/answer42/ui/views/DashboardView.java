@@ -69,8 +69,15 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         Component quickActions = createQuickActions();
         Component recentPapers = createRecentPapers();
         
+        // Create a container with proper padding for consistent layout
+        Div container = new Div();
+        container.addClassName(UIConstants.CSS_CONTENT_CONTAINER);
+
+        // Add content to the container
+        container.add(welcomeSection, statsCards, quickActions, recentPapers);
+
         // Add all components to the view
-        add(welcomeSection, statsCards, quickActions, recentPapers);
+        add(container);
         LoggingUtil.debug(LOG, "initializeView", "Dashboard view components initialized");
     }
     
@@ -189,7 +196,7 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         link.addClassName(UIConstants.CSS_STAT_LINK);
         
         Icon arrowIcon = VaadinIcon.ARROW_RIGHT.create();
-        arrowIcon.setSize("14px");
+        arrowIcon.addClassName(UIConstants.CSS_ARROW_ICON);
         
         link.add(arrowIcon);
         footer.add(link);
@@ -206,16 +213,16 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         
         // Section header
         Div sectionHeader = new Div();
-        sectionHeader.addClassName("section-header");
+        sectionHeader.addClassName(UIConstants.CSS_SECTION_HEADER);
         
         H2 sectionTitle = new H2("Quick Actions");
-        sectionTitle.addClassName("section-title");
+        sectionTitle.addClassName(UIConstants.CSS_SECTION_TITLE);
         
         sectionHeader.add(sectionTitle);
         
         // Actions container
         Div actionsContainer = new Div();
-        actionsContainer.addClassName("actions-container");
+        actionsContainer.addClassName(UIConstants.CSS_ACTIONS_CONTAINER);
         
         // Upload Paper button
         Div uploadButton = createActionButton(
@@ -251,13 +258,13 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     
     private Div createActionButton(VaadinIcon iconType, String text, String variantClass, String route) {
         Div button = new Div();
-        button.addClassName("action-button");
+        button.addClassName(UIConstants.CSS_ACTION_BTN);
         if (variantClass != null && !variantClass.isEmpty()) {
             button.addClassName(variantClass);
         }
         
         Icon icon = iconType.create();
-        icon.setSize("20px");
+        icon.addClassName(UIConstants.CSS_ACTION_BTN_ICON);
         
         Span label = new Span(text);
         
@@ -283,7 +290,7 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         sectionTitle.addClassName(UIConstants.CSS_SECTION_TITLE);
         
         Anchor viewAllLink = new Anchor(UIConstants.ROUTE_PAPERS, "View all");
-        viewAllLink.addClassName("view-all");
+        viewAllLink.addClassName(UIConstants.CSS_VIEW_ALL);
         
         sectionHeader.add(sectionTitle, viewAllLink);
         
@@ -300,9 +307,7 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
             if (recentPapers.isEmpty()) {
                 // If no papers, show a message
                 Paragraph emptyMessage = new Paragraph("No papers yet. Upload your first paper!");
-                emptyMessage.getStyle().set("text-align", "center");
-                emptyMessage.getStyle().set("color", "var(--lumo-secondary-text-color)");
-                emptyMessage.getStyle().set("padding", "var(--lumo-space-l)");
+                emptyMessage.addClassName(UIConstants.CSS_EMPTY_STATE_MSG);
                 papersList.add(emptyMessage);
             } else {
                 // Add each paper to the list
@@ -334,9 +339,7 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         } else {
             // If no user is logged in, show a login message
             Paragraph loginMessage = new Paragraph("Please log in to see your papers.");
-            loginMessage.getStyle().set("text-align", "center");
-            loginMessage.getStyle().set("color", "var(--lumo-secondary-text-color)");
-            loginMessage.getStyle().set("padding", "var(--lumo-space-l)");
+            loginMessage.addClassName(UIConstants.CSS_EMPTY_STATE_MSG);
             papersList.add(loginMessage);
         }
         
@@ -352,31 +355,31 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
 
         // Card header with title and status
         Div header = new Div();
-        header.addClassName("paper-header");
+        header.addClassName(UIConstants.CSS_PAPER_HEADER);
 
         Span titleSpan = new Span(title);
-        titleSpan.addClassName("paper-title");
+        titleSpan.addClassName(UIConstants.CSS_PAPER_TITLE);
 
         Span statusSpan = new Span(processed ? "PROCESSED" : "PENDING");
-        statusSpan.addClassName("paper-status");
+        statusSpan.addClassName(UIConstants.CSS_PAPER_STATUS);
         statusSpan.addClassName(processed ? "processed" : "pending");
 
         header.add(titleSpan, statusSpan);
 
         // Card content
         Paragraph contentParagraph = new Paragraph(content);
-        contentParagraph.addClassName("paper-content");
+        contentParagraph.addClassName(UIConstants.CSS_PAPER_CONTENT);
         
         // Add metadata section
         Div metadata = new Div();
-        metadata.addClassName("paper-metadata");
+        metadata.addClassName(UIConstants.CSS_PAPER_METADATA);
         
         // Author metadata
         Div authorMetadata = new Div();
-        authorMetadata.addClassName("paper-metadata-item");
+        authorMetadata.addClassName(UIConstants.CSS_PAPER_METADATA_ITEM);
         
         Icon authorIcon = VaadinIcon.USER.create();
-        authorIcon.addClassName("paper-metadata-icon");
+        authorIcon.addClassName(UIConstants.CSS_PAPER_METADATA_ICON);
         
         Span authorText = new Span("Various Authors");
         
@@ -384,10 +387,10 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         
         // Date metadata
         Div dateMetadata = new Div();
-        dateMetadata.addClassName("paper-metadata-item");
+        dateMetadata.addClassName(UIConstants.CSS_PAPER_METADATA_ITEM);
         
         Icon dateIcon = VaadinIcon.CALENDAR.create();
-        dateIcon.addClassName("paper-metadata-icon");
+        dateIcon.addClassName(UIConstants.CSS_PAPER_METADATA_ICON);
         
         Span dateText = new Span("2022");
         
@@ -395,10 +398,10 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         
         // Citations metadata
         Div citationsMetadata = new Div();
-        citationsMetadata.addClassName("paper-metadata-item");
+        citationsMetadata.addClassName(UIConstants.CSS_PAPER_METADATA_ITEM);
         
         Icon citationsIcon = VaadinIcon.CONNECT.create();
-        citationsIcon.addClassName("paper-metadata-icon");
+        citationsIcon.addClassName(UIConstants.CSS_PAPER_METADATA_ICON);
         
         Span citationsText = new Span("24 citations");
         
@@ -408,16 +411,16 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
 
         // Card footer with action icons
         Div footer = new Div();
-        footer.addClassName("paper-footer");
+        footer.addClassName(UIConstants.CSS_PAPER_FOOTER);
 
         Div viewAction = new Div(VaadinIcon.EYE.create());
-        viewAction.addClassName("paper-action");
+        viewAction.addClassName(UIConstants.CSS_PAPER_ACTION);
 
         Div editAction = new Div(VaadinIcon.EDIT.create());
-        editAction.addClassName("paper-action");
+        editAction.addClassName(UIConstants.CSS_PAPER_ACTION);
 
         Div downloadAction = new Div(VaadinIcon.DOWNLOAD.create());
-        downloadAction.addClassName("paper-action");
+        downloadAction.addClassName(UIConstants.CSS_PAPER_ACTION);
 
         footer.add(viewAction, editAction, downloadAction);
 

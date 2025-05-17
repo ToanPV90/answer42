@@ -2,9 +2,9 @@
 
 /* Dashboard view - using UIConstants.CSS_DASHBOARD_VIEW */
 .dashboard-view {
-  padding: 20px;
+  padding-right: 20px;
   max-width: 1100px;
-  margin: 0 auto;
+  margin: -15px;
   width: 100%;
   background-color: var(--lumo-contrast-5pct);
 }
@@ -165,6 +165,10 @@
   box-shadow: var(--lumo-box-shadow-xs);
 }
 
+.action-button-icon{
+  size: 20px;
+}
+
 .action-button:hover {
   transform: translateY(-2px);
   box-shadow: var(--lumo-box-shadow-s);
@@ -313,6 +317,13 @@
   width: 16px;
   height: 16px;
   color: inherit;
+}
+
+/* Empty state message styling */
+.empty-state-message {
+  text-align: center;
+  color: var(--lumo-secondary-text-color);
+  padding: var(--lumo-space-l);
 }
 
 /* Responsive styles */

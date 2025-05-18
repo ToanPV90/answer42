@@ -128,6 +128,18 @@ public class LoggingUtil {
     }
     
     /**
+     * Log an info message with context information and variable parameters.
+     * 
+     * @param logger The logger to use
+     * @param method The method name for context
+     * @param message The message to log
+     * @param params The parameters to include in the message
+     */
+    public static void info(Logger logger, String method, String message, Object... params) {
+        logger.info("[{}] {}", method, String.format(message, params));
+    }
+    
+    /**
      * Log a warning message with context information.
      * 
      * @param logger The logger to use

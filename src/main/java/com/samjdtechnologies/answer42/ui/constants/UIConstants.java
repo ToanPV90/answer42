@@ -13,6 +13,7 @@ public class UIConstants {
     public static final String ROUTE_PROJECTS = "projects";
     public static final String ROUTE_AI_CHAT = "ai-chat";
     public static final String ROUTE_PROFILE = "profile";
+    public static final String ROUTE_SUBSCRIPTION = "subscription";
     public static final String ROUTE_SETTINGS = "settings";
     
     // API routes and public endpoints
@@ -119,6 +120,30 @@ public class UIConstants {
     public static final String CSS_INFO_LABEL = "info-label";
     public static final String CSS_INFO_VALUE = "info-value";
     public static final String CSS_PROFILE_SAVE_BUTTON = "profile-save-button";
+    
+    // Subscription view related
+    public static final String CSS_SUBSCRIPTION_VIEW = "subscription-view";
+    public static final String CSS_SUBSCRIPTION_TITLE = "subscription-title";
+    public static final String CSS_SUBSCRIPTION_DESCRIPTION = "subscription-description";
+    public static final String CSS_PLAN_CARDS_CONTAINER = "plan-cards-container";
+    public static final String CSS_PLAN_CARD = "plan-card";
+    public static final String CSS_PLAN_CARD_HEADER = "plan-card-header";
+    public static final String CSS_PLAN_CARD_TITLE = "plan-card-title";
+    public static final String CSS_PLAN_CARD_PRICE = "plan-card-price";
+    public static final String CSS_PLAN_CARD_PERIOD = "plan-card-period";
+    public static final String CSS_PLAN_CARD_FEATURES = "plan-card-features";
+    public static final String CSS_PLAN_CARD_FEATURE = "plan-card-feature";
+    public static final String CSS_PLAN_CARD_BUTTON = "plan-card-button";
+    public static final String CSS_CURRENT_PLAN = "current-plan";
+    public static final String CSS_POPULAR_PLAN = "popular-plan";
+    public static final String CSS_PAYMENT_INFO = "payment-info";
+    public static final String CSS_BITCOIN_BANNER = "bitcoin-banner";
+    public static final String CSS_BITCOIN_ICON = "bitcoin-icon";
+    public static final String CSS_TOGGLE_CONTAINER = "toggle-container";
+    public static final String CSS_TOGGLE_ACTIVE = "active";
+    public static final String CSS_PERIOD_TOGGLE = "period-toggle";
+    public static final String CSS_FEATURE_ICON = "feature-icon";
+    public static final String CSS_SUBSCRIPTION_FAQ = "subscription-faq";
 
     // Form field widths
     public static final String FORM_FIELD_WIDTH = "100%";

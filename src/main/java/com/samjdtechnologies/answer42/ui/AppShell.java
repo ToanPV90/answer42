@@ -30,10 +30,13 @@ import com.vaadin.flow.server.PWA;
 @CssImport("./styles/themes/answer42/components/dashboard.css")
 @CssImport("./styles/themes/answer42/components/papers.css")
 @CssImport("./styles/themes/answer42/components/search-icon.css")
+@CssImport("./styles/themes/answer42/components/profile.css")
+@CssImport("./styles/themes/answer42/components/subscription.css")
 
 @JavaScript("./sw-loader.js")
 @JavaScript("./jwt-injector.js")
 @JavaScript("./sw-register.js")
+
 @Meta(name = "author", content = "SAMJD Technologies")
 @Meta(name = "application-name", content = "Answer42")
 @Meta(name = "apple-mobile-web-app-title", content = "Answer42")

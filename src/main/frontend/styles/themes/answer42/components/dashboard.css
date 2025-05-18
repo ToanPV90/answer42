@@ -5,21 +5,12 @@
   padding: var(--lumo-space-m);
   max-width: 1100px;
   margin: 0 auto;
-  width: 100%;
-  min-height: 100%;
-  height: auto;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   background-color: var(--lumo-contrast-5pct);
 }
 
-/* Content container for the dashboard */
-.content-container {
-  padding: var(--lumo-space-s);
-  margin: 0 auto;
-  width: 100%;
-  max-width: 1200px;
-}
 
 /* Welcome section - using UIConstants.CSS_WELCOME_SECTION */
 .welcome-section {

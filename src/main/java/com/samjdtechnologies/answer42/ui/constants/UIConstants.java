@@ -98,7 +98,6 @@ public class UIConstants {
     
     // Papers view related
     public static final String CSS_PAPERS_VIEW = "papers-view";
-    public static final String CSS_CONTENT_CONTAINER = "content-container";
     public static final String CSS_TOOLBAR = "toolbar";
     public static final String CSS_STATUS_BADGE = "status-badge";
     public static final String CSS_UPLOAD_DIALOG = "upload-dialog";

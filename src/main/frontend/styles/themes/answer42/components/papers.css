@@ -5,19 +5,10 @@
   padding: var(--lumo-space-m);
   max-width: 1100px;
   margin: 0 auto;
-  width: 100%;
-  min-height: 100%;
-  height: auto;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   background-color: var(--lumo-contrast-5pct);
-}
-
-/* Content container - ensure full width usage */
-.content-container {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0;
 }
 
 

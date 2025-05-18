@@ -279,6 +279,11 @@
   margin: 0;
 }
 
+.logo-layout-title {
+  color: var(--lumo-primary-color);
+  font-weight: 600;
+}
+
 /* Navigation section headers */
 .nav-section-header {
   color: var(--lumo-tertiary-text-color);

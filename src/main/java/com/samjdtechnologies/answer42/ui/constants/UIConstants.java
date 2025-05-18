@@ -110,6 +110,15 @@ public class UIConstants {
     public static final String CSS_PAPERS_GRID = "papers-grid";
     public static final String CSS_PAPERS_ACTION_BUTTON = "papers-action-button"; 
     public static final String CSS_PAPERS_ACTION_BUTTONS_CONTAINER = "papers-action-buttons-container";
+    
+    // Profile view related
+    public static final String CSS_PROFILE_VIEW = "profile-view";
+    public static final String CSS_PROFILE_TITLE = "profile-title";
+    public static final String CSS_PROFILE_SECTION = "profile-section";
+    public static final String CSS_HELP_TEXT = "help-text";
+    public static final String CSS_INFO_LABEL = "info-label";
+    public static final String CSS_INFO_VALUE = "info-value";
+    public static final String CSS_PROFILE_SAVE_BUTTON = "profile-save-button";
 
     // Form field widths
     public static final String FORM_FIELD_WIDTH = "100%";

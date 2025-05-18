@@ -159,7 +159,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         profileLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         profileLayout.setSpacing(true);
         userMenu.addItem(profileLayout, e -> 
-            UI.getCurrent().getPage().executeJs("alert('Profile view not implemented yet')"));
+            UI.getCurrent().navigate(UIConstants.ROUTE_PROFILE));
         
         HorizontalLayout subscriptionLayout = new HorizontalLayout(
             VaadinIcon.CREDIT_CARD.create(), new Span("Subscription"));
@@ -279,13 +279,13 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         SideNavItem profileItem = new SideNavItem("Profile", UIConstants.ROUTE_PROFILE, VaadinIcon.USER.create());
         profileItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
-        SideNavItem subscriptionItem = new SideNavItem("Subscription", UIConstants.ROUTE_PROFILE, VaadinIcon.CREDIT_CARD.create());
+        SideNavItem subscriptionItem = new SideNavItem("Subscription", "javascript:void(0)", VaadinIcon.CREDIT_CARD.create());
         subscriptionItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
-        SideNavItem creditsItem = new SideNavItem("Credits", UIConstants.ROUTE_PROFILE, VaadinIcon.COIN_PILES.create());
+        SideNavItem creditsItem = new SideNavItem("Credits", "javascript:void(0)", VaadinIcon.COIN_PILES.create());
         creditsItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
-        
-        SideNavItem settingsItem = new SideNavItem("Settings", UIConstants.ROUTE_SETTINGS, VaadinIcon.COG.create());
+
+        SideNavItem settingsItem = new SideNavItem("Settings", "javascript:void(0)", VaadinIcon.COG.create());
         settingsItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         // Create a special SideNavItem for logout with a custom click listener

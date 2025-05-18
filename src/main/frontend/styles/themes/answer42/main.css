@@ -8,6 +8,8 @@
 @import url('./components/main-layout.css');
 @import url('./components/dashboard.css');
 @import url('./components/search-icon.css');
+@import url('./components/papers.css');
+@import url('./components/profile.css');
 
 /* Component-specific style overrides for Vaadin components */
 

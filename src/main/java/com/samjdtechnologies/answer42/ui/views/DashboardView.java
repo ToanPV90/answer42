@@ -57,7 +57,7 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
 
         LoggingUtil.debug(LOG, "DashboardView", "DashboardView initialized");
         addClassName(UIConstants.CSS_DASHBOARD_VIEW);
-        getStyle().setHeight("auto !important");
+        getStyle().setHeight("auto");
     }
     
     private void initializeView() {

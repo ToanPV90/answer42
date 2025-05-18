@@ -441,14 +441,17 @@ Each chat interface operates independently from the agent system, providing spec
 Answer42 uses a structured theme system based on Vaadin best practices:
 
 ```
-src/main/frontend/styles/themes/answer42/
-├── theme.json            # Theme configuration
-├── styles.css            # Global variables and utility classes
-├── main.css              # Main imports and component overrides
-└── components/
-    ├── auth-forms.css    # Auth-related components styling
-    ├── main-layout.css   # Main layout and sidebar styling
-    └── dashboard.css     # Dashboard components styling
+answer42/
+├── src/
+│   ├── main/
+|   |   └── frontend/
+|   |   |    └── styles/
+|   |   |        └── themes/
+│   |   |           └── answer42/           # Custom theme
+|   |   |             ├── theme.json        # Theme configuration
+│   |   |             ├── styles.css        # Global variables
+|   │   |             ├── main.css          # Main styles
+|   │   |             └── components/       # Component-specific styles
 ```
 
 ### Key Theme Features

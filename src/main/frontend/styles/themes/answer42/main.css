@@ -11,6 +11,9 @@
 @import url('./components/papers.css');
 @import url('./components/profile.css');
 @import url('./components/subscription.css');
+@import url('./components/credits.css');
+@import url('./components/settings.css');
+@import url('./components/upload-paper.css');
 
 /* Component-specific style overrides for Vaadin components */
 

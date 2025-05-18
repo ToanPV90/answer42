@@ -15,7 +15,6 @@
 /* Welcome section - using UIConstants.CSS_WELCOME_SECTION */
 .welcome-section {
   margin-bottom: var(--lumo-space-m);
-  padding: var(--lumo-space-s) 0;
 }
 
 .welcome-title {
@@ -41,14 +40,10 @@
 /* Stat card - using UIConstants.CSS_STAT_CARD */
 .stat-card {
   background-color: var(--lumo-base-color);
-  border-radius: var(--lumo-border-radius-l);
+  border-radius: var(--lumo-border-radius-m);
   padding: var(--lumo-space-m);
-  box-shadow: var(--lumo-box-shadow-s);
-  display: flex;
-  flex-direction: column;
-  gap: var(--lumo-space-xs);
-  transition: transform var(--answer42-transition-normal), box-shadow var(--answer42-transition-normal);
-  height: 100%;
+  box-shadow: var(--lumo-box-shadow-xs);
+  margin-bottom: var(--lumo-space-m);
 }
 
 .stat-card:hover {
@@ -199,7 +194,7 @@
 .papers-list {
   display: flex;
   flex-direction: column;
-  gap: var(--lumo-space-xs);
+  gap: var(--lumo-space-m);
   margin-top: var(--lumo-space-xs);
 }
 

@@ -163,6 +163,45 @@ public class LoggingUtil {
     }
     
     /**
+     * Log a warning message with context information and two parameters.
+     * 
+     * @param logger The logger to use
+     * @param method The method name for context
+     * @param message The message to log
+     * @param param1 The first parameter to include in the message
+     * @param param2 The second parameter to include in the message
+     */
+    public static void warn(Logger logger, String method, String message, Object param1, Object param2) {
+        logger.warn("[{}] {}", method, String.format(message, param1, param2));
+    }
+    
+    /**
+     * Log a warning message with context information and three parameters.
+     * 
+     * @param logger The logger to use
+     * @param method The method name for context
+     * @param message The message to log
+     * @param param1 The first parameter to include in the message
+     * @param param2 The second parameter to include in the message
+     * @param param3 The third parameter to include in the message
+     */
+    public static void warn(Logger logger, String method, String message, Object param1, Object param2, Object param3) {
+        logger.warn("[{}] {}", method, String.format(message, param1, param2, param3));
+    }
+    
+    /**
+     * Log a warning message with context information and variable parameters.
+     * 
+     * @param logger The logger to use
+     * @param method The method name for context
+     * @param message The message to log
+     * @param params The parameters to include in the message
+     */
+    public static void warn(Logger logger, String method, String message, Object... params) {
+        logger.warn("[{}] {}", method, String.format(message, params));
+    }
+    
+    /**
      * Log an error message with context information.
      * 
      * @param logger The logger to use

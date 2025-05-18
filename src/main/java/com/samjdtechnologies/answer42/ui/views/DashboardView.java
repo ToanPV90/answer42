@@ -5,14 +5,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.ProjectService;
-import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -43,15 +40,13 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
 
     private static final Logger LOG = LoggerFactory.getLogger(DashboardView.class);
     
-    private final UserService userService;
     private final PaperService paperService;
     private final ProjectService projectService;
 
     private User currentUser;
     
 
-    public DashboardView(PaperService paperService, UserService userService, ProjectService projectService) {
-        this.userService = userService;
+    public DashboardView(PaperService paperService, ProjectService projectService) {
         this.paperService = paperService;
         this.projectService = projectService;
 
@@ -431,53 +426,19 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        LoggingUtil.debug(LOG, "beforeEnter", "Getting authentication");
+        LoggingUtil.debug(LOG, "beforeEnter", "Getting user from session");
         
-        // Get authentication 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        LoggingUtil.debug(LOG, "beforeEnter", "Authentication: %s", auth != null ? 
-                auth.getName() + " (authenticated: " + auth.isAuthenticated() + ")" : "null");
+        // Get the current user from the session (stored by MainLayout)
+        currentUser = MainLayout.getCurrentUser();
         
-        // Check if user is anonymous or lacks required role - @Secured isn't enough since anonymous users are "authenticated"
-        boolean hasAccess = false;
-        if (auth != null && auth.getAuthorities() != null) {
-            hasAccess = auth.getAuthorities().stream()
-                    .anyMatch(grantedAuth -> "ROLE_USER".equals(grantedAuth.getAuthority()));
-        }
-        
-        // Redirect to login if not authorized
-        if (!hasAccess) {
-            LoggingUtil.info(LOG, "beforeEnter", "User lacks required role, redirecting to login");
-            event.forwardTo(UIConstants.ROUTE_LOGIN); 
-            return;
-        }
-        
-        // Try to get the current user - this is needed for the view to function properly
-        try {
-            if (auth != null) {
-                currentUser = userService.findByUsername(auth.getName()).orElse(null);
-                if (currentUser != null) {
-                    LoggingUtil.info(LOG, "beforeEnter", "Current user loaded: %s (ID: %s)", 
-                        currentUser.getUsername(), currentUser.getId());
-                    LoggingUtil.debug(LOG, "beforeEnter", "Dashboard loading paper count for user: %s", currentUser.getId());
-                } else {
-                    LoggingUtil.warn(LOG, "beforeEnter", "Could not find user with username: %s", auth.getName());
-                    // If we can't find the user in the database, redirect to login
-                    event.forwardTo(UIConstants.ROUTE_LOGIN);
-                    return;
-                }
-            } else {
-                LoggingUtil.warn(LOG, "beforeEnter", "Authentication is null, cannot load current user");
-                event.forwardTo(UIConstants.ROUTE_LOGIN);
-                return;
-            }
+        if (currentUser != null) {
+            LoggingUtil.debug(LOG, "beforeEnter", "Retrieved user from session: %s (ID: %s)", 
+                currentUser.getUsername(), currentUser.getId());
             
-            // Initialize the view only when user is authenticated and authorized
+            // Initialize the view with the user's data
             initializeView();
-            
-        } catch (Exception e) {
-            // Log error and redirect to login
-            LOG.error("Error in beforeEnter: {}", e.getMessage(), e);
+        } else {
+            LoggingUtil.warn(LOG, "beforeEnter", "No user found in session, redirecting to login");
             event.forwardTo(UIConstants.ROUTE_LOGIN);
         }
     }

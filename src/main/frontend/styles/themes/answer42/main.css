@@ -10,6 +10,7 @@
 @import url('./components/search-icon.css');
 @import url('./components/papers.css');
 @import url('./components/profile.css');
+@import url('./components/subscription.css');
 
 /* Component-specific style overrides for Vaadin components */
 

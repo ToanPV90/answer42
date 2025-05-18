@@ -166,7 +166,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         subscriptionLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         subscriptionLayout.setSpacing(true);
         userMenu.addItem(subscriptionLayout, e -> 
-            UI.getCurrent().getPage().executeJs("alert('Subscription view not implemented yet')"));
+            UI.getCurrent().navigate(UIConstants.ROUTE_SUBSCRIPTION));
         
         HorizontalLayout creditsLayout = new HorizontalLayout(
             VaadinIcon.COIN_PILES.create(), new Span("Credits"));
@@ -279,7 +279,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         SideNavItem profileItem = new SideNavItem("Profile", UIConstants.ROUTE_PROFILE, VaadinIcon.USER.create());
         profileItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
-        SideNavItem subscriptionItem = new SideNavItem("Subscription", "javascript:void(0)", VaadinIcon.CREDIT_CARD.create());
+        SideNavItem subscriptionItem = new SideNavItem("Subscription", UIConstants.ROUTE_SUBSCRIPTION, VaadinIcon.CREDIT_CARD.create());
         subscriptionItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         SideNavItem creditsItem = new SideNavItem("Credits", "javascript:void(0)", VaadinIcon.COIN_PILES.create());

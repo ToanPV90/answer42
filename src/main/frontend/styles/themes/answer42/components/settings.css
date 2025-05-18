@@ -1,0 +1,84 @@
+/* Settings View Styles */
+.settings-view {
+  padding: var(--lumo-space-m);
+  max-width: 1100px;
+  margin: 0 auto;
+  background-color: var(--lumo-contrast-5pct);
+}
+
+.settings-title {
+  margin-top: 0;
+  margin-bottom: var(--lumo-space-l);
+  color: var(--lumo-primary-text-color);
+}
+
+.settings-section {
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  box-shadow: var(--lumo-box-shadow-xs);
+  padding: var(--lumo-space-m);
+  margin-bottom: var(--lumo-space-l);
+}
+
+.settings-section h3 {
+  margin-top: 0;
+  color: var(--lumo-secondary-text-color);
+  font-weight: 500;
+  margin-bottom: var(--lumo-space-s);
+}
+
+.help-text {
+  font-size: var(--lumo-font-size-xs);
+  color: var(--lumo-tertiary-text-color);
+  margin-top: var(--lumo-space-xs);
+}
+
+.setting-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--lumo-space-s) 0;
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.setting-option:last-child {
+  border-bottom: none;
+}
+
+.option-description {
+  display: flex;
+  flex-direction: column;
+}
+
+.option-title {
+  font-weight: 500;
+}
+
+.option-detail {
+  font-size: var(--lumo-font-size-s);
+  color: var(--lumo-tertiary-text-color);
+}
+
+.setting-control {
+  display: flex;
+  align-items: center;
+}
+
+.danger-zone {
+  background-color: var(--lumo-error-color-10pct);
+  border: 1px solid var(--lumo-error-color-50pct);
+}
+
+.danger-zone h3 {
+  color: var(--lumo-error-text-color);
+}
+
+.delete-account-button {
+  background-color: var(--lumo-error-color);
+  color: white;
+  margin-top: var(--lumo-space-s);
+}
+
+.save-button {
+  margin-top: var(--lumo-space-m);
+}

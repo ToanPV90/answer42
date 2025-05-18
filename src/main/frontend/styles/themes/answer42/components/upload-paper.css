@@ -1,0 +1,95 @@
+/* Upload Paper View Styles */
+.upload-paper-view {
+  padding: var(--lumo-space-m);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.step-title {
+  margin-top: var(--lumo-space-m);
+  margin-bottom: var(--lumo-space-s);
+  color: var(--lumo-primary-text-color);
+  font-weight: 600;
+}
+
+.step-container {
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius-m);
+  box-shadow: var(--lumo-box-shadow-xs);
+  margin-bottom: var(--lumo-space-m);
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+/* First step container (file upload) */
+.step-container:nth-of-type(1) {
+  min-height: 300px;
+}
+
+/* Second step container (paper details) */
+.step-container:nth-of-type(2) {
+  min-height: 1000px;
+}
+
+.upload-container {
+  border: 2px dashed var(--lumo-contrast-20pct);
+  border-radius: var(--lumo-border-radius-m);
+  padding: var(--lumo-space-m);
+  transition: border-color 0.3s;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.upload-container:hover {
+  border-color: var(--lumo-primary-color-50pct);
+}
+
+.file-info {
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-s);
+  margin-top: var(--lumo-space-xs);
+}
+
+.drop-label {
+  color: var(--lumo-secondary-text-color);
+  margin-top: var(--lumo-space-xs);
+}
+
+.authors-container {
+  margin-top: var(--lumo-space-xs);
+  margin-bottom: var(--lumo-space-s);
+}
+
+.author-entry {
+  padding: var(--lumo-space-xs) 0;
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.author-entry:last-child {
+  border-bottom: none;
+}
+
+.author-label {
+  font-weight: 600;
+  margin-bottom: var(--lumo-space-xs);
+  margin-top: var(--lumo-space-s);
+}
+
+.paper-details-container {
+  padding: var(--lumo-space-s) 0;
+}
+
+.action-buttons {
+  padding-top: var(--lumo-space-m);
+  border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+.help-text-secondary {
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-s);
+  margin-top: 0;
+}

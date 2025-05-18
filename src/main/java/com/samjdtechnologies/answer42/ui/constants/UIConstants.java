@@ -10,6 +10,7 @@ public class UIConstants {
     public static final String ROUTE_MAIN = "";
     public static final String ROUTE_DASHBOARD = "dashboard";
     public static final String ROUTE_PAPERS = "papers";
+    public static final String ROUTE_UPLOAD_PAPER = "upload-paper";
     public static final String ROUTE_PROJECTS = "projects";
     public static final String ROUTE_AI_CHAT = "ai-chat";
     public static final String ROUTE_PROFILE = "profile";
@@ -112,6 +113,20 @@ public class UIConstants {
     public static final String CSS_PAPERS_ACTION_BUTTON = "papers-action-button"; 
     public static final String CSS_PAPERS_ACTION_BUTTONS_CONTAINER = "papers-action-buttons-container";
     
+    // Upload Paper view related
+    public static final String CSS_UPLOAD_PAPER_VIEW = "upload-paper-view";
+    public static final String CSS_STEP_TITLE = "step-title";
+    public static final String CSS_STEP_CONTAINER = "step-container";
+    public static final String CSS_UPLOAD_CONTAINER = "upload-container";
+    public static final String CSS_AUTHORS_CONTAINER = "authors-container";
+    public static final String CSS_AUTHOR_ENTRY = "author-entry";
+    public static final String CSS_PAPER_DETAILS_CONTAINER = "paper-details-container";
+    public static final String CSS_ACTION_BUTTONS = "action-buttons";
+    public static final String CSS_FILE_INFO = "file-info";
+    public static final String CSS_DROP_LABEL = "drop-label";
+    public static final String CSS_HELP_TEXT_SECONDARY = "help-text-secondary";
+    public static final String CSS_AUTHOR_LABEL = "author-label";
+    
     // Profile view related
     public static final String CSS_PROFILE_VIEW = "profile-view";
     public static final String CSS_PROFILE_TITLE = "profile-title";
@@ -120,6 +135,19 @@ public class UIConstants {
     public static final String CSS_INFO_LABEL = "info-label";
     public static final String CSS_INFO_VALUE = "info-value";
     public static final String CSS_PROFILE_SAVE_BUTTON = "profile-save-button";
+    
+    // Settings view related
+    public static final String CSS_SETTINGS_VIEW = "settings-view";
+    public static final String CSS_SETTINGS_TITLE = "settings-title";
+    public static final String CSS_SETTINGS_SECTION = "settings-section";
+    public static final String CSS_SETTING_OPTION = "setting-option";
+    public static final String CSS_OPTION_DESCRIPTION = "option-description";
+    public static final String CSS_OPTION_TITLE = "option-title";
+    public static final String CSS_OPTION_DETAIL = "option-detail"; 
+    public static final String CSS_SETTING_CONTROL = "setting-control";
+    public static final String CSS_DANGER_ZONE = "danger-zone";
+    public static final String CSS_DELETE_ACCOUNT_BUTTON = "delete-account-button";
+    public static final String CSS_SAVE_BUTTON = "save-button";
     
     // Subscription view related
     public static final String CSS_SUBSCRIPTION_VIEW = "subscription-view";
@@ -144,6 +172,37 @@ public class UIConstants {
     public static final String CSS_PERIOD_TOGGLE = "period-toggle";
     public static final String CSS_FEATURE_ICON = "feature-icon";
     public static final String CSS_SUBSCRIPTION_FAQ = "subscription-faq";
+    public static final String CSS_FAQ_COLUMNS = "faq-columns";
+    public static final String CSS_FAQ_COLUMN = "faq-column";
+    
+    // Credits view related
+    public static final String CSS_CREDITS_VIEW = "credits-view";
+    public static final String CSS_CREDITS_TITLE = "credits-title";
+    public static final String CSS_CREDIT_BALANCE_SECTION = "credit-balance-section";
+    public static final String CSS_BALANCE_LAYOUT = "balance-layout";
+    public static final String CSS_BALANCE_DISPLAY = "balance-display";
+    public static final String CSS_BALANCE_VALUE = "balance-value";
+    public static final String CSS_USAGE_LABEL = "usage-label"; 
+    public static final String CSS_CREDIT_PROGRESS = "credit-progress";
+    public static final String CSS_RESET_LABEL = "reset-label";
+    public static final String CSS_BALANCE_DESCRIPTION = "balance-description";
+    public static final String CSS_HOW_CREDITS_WORK_SECTION = "how-credits-work-section";
+    public static final String CSS_COLUMN_TITLE = "column-title";
+    public static final String CSS_PREMIUM_NOTE = "premium-note";
+    public static final String CSS_TRANSACTIONS_SECTION = "transactions-section";
+    public static final String CSS_TRANSACTIONS_GRID = "transactions-grid";
+    public static final String CSS_EMPTY_TRANSACTIONS = "empty-transactions";
+    public static final String CSS_POSITIVE_AMOUNT = "positive-amount";
+    public static final String CSS_NEGATIVE_AMOUNT = "negative-amount";
+    public static final String CSS_PURCHASE_CREDITS_DIALOG = "purchase-credits-dialog";
+    public static final String CSS_PURCHASE_OPTION = "purchase-option";
+    public static final String CSS_PURCHASE_OPTION_SELECTED = "purchase-option-selected";
+    public static final String CSS_CREDIT_PACKAGE_AMOUNT = "credit-package-amount";
+    public static final String CSS_CREDIT_PACKAGE_PRICE = "credit-package-price";
+    public static final String CSS_CREDIT_PACKAGE_BEST_VALUE = "credit-package-best-value";
+    
+    // Route constants
+    public static final String ROUTE_CREDITS = "credits";
 
     // Form field widths
     public static final String FORM_FIELD_WIDTH = "100%";

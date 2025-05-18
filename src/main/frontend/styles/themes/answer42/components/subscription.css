@@ -206,25 +206,61 @@
   font-size: 1.5rem;
   color: var(--lumo-primary-text-color);
   margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* FAQ Columns Layout */
+.faq-columns {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.faq-column {
+  flex: 1;
+  padding: 0 1rem;
+  max-width: 48%;
+}
+
+.faq-column:first-child {
+  padding-left: 0;
+}
+
+.faq-column:last-child {
+  padding-right: 0;
+}
+
+/* Accordion styling for FAQ */
+.faq-column vaadin-accordion {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.faq-column vaadin-accordion-panel {
+  margin-bottom: 0.5rem;
+  box-shadow: none;
+  border: 1px solid var(--lumo-contrast-10pct);
+  border-radius: var(--lumo-border-radius-m);
+}
+
+.faq-column vaadin-accordion-panel::part(summary) {
+  padding: 1rem;
+  font-weight: 500;
+  color: var(--lumo-primary-text-color);
+}
+
+.faq-column vaadin-accordion-panel::part(content) {
+  padding: 0 1rem 1rem;
+}
+
+.faq-column vaadin-accordion-panel p {
+  margin: 0;
+  color: var(--lumo-secondary-text-color);
 }
 
 /* Responsive adjustments */
 @media (max-width: 1100px) {
   .plan-cards-container {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .plan-cards-container {
-    grid-template-columns: 1fr;
-  }
-  
-  .subscription-view {
-    padding: 1rem;
-  }
-
-  .subscription-title {
-    font-size: 1.75rem;
   }
 }

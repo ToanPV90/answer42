@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.service.AuthenticationService;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -46,11 +48,15 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private static final Logger LOG = LoggerFactory.getLogger(MainLayout.class);
     
     private final AuthenticationService authenticationService;
+    private final UserService userService;
+    private User currentUser;
+
     private Div content;
     private static final String CONTENT_PADDING = "var(--lumo-space-l)";
     
-    public MainLayout(AuthenticationService authenticationService) {
+    public MainLayout(AuthenticationService authenticationService, UserService userService) {
         this.authenticationService = authenticationService;
+        this.userService = userService;
         
         addClassName(UIConstants.CSS_MAIN_VIEW);
         
@@ -129,8 +135,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         // Theme toggle button
         Button themeToggle = new Button(new Icon(VaadinIcon.MOON));
         themeToggle.addClassName(UIConstants.CSS_THEME_TOGGLE);
-        themeToggle.setHeight("32px");
-        themeToggle.setWidth("32px");
+        themeToggle.setHeight("65px");
+        themeToggle.setWidth("65px");
         themeToggle.addClickListener(e -> {
             ThemeList themeList = UI.getCurrent().getElement().getThemeList();
             if (themeList.contains(Lumo.DARK)) {
@@ -145,8 +151,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         // User avatar with dropdown menu
         Avatar avatar = new Avatar(username);
         avatar.addClassName(UIConstants.CSS_USER_AVATAR);
-        avatar.setHeight("32px");
-        avatar.setWidth("32px");
+        avatar.setHeight("65px");
+        avatar.setWidth("65px");
         
         // Create dropdown menu for avatar click
         ContextMenu userMenu = new ContextMenu();
@@ -173,14 +179,14 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         creditsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         creditsLayout.setSpacing(true);
         userMenu.addItem(creditsLayout, e -> 
-            UI.getCurrent().getPage().executeJs("alert('Credits view not implemented yet')"));
+            UI.getCurrent().navigate(UIConstants.ROUTE_CREDITS));
         
         HorizontalLayout settingsLayout = new HorizontalLayout(
             VaadinIcon.COG.create(), new Span("Settings"));
         settingsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         settingsLayout.setSpacing(true);
         userMenu.addItem(settingsLayout, e -> 
-            UI.getCurrent().getPage().executeJs("alert('Settings view not implemented yet')"));
+            UI.getCurrent().navigate(UIConstants.ROUTE_SETTINGS));
         
         // Add a separator
         userMenu.add(new Hr());
@@ -282,10 +288,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         SideNavItem subscriptionItem = new SideNavItem("Subscription", UIConstants.ROUTE_SUBSCRIPTION, VaadinIcon.CREDIT_CARD.create());
         subscriptionItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
-        SideNavItem creditsItem = new SideNavItem("Credits", "javascript:void(0)", VaadinIcon.COIN_PILES.create());
+        SideNavItem creditsItem = new SideNavItem("Credits", UIConstants.ROUTE_CREDITS, VaadinIcon.COIN_PILES.create());
         creditsItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
 
-        SideNavItem settingsItem = new SideNavItem("Settings", "javascript:void(0)", VaadinIcon.COG.create());
+        SideNavItem settingsItem = new SideNavItem("Settings", UIConstants.ROUTE_SETTINGS, VaadinIcon.COG.create());
         settingsItem.addClassNames(UIConstants.CSS_NAV_ITEM, UIConstants.CSS_SIDEBAR_NAV_ITEM);
         
         // Create a special SideNavItem for logout with a custom click listener
@@ -322,6 +328,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         
         Avatar assistantAvatar = new Avatar("A");
         assistantAvatar.addClassNames(UIConstants.CSS_ASSISTANT_AVATAR, UIConstants.CSS_USER_INITIAL);
+        assistantAvatar.setHeight("65px");
+        assistantAvatar.setWidth("65px");
         
         VerticalLayout assistantInfo = new VerticalLayout();
         assistantInfo.setPadding(false);
@@ -374,41 +382,75 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     public void showRouterLayoutContent(HasElement content) {
         this.content.getElement().appendChild(content.getElement());
     }
+    
+    /**
+     * Get the current authenticated user from the Vaadin session.
+     * This static method can be called from any view to get the current user.
+     * 
+     * @return the current user or null if not authenticated
+     */
+    public static User getCurrentUser() {
+        return (User) com.vaadin.flow.server.VaadinSession.getCurrent().getAttribute("currentUser");
+    }
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
+        LoggingUtil.debug(LOG, "beforeEnter", "Checking authentication");
+
         // Skip authentication check for login and register pages
         String path = event.getLocation().getPath();
         if (path.equals(UIConstants.ROUTE_LOGIN) || path.equals(UIConstants.ROUTE_REGISTER)) {
             return;
         }
-        
-        // Get authentication 
+
+        // Get authentication from the security context
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        LoggingUtil.debug(LOG, "beforeEnter", "Authentication: %s", 
-                auth != null ? auth.getName() + " (authenticated: " + auth.isAuthenticated() + ")" : "null");
         
-        // Check if user is anonymous or lacks required role
+        // First, check if the user is authenticated at all
         if (auth == null || "anonymousUser".equals(auth.getPrincipal().toString())) {
             LoggingUtil.debug(LOG, "beforeEnter", "Unauthenticated user, redirecting to login");
             event.forwardTo(UIConstants.ROUTE_LOGIN);
             return;
         }
         
-        try {
-            // Check for proper authentication
-            boolean hasUserRole = auth.getAuthorities().stream()
-                    .anyMatch(grantedAuth -> "ROLE_USER".equals(grantedAuth.getAuthority()));
-            
-            if (!hasUserRole) {
-                LoggingUtil.debug(LOG, "beforeEnter", "User lacks ROLE_USER authority, redirecting to login");
-                event.forwardTo(UIConstants.ROUTE_LOGIN);
-            } else {
-                LoggingUtil.debug(LOG, "beforeEnter", "User authenticated and has ROLE_USER authority");
-            }
-        } catch (Exception e) {
-            LoggingUtil.error(LOG, "beforeEnter", "Error checking authentication", e);
+        // Then, check if the user has the required role
+        boolean hasUserRole = auth.getAuthorities().stream()
+                .anyMatch(grantedAuth -> "ROLE_USER".equals(grantedAuth.getAuthority()));
+                
+        if (!hasUserRole) {
+            LoggingUtil.info(LOG, "beforeEnter", "User lacks required role, redirecting to login");
             event.forwardTo(UIConstants.ROUTE_LOGIN);
+            return;
+        }
+        
+        // Check if we already have a user in the session
+        currentUser = getCurrentUser();
+        
+        // If not in session, load from database
+        if (currentUser == null) {
+            LoggingUtil.debug(LOG, "beforeEnter", "User not in session, loading from database");
+            try {
+                // Load the user from the database
+                currentUser = userService.findByUsername(auth.getName()).orElse(null);
+                
+                if (currentUser != null) {
+                    LoggingUtil.info(LOG, "beforeEnter", "User loaded from database: %s (ID: %s)", 
+                        currentUser.getUsername(), currentUser.getId());
+                    
+                    // Store in session for future requests
+                    com.vaadin.flow.server.VaadinSession.getCurrent().setAttribute("currentUser", currentUser);
+                } else {
+                    LoggingUtil.warn(LOG, "beforeEnter", "Could not find user with username: %s", auth.getName());
+                    event.forwardTo(UIConstants.ROUTE_LOGIN);
+                }
+            } catch (Exception e) {
+                LoggingUtil.error(LOG, "beforeEnter", "Error loading user from database", e);
+                event.forwardTo(UIConstants.ROUTE_LOGIN);
+            }
+        } else {
+            LoggingUtil.debug(LOG, "beforeEnter", "Using cached user from session: %s", currentUser.getUsername());
         }
     }
+
+
 }

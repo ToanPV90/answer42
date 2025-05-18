@@ -3,19 +3,17 @@ package com.samjdtechnologies.answer42.ui.views;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.PaperService;
-import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
 import com.samjdtechnologies.answer42.ui.views.helpers.PapersHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
@@ -55,8 +53,6 @@ public class PapersView extends Div implements BeforeEnterObserver {
     private static final Logger LOG = LoggerFactory.getLogger(PapersView.class);
     
     private final PaperService paperService;
-    private final UserService userService;
-    
 
     private final Grid<Paper> grid = new Grid<>(Paper.class, false);
     private final TextField searchField = new TextField();
@@ -69,9 +65,8 @@ public class PapersView extends Div implements BeforeEnterObserver {
     private final Button nextButton = new Button("Next");
     private final Span pageInfo = new Span("0 of 0");
 
-    public PapersView(PaperService paperService, UserService userService) {
+    public PapersView(PaperService paperService) {
         this.paperService = paperService;
-        this.userService = userService;
 
         LoggingUtil.debug(LOG, "PapersView", "PapersView initialized");
         addClassName(UIConstants.CSS_PAPERS_VIEW);
@@ -108,9 +103,21 @@ public class PapersView extends Div implements BeforeEnterObserver {
 
         Button uploadButton = new Button("Upload Paper", new Icon(VaadinIcon.UPLOAD));
         uploadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        uploadButton.addClickListener(e -> showUploadDialog());
+        uploadButton.addClickListener(e -> UI.getCurrent().navigate(UIConstants.ROUTE_UPLOAD_PAPER));
+        
+        Button bulkUploadButton = new Button("Bulk Upload", new Icon(VaadinIcon.FILE_TREE));
+        bulkUploadButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        bulkUploadButton.getElement().setAttribute("title", "Upload multiple papers at once");
+        // Note: actual implementation will be added in the future
+        bulkUploadButton.addClickListener(e -> {
+            Notification.show("Bulk upload functionality coming soon!", 
+                3000, Notification.Position.BOTTOM_START);
+        });
 
-        HorizontalLayout toolbar = new HorizontalLayout(searchField, statusFilter, uploadButton);
+        HorizontalLayout rightButtons = new HorizontalLayout(bulkUploadButton, uploadButton);
+        rightButtons.setSpacing(true);
+        
+        HorizontalLayout toolbar = new HorizontalLayout(searchField, statusFilter, rightButtons);
         toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         toolbar.setWidthFull();
         toolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -496,52 +503,19 @@ public class PapersView extends Div implements BeforeEnterObserver {
     
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        LoggingUtil.debug(LOG, "beforeEnter", "Getting authentication");
+        LoggingUtil.debug(LOG, "beforeEnter", "Getting user from session");
         
-        // Get authentication 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        LoggingUtil.debug(LOG, "beforeEnter", "Authentication: %s", auth != null ? 
-                auth.getName() + " (authenticated: " + auth.isAuthenticated() + ")" : "null");
+        // Get the current user from the session (stored by MainLayout)
+        currentUser = MainLayout.getCurrentUser();
         
-        // Check if user is anonymous or lacks required role - @Secured isn't enough since anonymous users are "authenticated"
-        boolean hasAccess = false;
-        if (auth != null && auth.getAuthorities() != null) {
-            hasAccess = auth.getAuthorities().stream()
-                    .anyMatch(grantedAuth -> "ROLE_USER".equals(grantedAuth.getAuthority()));
-        }
-        
-        // Redirect to login if not authorized
-        if (!hasAccess) {
-            LoggingUtil.info(LOG, "beforeEnter", "User lacks required role, redirecting to login");
-            event.forwardTo(UIConstants.ROUTE_LOGIN); 
-            return;
-        }
-        
-        // Try to get the current user - this is needed for the view to function properly
-        try {
-            if (auth != null) {
-                currentUser = userService.findByUsername(auth.getName()).orElse(null);
-                if (currentUser != null) {
-                    LoggingUtil.info(LOG, "beforeEnter", "Current user loaded: %s (ID: %s)", 
-                        currentUser.getUsername(), currentUser.getId());
-                } else {
-                    LoggingUtil.warn(LOG, "beforeEnter", "Could not find user with username: %s", auth.getName());
-                    // If we can't find the user in the database, redirect to login
-                    event.forwardTo(UIConstants.ROUTE_LOGIN);
-                    return;
-                }
-            } else {
-                LoggingUtil.warn(LOG, "beforeEnter", "Authentication is null, cannot load current user");
-                event.forwardTo(UIConstants.ROUTE_LOGIN);
-                return;
-            }
+        if (currentUser != null) {
+            LoggingUtil.debug(LOG, "beforeEnter", "Retrieved user from session: %s (ID: %s)", 
+                currentUser.getUsername(), currentUser.getId());
             
-            // Initialize the view only when user is authenticated and authorized
+            // Initialize the view with the user's data
             initializeView();
-            
-        } catch (Exception e) {
-            // Log error and redirect to login
-            LOG.error("Error in beforeEnter: {}", e.getMessage(), e);
+        } else {
+            LoggingUtil.warn(LOG, "beforeEnter", "No user found in session, redirecting to login");
             event.forwardTo(UIConstants.ROUTE_LOGIN);
         }
     }

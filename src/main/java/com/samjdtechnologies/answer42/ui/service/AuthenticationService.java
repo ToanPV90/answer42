@@ -152,4 +152,22 @@ public class AuthenticationService {
         
         return isAuth;
     }
+    
+    /**
+     * Gets the current user ID.
+     *
+     * @return the current user ID or null if not authenticated
+     */
+    public java.util.UUID getCurrentUserId() {
+        if (!isAuthenticated()) {
+            return null;
+        }
+        
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        return userService.findByUsername(username)
+                .map(user -> user.getId())
+                .orElse(null);
+    }
 }

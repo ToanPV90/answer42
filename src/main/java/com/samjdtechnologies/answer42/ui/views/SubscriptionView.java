@@ -2,27 +2,22 @@ package com.samjdtechnologies.answer42.ui.views;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.samjdtechnologies.answer42.model.SubscriptionPlan;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.SubscriptionService;
-import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
@@ -51,7 +46,6 @@ public class SubscriptionView extends VerticalLayout implements BeforeEnterObser
     private static final Logger LOG = LoggerFactory.getLogger(SubscriptionView.class);
     
     private final SubscriptionService subscriptionService;
-    private final UserService userService;
     
     private User currentUser;
     private SubscriptionPlan currentPlan;
@@ -62,9 +56,8 @@ public class SubscriptionView extends VerticalLayout implements BeforeEnterObser
     private Span yearlyLabel;
     private Checkbox periodToggle;
     
-    public SubscriptionView(SubscriptionService subscriptionService, UserService userService) {
+    public SubscriptionView(SubscriptionService subscriptionService) {
         this.subscriptionService = subscriptionService;
-        this.userService = userService;
         
         addClassName(UIConstants.CSS_SUBSCRIPTION_VIEW);
         
@@ -368,96 +361,91 @@ public class SubscriptionView extends VerticalLayout implements BeforeEnterObser
         
         H2 faqTitle = new H2("Subscription FAQ");
         
-        // Create FAQ details components
-        Details upgradeDowngrade = createFaqItem(
-            "Can I upgrade or downgrade my plan?",
+        // Create two-column layout for FAQ accordions
+        HorizontalLayout columnsLayout = new HorizontalLayout();
+        columnsLayout.addClassName(UIConstants.CSS_FAQ_COLUMNS);
+        columnsLayout.setWidthFull();
+        
+        // Left column accordion
+        Accordion leftAccordion = new Accordion();
+        leftAccordion.setWidthFull();
+        
+        // Right column accordion
+        Accordion rightAccordion = new Accordion();
+        rightAccordion.setWidthFull();
+        
+        // Left column items
+        Paragraph upgradeDowngradeContent = new Paragraph(
             "Yes, you can upgrade or downgrade your subscription plan at any time. " +
             "Upgrades take effect immediately, while downgrades will take effect at the end of your current billing cycle."
         );
+        leftAccordion.add("Can I upgrade or downgrade my plan?", upgradeDowngradeContent);
         
-        Details creditsSystem = createFaqItem(
-            "How does the credits system work?",
+        Paragraph creditsSystemContent = new Paragraph(
             "Each plan comes with a monthly allocation of credits. Credits are used for AI-powered operations " +
             "like generating summaries, research assistance, and advanced analysis. Unused credits from the Basic, " +
             "Pro, and Scholar plans roll over to the next month (up to the specified maximum)."
         );
+        leftAccordion.add("How does the credits system work?", creditsSystemContent);
         
-        Details paymentMethods = createFaqItem(
-            "What payment methods do you accept?",
+        Paragraph paymentMethodsContent = new Paragraph(
             "We accept major credit cards (Visa, Mastercard, American Express), PayPal, and cryptocurrency payments " +
             "(Bitcoin, Ethereum). Cryptocurrency payments qualify for an additional 20% discount."
         );
+        leftAccordion.add("What payment methods do you accept?", paymentMethodsContent);
         
-        Details cancelSubscription = createFaqItem(
-            "Can I cancel my subscription?",
+        // Right column items
+        Paragraph cancelSubscriptionContent = new Paragraph(
             "Yes, you can cancel your subscription at any time. You'll continue to have access to your plan's " +
             "features until the end of your current billing cycle, after which your account will revert to the Free plan."
         );
+        rightAccordion.add("Can I cancel my subscription?", cancelSubscriptionContent);
         
-        Details dataDowngrade = createFaqItem(
-            "What happens to my data if I downgrade?",
+        Paragraph dataDowngradeContent = new Paragraph(
             "Your data remains secure in our system even if you downgrade. However, you may lose access to some " +
             "advanced features and exceed your new plan's paper or project limits. In such cases, you won't lose data " +
             "but may need to upgrade again to access all your files."
         );
+        rightAccordion.add("What happens to my data if I downgrade?", dataDowngradeContent);
         
-        faqSection.add(
-            faqTitle,
-            upgradeDowngrade,
-            creditsSystem,
-            paymentMethods,
-            cancelSubscription,
-            dataDowngrade
-        );
+        // Left column container
+        VerticalLayout leftColumn = new VerticalLayout();
+        leftColumn.setPadding(false);
+        leftColumn.setSpacing(false);
+        leftColumn.addClassName(UIConstants.CSS_FAQ_COLUMN);
+        leftColumn.add(leftAccordion);
+        
+        // Right column container
+        VerticalLayout rightColumn = new VerticalLayout();
+        rightColumn.setPadding(false);
+        rightColumn.setSpacing(false);
+        rightColumn.addClassName(UIConstants.CSS_FAQ_COLUMN);
+        rightColumn.add(rightAccordion);
+        
+        // Add columns to the layout
+        columnsLayout.add(leftColumn, rightColumn);
+        
+        // Add title and columns to the FAQ section
+        faqSection.add(faqTitle, columnsLayout);
         
         return faqSection;
     }
     
-    private Details createFaqItem(String summary, String content) {
-        Paragraph contentParagraph = new Paragraph();
-        contentParagraph.add(new Text(content));
-        
-        Details details = new Details(summary, contentParagraph);
-        
-        return details;
-    }
-    
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        LoggingUtil.debug(LOG, "beforeEnter", "Getting authentication");
+        LoggingUtil.debug(LOG, "beforeEnter", "Getting user from session");
         
-        // Get authentication
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        // Get the current user from the session (stored by MainLayout)
+        currentUser = MainLayout.getCurrentUser();
         
-        // Check if user is authenticated
-        if (auth == null || "anonymousUser".equals(auth.getPrincipal().toString())) {
-            LoggingUtil.debug(LOG, "beforeEnter", "Unauthenticated user, redirecting to login");
-            event.forwardTo(UIConstants.ROUTE_LOGIN);
-            return;
-        }
-        
-        try {
-            // Load the current user
-            String username = auth.getName();
-            Optional<User> userOpt = userService.findByUsername(username);
+        if (currentUser != null) {
+            LoggingUtil.debug(LOG, "beforeEnter", "Retrieved user from session: %s (ID: %s)", 
+                currentUser.getUsername(), currentUser.getId());
             
-            if (userOpt.isEmpty()) {
-                LoggingUtil.warn(LOG, "beforeEnter", "User not found: %s", username);
-                event.forwardTo(UIConstants.ROUTE_LOGIN);
-                return;
-            }
-            
-            currentUser = userOpt.get();
-            
-            // Get the user's current subscription plan
-            Optional<SubscriptionPlan> planOpt = subscriptionService.getUserCurrentPlan(currentUser.getId());
-            currentPlan = planOpt.orElse(null);
-            
-            // Initialize the view
+            // Initialize the view with the user's data
             initializeView();
-            
-        } catch (Exception e) {
-            LoggingUtil.error(LOG, "beforeEnter", "Error loading subscription view", e);
+        } else {
+            LoggingUtil.warn(LOG, "beforeEnter", "No user found in session, redirecting to login");
             event.forwardTo(UIConstants.ROUTE_LOGIN);
         }
     }

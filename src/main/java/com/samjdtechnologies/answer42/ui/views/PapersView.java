@@ -83,15 +83,8 @@ public class PapersView extends Div implements BeforeEnterObserver {
         // Configure the view
         removeAll();
         
-        // Create a container with proper padding for consistent layout
-        Div container = new Div();
-        container.addClassName(UIConstants.CSS_CONTENT_CONTAINER);
-        
-        // Add content to the container
-        container.add(createToolbar(), createContent());
-        
-        // Add container to the view
-        add(container);
+        // Add components directly to the view
+        add(createToolbar(), createContent());
 
         // Load initial data
         updateList();

@@ -1,0 +1,483 @@
+package com.samjdtechnologies.answer42.ui.views.helpers;
+
+import java.time.format.DateTimeFormatter;
+import java.util.Set;
+import java.util.function.Consumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import com.samjdtechnologies.answer42.model.Paper;
+import com.samjdtechnologies.answer42.model.Project;
+import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.service.ProjectService;
+import com.samjdtechnologies.answer42.ui.constants.UIConstants;
+import com.samjdtechnologies.answer42.util.LoggingUtil;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+
+/**
+ * Helper class for ProjectsView to handle non-UI rendering logic.
+ */
+public class ProjectsHelper {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ProjectsHelper.class);
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+
+    /**
+     * Configure the projects grid with columns and behaviors.
+     * 
+     * @param grid the Grid component to configure
+     * @param actionsRenderer renderer for the actions column
+     * @param detailsRenderer renderer for the expandable details
+     */
+    public static void configureGrid(Grid<Project> grid, 
+                                   ComponentRenderer<Component, Project> actionsRenderer,
+                                   ComponentRenderer<Component, Project> detailsRenderer) {
+        LoggingUtil.debug(LOG, "configureGrid", "Configuring projects grid");
+        
+        grid.addClassName(UIConstants.CSS_PAPERS_GRID);
+        grid.setId("projects-table");
+        
+        // Add actions column first (on the left side)
+        grid.addColumn(actionsRenderer)
+            .setHeader("Actions")
+            .setWidth("200px")
+            .setFlexGrow(0);
+        
+        // Add data columns
+        grid.addColumn(Project::getName)
+            .setHeader("Name")
+            .setFlexGrow(3)
+            .setSortable(true);
+        
+        grid.addColumn(project -> project.getDescription() != null ? project.getDescription() : "")
+            .setHeader("Description")
+            .setFlexGrow(5);
+        
+        grid.addColumn(project -> project.getPapers().size())
+            .setHeader("Papers")
+            .setFlexGrow(1)
+            .setSortable(true);
+        
+        grid.addColumn(project -> project.getUpdatedAt().format(DATE_FORMATTER))
+            .setHeader("Last Updated")
+            .setFlexGrow(2)
+            .setSortable(true);
+        
+        // Configure row click to open project details
+        grid.setItemDetailsRenderer(detailsRenderer);
+        grid.setDetailsVisibleOnClick(true);
+        
+        LoggingUtil.debug(LOG, "configureGrid", "Grid configuration completed");
+    }
+    
+    /**
+     * Creates action buttons for a project in the grid.
+     * 
+     * @param project The project to create actions for
+     * @param viewHandler The handler for view action
+     * @param editHandler The handler for edit action
+     * @param deleteHandler The handler for delete action
+     * @return The actions component
+     */
+    public static Component createActions(Project project, 
+                                       Consumer<Project> viewHandler,
+                                       Consumer<Project> editHandler,
+                                       Consumer<Project> deleteHandler) {
+        // Download button (this would be a placeholder for consistency with other views)
+        Button downloadButton = new Button(new Icon(VaadinIcon.DOWNLOAD));
+        downloadButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        downloadButton.getElement().setAttribute("title", "View files");
+        downloadButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
+        // For projects, the download button will navigate to view files
+        downloadButton.addClickListener(e -> viewHandler.accept(project));
+        
+        // View button - now serves as a details button
+        Button viewButton = new Button(new Icon(VaadinIcon.EYE));
+        viewButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        viewButton.addClickListener(e -> viewHandler.accept(project));
+        viewButton.getElement().setAttribute("title", "View details");
+        viewButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
+
+        // Edit button
+        Button editButton = new Button(new Icon(VaadinIcon.EDIT));
+        editButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        editButton.addClickListener(e -> editHandler.accept(project));
+        editButton.getElement().setAttribute("title", "Edit project");
+        editButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
+
+        // Delete button
+        Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
+        deleteButton.addClickListener(e -> deleteHandler.accept(project));
+        deleteButton.getElement().setAttribute("title", "Delete project");
+        deleteButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
+
+        // Create a compact layout for actions - download button first
+        HorizontalLayout actions = new HorizontalLayout(downloadButton, viewButton, editButton, deleteButton);
+        actions.setSpacing(false);
+        actions.setMargin(false);
+        actions.setPadding(false);
+        actions.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTONS_CONTAINER);
+        return actions;
+    }
+    
+    /**
+     * Creates the details section for a project when expanded in the grid.
+     * 
+     * @param project The project to show details for
+     * @param addPaperHandler Handler for adding papers to the project
+     * @return The details component
+     */
+    public static Component createProjectDetails(Project project, Consumer<Project> addPaperHandler) {
+        VerticalLayout details = new VerticalLayout();
+        details.setSpacing(true);
+        details.setPadding(true);
+        
+        // Create metadata section
+        Div metaSection = new Div();
+        
+        // Created date
+        Span created = new Span("Created: " + project.getCreatedAt().format(DATE_FORMATTER));
+        created.getStyle().set("margin-right", "var(--lumo-space-m)");
+        
+        // Visibility (public/private)
+        Span visibility = new Span("Visibility: " + (project.getIsPublic() ? "Public" : "Private"));
+        
+        metaSection.add(created, visibility);
+        
+        // List of papers in project (if any)
+        H3 papersTitle = new H3("Papers in Project");
+        
+        // Add paper button
+        Button addPaperBtn = new Button("Add Paper", new Icon(VaadinIcon.PLUS));
+        addPaperBtn.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        addPaperBtn.addClickListener(e -> addPaperHandler.accept(project));
+        
+        HorizontalLayout papersHeader = new HorizontalLayout(papersTitle, addPaperBtn);
+        papersHeader.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        papersHeader.setWidthFull();
+        papersHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        
+        // Add papers grid or empty message
+        Set<Paper> papers = project.getPapers();
+        
+        if (papers.isEmpty()) {
+            Paragraph emptyMessage = new Paragraph("No papers in this project yet.");
+            details.add(metaSection, papersHeader, emptyMessage);
+        } else {
+            // Create a mini-grid for papers
+            Grid<Paper> papersGrid = new Grid<>();
+            papersGrid.setHeight("200px");
+            
+            papersGrid.addColumn(Paper::getTitle).setHeader("Title").setFlexGrow(3);
+            papersGrid.addColumn(paper -> paper.getAuthors() != null ? 
+                    String.join(", ", paper.getAuthors()) : "").setHeader("Authors").setFlexGrow(2);
+            papersGrid.addColumn(Paper::getYear).setHeader("Year").setFlexGrow(1);
+            papersGrid.addColumn(Paper::getStatus).setHeader("Status").setFlexGrow(1);
+            
+            papersGrid.setItems(papers);
+            
+            details.add(metaSection, papersHeader, papersGrid);
+        }
+        
+        return details;
+    }
+    
+    /**
+     * Updates the pagination controls.
+     * 
+     * @param page Current page
+     * @param totalPages Total number of pages
+     * @param pageInfo Text display for pagination
+     * @param prevButton Previous page button
+     * @param nextButton Next page button
+     * @return The adjusted page number
+     */
+    public static int updatePagination(int page, int totalPages, Span pageInfo, Button prevButton, Button nextButton) {
+        // Update pagination info
+        if (totalPages > 0) {
+            pageInfo.setText((page + 1) + " of " + totalPages);
+        } else {
+            pageInfo.setText("0 of 0");
+        }
+        
+        // Enable/disable navigation buttons
+        prevButton.setEnabled(page > 0);
+        nextButton.setEnabled(page < totalPages - 1);
+        
+        // Adjust page if beyond bounds
+        if (page >= totalPages && totalPages > 0) {
+            return totalPages - 1;
+        }
+        
+        return page;
+    }
+    
+    /**
+     * Shows the dialog for creating a new project.
+     * 
+     * @param createHandler Handler to call when creating a project
+     */
+    public static void showCreateProjectDialog(Consumer<Project> createHandler) {
+        Dialog dialog = new Dialog();
+        dialog.addClassName(UIConstants.CSS_PROJECT_DIALOG);
+        dialog.setHeaderTitle("Create New Project");
+        
+        FormLayout form = new FormLayout();
+        
+        TextField nameField = new TextField("Project Name");
+        nameField.setRequired(true);
+        nameField.setErrorMessage(UIConstants.VALIDATION_REQUIRED);
+        nameField.setWidthFull();
+        
+        TextArea descriptionField = new TextArea("Description");
+        descriptionField.setWidthFull();
+        descriptionField.setMinHeight("150px");
+        descriptionField.setMaxHeight("200px");
+        
+        form.add(nameField, descriptionField);
+        form.setColspan(descriptionField, 2);
+        
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.addClassName(UIConstants.CSS_DIALOG_BUTTONS);
+        
+        Button cancelButton = new Button("Cancel", e -> dialog.close());
+        Button createButton = new Button("Create Project", e -> {
+            if (validateProjectForm(nameField)) {
+                Project newProject = new Project();
+                newProject.setName(nameField.getValue());
+                newProject.setDescription(descriptionField.getValue());
+                
+                createHandler.accept(newProject);
+                dialog.close();
+            }
+        });
+        
+        createButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        buttonLayout.add(cancelButton, createButton);
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        
+        VerticalLayout dialogLayout = new VerticalLayout(form, buttonLayout);
+        dialogLayout.setPadding(true);
+        dialogLayout.setSpacing(true);
+        
+        dialog.add(dialogLayout);
+        dialog.open();
+    }
+    
+    /**
+     * Shows the dialog for editing a project.
+     * 
+     * @param project The project to edit
+     * @param saveHandler Handler to call when saving changes
+     */
+    public static void showEditProjectDialog(Project project, Consumer<Project> saveHandler) {
+        Dialog dialog = new Dialog();
+        dialog.addClassName(UIConstants.CSS_PROJECT_DIALOG);
+        dialog.setHeaderTitle("Edit Project");
+        
+        FormLayout form = new FormLayout();
+        
+        TextField nameField = new TextField("Project Name");
+        nameField.setRequired(true);
+        nameField.setErrorMessage(UIConstants.VALIDATION_REQUIRED);
+        nameField.setValue(project.getName());
+        nameField.setWidthFull();
+        
+        TextArea descriptionField = new TextArea("Description");
+        descriptionField.setWidthFull();
+        descriptionField.setMinHeight("150px");
+        descriptionField.setMaxHeight("200px");
+        descriptionField.setValue(project.getDescription() != null ? project.getDescription() : "");
+        
+        form.add(nameField, descriptionField);
+        form.setColspan(descriptionField, 2);
+        
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.addClassName(UIConstants.CSS_DIALOG_BUTTONS);
+        
+        Button cancelButton = new Button("Cancel", e -> dialog.close());
+        Button saveButton = new Button("Save Changes", e -> {
+            if (validateProjectForm(nameField)) {
+                Project updatedProject = new Project();
+                updatedProject.setId(project.getId());
+                updatedProject.setName(nameField.getValue());
+                updatedProject.setDescription(descriptionField.getValue());
+                updatedProject.setIsPublic(project.getIsPublic());
+                
+                saveHandler.accept(updatedProject);
+                dialog.close();
+            }
+        });
+        
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        buttonLayout.add(cancelButton, saveButton);
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        
+        VerticalLayout dialogLayout = new VerticalLayout(form, buttonLayout);
+        dialogLayout.setPadding(true);
+        dialogLayout.setSpacing(true);
+        
+        dialog.add(dialogLayout);
+        dialog.open();
+    }
+    
+    /**
+     * Shows the confirmation dialog for deleting a project.
+     * 
+     * @param project The project to delete
+     * @param deleteHandler Handler to call when confirming deletion
+     */
+    public static void showDeleteConfirmDialog(Project project, Consumer<Project> deleteHandler) {
+        ConfirmDialog confirmDialog = new ConfirmDialog();
+        confirmDialog.setHeader("Delete Project");
+        confirmDialog.setText(
+                "Are you sure you want to delete the project \"" + project.getName() + "\"? " +
+                "This action cannot be undone. Papers in this project will not be deleted, " +
+                "but they will no longer be associated with this project.");
+        
+        confirmDialog.setCancelable(true);
+        confirmDialog.setCancelText("Cancel");
+        
+        confirmDialog.setConfirmText("Delete");
+        confirmDialog.setConfirmButtonTheme("error primary");
+        
+        confirmDialog.addConfirmListener(event -> deleteHandler.accept(project));
+        
+        confirmDialog.open();
+    }
+    
+    /**
+     * Validates the project form.
+     * 
+     * @param nameField The name field to validate
+     * @return true if the form is valid, false otherwise
+     */
+    private static boolean validateProjectForm(TextField nameField) {
+        if (nameField.getValue() == null || nameField.getValue().trim().isEmpty()) {
+            Notification.show("Project name is required", 3000, Notification.Position.MIDDLE);
+            return false;
+        }
+        return true;
+    }
+    
+    /**
+     * Update list of projects and refresh the grid based on search criteria.
+     * 
+     * @param currentUser The user whose projects are being displayed
+     * @param searchTerm The search term to filter projects by
+     * @param page The current page number (0-based)
+     * @param pageSize The number of items per page
+     * @param projectService The service for accessing project data
+     * @return A Page object containing the projects
+     */
+    public static Page<Project> fetchProjectsList(User currentUser, String searchTerm, 
+                                              int page, int pageSize, ProjectService projectService) {
+        LoggingUtil.debug(LOG, "fetchProjectsList", "Fetching projects for user: " + 
+            (currentUser != null ? currentUser.getUsername() + " (ID: " + currentUser.getId() + ")" : "null"));
+            
+        if (currentUser == null) {
+            LoggingUtil.error(LOG, "fetchProjectsList", "Cannot fetch projects: Current user is null");
+            return Page.empty(PageRequest.of(0, pageSize));
+        }
+        
+        try {
+            // Ensure params are not null to avoid NPE
+            final String finalSearchTerm = searchTerm == null ? "" : searchTerm;
+            
+            LoggingUtil.debug(LOG, "fetchProjectsList", 
+                "Using parameters: searchTerm='" + finalSearchTerm + 
+                "', page=" + page +
+                ", pageSize=" + pageSize);
+            
+            // Get projects sorted by updated_at
+            PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by("updatedAt").descending());
+            
+            Page<Project> result;
+            if (finalSearchTerm.isEmpty()) {
+                result = projectService.getProjectsByUser(currentUser, pageRequest);
+            } else {
+                result = projectService.searchProjectsByUser(currentUser, finalSearchTerm, pageRequest);
+            }
+            
+            LoggingUtil.info(LOG, "fetchProjectsList", "Retrieved " + result.getContent().size() + 
+                " projects for user " + currentUser.getUsername() + " (total: " + result.getTotalElements() + ")");
+            
+            return result;
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "fetchProjectsList", "Error fetching projects: " + e.getMessage(), e);
+            return Page.empty(PageRequest.of(page, pageSize));
+        }
+    }
+    
+    /**
+     * Update list of projects in the grid.
+     *
+     * @param currentUser The user whose projects are being displayed
+     * @param searchTerm The search term to filter projects by
+     * @param page The current page number (0-based)
+     * @param pageSize The number of items per page
+     * @param grid The Grid component to update
+     * @param pageInfo The Span component for pagination info
+     * @param prevButton The button for previous page
+     * @param nextButton The button for next page
+     * @param projectService The service for accessing project data
+     * @param pageUpdateCallback Callback to update page number if needed
+     */
+    public static void updateList(User currentUser, 
+                               String searchTerm,
+                               int page,
+                               int pageSize,
+                               Grid<Project> grid,
+                               Span pageInfo,
+                               Button prevButton, 
+                               Button nextButton,
+                               ProjectService projectService,
+                               Consumer<Integer> pageUpdateCallback) {
+        
+        LoggingUtil.debug(LOG, "updateList", "Updating with user: " + (currentUser != null ? currentUser.getUsername() : "null") + 
+            ", search: '" + searchTerm + "'");
+            
+        // Use helper to fetch projects list
+        Page<Project> projects = fetchProjectsList(
+            currentUser, searchTerm, page, pageSize, projectService);
+        
+        // Update grid
+        int contentSize = projects.getContent().size();
+        LoggingUtil.info(LOG, "updateList", "Setting grid with " + contentSize + " projects");
+        grid.setItems(projects.getContent());
+        
+        // Update pagination and potentially adjust page if beyond bounds
+        int adjustedPage = updatePagination(
+            projects.getNumber(), projects.getTotalPages(), pageInfo, prevButton, nextButton);
+        
+        // If page changed, update the current page and refresh
+        if (adjustedPage != page && pageUpdateCallback != null) {
+            LoggingUtil.debug(LOG, "updateList", "Page adjustment needed: " + page + " -> " + adjustedPage);
+            pageUpdateCallback.accept(adjustedPage);
+        }
+    }
+}

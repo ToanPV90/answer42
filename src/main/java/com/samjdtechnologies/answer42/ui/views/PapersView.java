@@ -235,8 +235,8 @@ public class PapersView extends Div implements BeforeEnterObserver {
         deleteButton.getElement().setAttribute("title", "Delete paper");
         deleteButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
-        // Create a more compact layout
-        HorizontalLayout actions = new HorizontalLayout(viewButton, editButton, downloadButton, deleteButton);
+        // Create a more compact layout - download button is first
+        HorizontalLayout actions = new HorizontalLayout(downloadButton, viewButton, editButton, deleteButton);
         actions.setSpacing(false);
         actions.setMargin(false);
         actions.setPadding(false);

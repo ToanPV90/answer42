@@ -35,6 +35,7 @@ import com.vaadin.flow.server.PWA;
 @CssImport("./styles/themes/answer42/components/credits.css")
 @CssImport("./styles/themes/answer42/components/settings.css")
 @CssImport("./styles/themes/answer42/components/upload-paper.css")
+@CssImport("./styles/themes/answer42/components/bulk-upload.css")
 
 @JavaScript("./sw-loader.js")
 @JavaScript("./jwt-injector.js")

@@ -14,6 +14,7 @@
 @import url('./components/credits.css');
 @import url('./components/settings.css');
 @import url('./components/upload-paper.css');
+@import url('./components/bulk-upload.css');
 
 /* Component-specific style overrides for Vaadin components */
 

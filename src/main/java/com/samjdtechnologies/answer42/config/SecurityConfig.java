@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -60,6 +60,57 @@ public class SecurityConfig {
     @Bean
     public JwtTokenUtil jwtTokenUtil() {
         return new JwtTokenUtil(jwtSecret, jwtExpiration, jwtHeader, jwtPrefix);
+    }
+
+    /**
+     * Creates a password encoder for securely hashing and verifying passwords.
+     * 
+     * @return a BCryptPasswordEncoder instance
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Creates and configures the DaoAuthenticationProvider with our CustomUserDetailsService.
+     * This explicitly connects our UserDetailsService with the authentication process.
+     * 
+     * @return the configured DaoAuthenticationProvider instance
+     */
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(customUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        LoggingUtil.debug(LOG, "authenticationProvider", "Configured DaoAuthenticationProvider with CustomUserDetailsService");
+        return provider;
+    }
+
+    /**
+     * Creates an authentication manager that explicitly uses our DaoAuthenticationProvider.
+     * This ensures our CustomUserDetailsService is properly utilized for authentication.
+     * 
+     * @return the configured AuthenticationManager instance
+     */
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        return new ProviderManager(authenticationProvider());
+    }
+
+    /**
+     * Creates and configures the JWT authentication filter which processes 
+     * incoming requests for JWT tokens.
+     * 
+     * @return a configured JwtAuthenticationFilter instance
+     */
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        LoggingUtil.debug(LOG, "jwtAuthenticationFilter", "Creating JwtAuthenticationFilter bean");
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtTokenUtil(), jwtConfig);
+        filter.setUserDetailsService(customUserDetailsService);
+        LoggingUtil.debug(LOG, "jwtAuthenticationFilter", "UserDetailsService set on JwtAuthenticationFilter");
+        return filter;
     }
 
     /**
@@ -120,6 +171,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session // VAADIN requires: IF_REQUIRED || ALWAYS
                 .sessionCreationPolicy(SessionCreationPolicy.ALWAYS) 
                 .invalidSessionUrl("/" + UIConstants.ROUTE_LOGIN))
+            // Set our custom authentication manager
+            .authenticationManager(authenticationManager())
             .formLogin(form -> form
                 .loginPage("/" + UIConstants.ROUTE_LOGIN)
                 .permitAll())
@@ -144,26 +197,10 @@ public class SecurityConfig {
                 // Require authentication for other endpoints
                 .anyRequest().authenticated()
             )
-            .authenticationProvider(authenticationProvider())
             // Add JWT filter before processing requests
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    /**
-     * Creates and configures the JWT authentication filter which processes 
-     * incoming requests for JWT tokens.
-     * 
-     * @return a configured JwtAuthenticationFilter instance
-     */
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        LoggingUtil.debug(LOG, "jwtAuthenticationFilter", "Creating JwtAuthenticationFilter bean");
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtTokenUtil(), jwtConfig);
-        filter.setUserDetailsService(customUserDetailsService);
-        LoggingUtil.debug(LOG, "jwtAuthenticationFilter", "UserDetailsService set on JwtAuthenticationFilter");
-        return filter;
     }
 
     /**
@@ -182,40 +219,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-    /**
-     * Creates a password encoder for securely hashing and verifying passwords.
-     * 
-     * @return a BCryptPasswordEncoder instance
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    /**
-     * Configures the authentication provider with user details service and password encoder.
-     * 
-     * @return a configured DaoAuthenticationProvider
-     */
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(customUserDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
-
-    /**
-     * Creates an authentication manager from the given configuration.
-     * 
-     * @param authConfig the authentication configuration
-     * @return the AuthenticationManager instance
-     * @throws Exception if authentication manager creation fails
-     */
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
-
 }

@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.model.Paper;
+import com.samjdtechnologies.answer42.model.Project;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
 
@@ -358,5 +359,25 @@ public class PaperService {
      */
     public Page<Paper> getPapersByUserAndStatus(User user, String status, Pageable pageable) {
         return paperRepository.findByUserAndStatus(user, status, pageable);
+    }
+    
+    /**
+     * Get papers by user that are not part of a specific project.
+     *
+     * @param user The user whose papers to retrieve
+     * @param project The project to exclude papers from
+     * @return List of papers not in the project
+     */
+    @Transactional
+    public List<Paper> getPapersNotInProject(User user, Project project) {
+        // First get all the user's papers
+        List<Paper> allUserPapers = paperRepository.findByUser(user);
+        
+        // Then filter out the ones that are already in the project
+        if (project.getPapers() != null && !project.getPapers().isEmpty()) {
+            allUserPapers.removeAll(project.getPapers());
+        }
+        
+        return allUserPapers;
     }
 }

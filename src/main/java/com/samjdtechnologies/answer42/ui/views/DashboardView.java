@@ -14,6 +14,9 @@ import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
@@ -22,6 +25,8 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -287,7 +292,7 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         
         sectionHeader.add(sectionTitle, viewAllLink);
         
-        // Papers list
+        // Create papers list container - styling now comes from the CSS
         Div papersList = new Div();
         papersList.addClassName(UIConstants.CSS_PAPERS_LIST);
         
@@ -323,7 +328,8 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
                     Component paperCard = createPaperCard(
                         paper.getTitle(),
                         displayContent,
-                        "PROCESSED".equals(paper.getStatus())
+                        "PROCESSED".equals(paper.getStatus()),
+                        paper
                     );
                     
                     papersList.add(paperCard);
@@ -342,13 +348,14 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         return section;
     }
     
-    private Component createPaperCard(String title, String content, boolean processed) {
+    private Component createPaperCard(String title, String content, boolean processed, Paper paper) {
         Div card = new Div();
         card.addClassName(UIConstants.CSS_PAPER_CARD);
 
-        // Card header with title and status
+        // Card header with title and status (with bottom border like project cards)
         Div header = new Div();
         header.addClassName(UIConstants.CSS_PAPER_HEADER);
+        header.getStyle().set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
 
         Span titleSpan = new Span(title);
         titleSpan.addClassName(UIConstants.CSS_PAPER_TITLE);
@@ -402,25 +409,111 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         
         metadata.add(authorMetadata, dateMetadata, citationsMetadata);
 
-        // Card footer with action icons
+        // Card footer with action buttons (with top border like project cards)
         Div footer = new Div();
         footer.addClassName(UIConstants.CSS_PAPER_FOOTER);
-
-        Div viewAction = new Div(VaadinIcon.EYE.create());
-        viewAction.addClassName(UIConstants.CSS_PAPER_ACTION);
-
-        Div editAction = new Div(VaadinIcon.EDIT.create());
-        editAction.addClassName(UIConstants.CSS_PAPER_ACTION);
-
-        Div downloadAction = new Div(VaadinIcon.DOWNLOAD.create());
-        downloadAction.addClassName(UIConstants.CSS_PAPER_ACTION);
-
-        footer.add(viewAction, editAction, downloadAction);
+        footer.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
+        
+        Div actions = new Div();
+        actions.addClassName(UIConstants.CSS_PROJECT_ACTIONS);
+        
+        // Create the action buttons with icons
+        Button viewButton = new Button("View", new Icon(VaadinIcon.EYE), e -> viewPaper(paper));
+        Button editButton = new Button("Edit", new Icon(VaadinIcon.EDIT), e -> editPaper(paper));
+        Button downloadButton = new Button("Download", new Icon(VaadinIcon.DOWNLOAD), e -> downloadPaper(paper));
+        Button deleteButton = new Button("Delete", new Icon(VaadinIcon.TRASH), e -> deletePaper(paper));
+        
+        // Apply theme variants for consistent styling
+        viewButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        downloadButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+        
+        // Add buttons to the actions container
+        actions.add(viewButton, editButton, downloadButton, deleteButton);
+        footer.add(actions);
 
         // Add all parts to the card
         card.add(header, contentParagraph, metadata, footer);
 
         return card;
+    }
+    
+    
+    // Action handlers for paper cards
+    private void viewPaper(Paper paper) {
+        String title = paper != null ? paper.getTitle() : "Unknown";
+        LoggingUtil.debug(LOG, "viewPaper", "View paper clicked: %s", title);
+        // Navigate to paper view or open paper details dialog
+        Notification.show("Viewing paper: " + title, 3000, Notification.Position.BOTTOM_START);
+    }
+    
+    private void editPaper(Paper paper) {
+        String title = paper != null ? paper.getTitle() : "Unknown";
+        LoggingUtil.debug(LOG, "editPaper", "Edit paper clicked: %s", title);
+        // Navigate to paper edit view or open edit dialog
+        Notification.show("Editing paper: " + title, 3000, Notification.Position.BOTTOM_START);
+    }
+    
+    private void downloadPaper(Paper paper) {
+        String title = paper != null ? paper.getTitle() : "Unknown";
+        LoggingUtil.debug(LOG, "downloadPaper", "Download paper clicked: %s", title);
+        // Trigger paper download
+        Notification.show("Downloading paper: " + title, 3000, Notification.Position.BOTTOM_START);
+    }
+    
+    private void deletePaper(Paper paper) {
+        if (paper == null) {
+            LoggingUtil.error(LOG, "deletePaper", "Cannot delete null paper");
+            return;
+        }
+        
+        String title = paper.getTitle();
+        LoggingUtil.debug(LOG, "deletePaper", "Delete paper clicked: %s", title);
+        
+        // Show confirmation dialog
+        ConfirmDialog confirmDialog = new ConfirmDialog();
+        confirmDialog.setHeader("Delete Paper");
+        confirmDialog.setText("Are you sure you want to delete \"" + title + "\"? This action cannot be undone.");
+        
+        confirmDialog.setCancelable(true);
+        confirmDialog.setCancelText("Cancel");
+        
+        confirmDialog.setConfirmText("Delete");
+        confirmDialog.setConfirmButtonTheme("error primary");
+        
+        confirmDialog.addConfirmListener(event -> {
+            try {
+                // Use PaperService to delete the paper
+                paperService.deletePaper(paper.getId());
+                
+                LoggingUtil.info(LOG, "deletePaper", "Successfully deleted paper: %s (ID: %s)", 
+                    title, paper.getId());
+                
+                Notification notification = new Notification(
+                    "Paper deleted successfully", 
+                    3000, 
+                    Notification.Position.BOTTOM_START
+                );
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                notification.open();
+                
+                // Refresh the view
+                initializeView();
+            } catch (Exception e) {
+                LoggingUtil.error(LOG, "deletePaper", "Failed to delete paper: %s", e.getMessage());
+                
+                Notification notification = new Notification(
+                    "Failed to delete paper: " + e.getMessage(), 
+                    3000, 
+                    Notification.Position.MIDDLE
+                );
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                notification.open();
+            }
+        });
+        
+        confirmDialog.open();
     }
     
     @Override

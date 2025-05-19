@@ -68,8 +68,9 @@ public class SecurityConfig {
             "/frontend/**",
             // Vaadin dev tools
             "/vaadin-dev-tools/**",
-            // Push endpoint
+            // Push endpoints
             "/PUSH/**",
+            "/HILLA/push/**",
             // Vaadin endpoint
             "/connect/**",
             // WebJars
@@ -122,7 +123,7 @@ public class SecurityConfig {
                 // Allow Vaadin UI views that handle navigation
                 .requestMatchers("/").permitAll()
                 .requestMatchers("/?**").permitAll() // Support query parameters on root path
-                .requestMatchers("/HILLA/**").permitAll() // Hilla endpoints
+                .requestMatchers("/HILLA/**").permitAll() // All Hilla endpoints (includes push)
                 .requestMatchers("/sw-runtime-resources-precache.js").permitAll()
                 .requestMatchers("/manifest.webmanifest").permitAll()
                 .requestMatchers("/icons/**").permitAll()

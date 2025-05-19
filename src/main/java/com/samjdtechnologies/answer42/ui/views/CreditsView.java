@@ -64,13 +64,15 @@ public class CreditsView extends VerticalLayout implements BeforeEnterObserver {
         this.creditService = creditService;
         
         addClassName(UIConstants.CSS_CREDITS_VIEW);
-        setSpacing(false);
-        setPadding(true);
+        getStyle().setHeight("auto");
         
         LoggingUtil.debug(LOG, "CreditsView", "CreditsView initialized");
     }
     
     private void initializeView() {
+        // Configure the view
+        removeAll();
+
         // Create page header
         add(createHeader());
         

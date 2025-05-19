@@ -50,21 +50,19 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         this.paperService = paperService;
         this.projectService = projectService;
 
-        LoggingUtil.debug(LOG, "DashboardView", "DashboardView initialized");
         addClassName(UIConstants.CSS_DASHBOARD_VIEW);
         getStyle().setHeight("auto");
+
+        LoggingUtil.debug(LOG, "DashboardView", "DashboardView initialized");
     }
     
     private void initializeView() {
         LoggingUtil.debug(LOG, "initializeView", "Initializing dashboard view components");
-        // Create all dashboard sections
-        Component welcomeSection = createWelcomeSection();
-        Component statsCards = createStatsCards();
-        Component quickActions = createQuickActions();
-        Component recentPapers = createRecentPapers();
-        
-        // Add components directly to the view without the extra container
-        add(welcomeSection, statsCards, quickActions, recentPapers);
+        // Configure the view
+        removeAll();
+
+        // Add components directly to the view
+        add(createWelcomeSection(), createStatsCards(), createQuickActions(), createRecentPapers());
         
         LoggingUtil.debug(LOG, "initializeView", "Dashboard view components initialized");
     }

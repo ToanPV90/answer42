@@ -62,10 +62,10 @@ public class SettingsView extends Div implements BeforeEnterObserver {
         this.userService = userService;
         this.userPreferencesService = userPreferencesService;
         
-        LoggingUtil.debug(LOG, "SettingsView", "SettingsView initialized");
         addClassName(UIConstants.CSS_SETTINGS_VIEW);
-        setSizeFull();
         getStyle().setHeight("auto");
+
+        LoggingUtil.debug(LOG, "SettingsView", "SettingsView initialized");
     }
     
     private void initializeView() {

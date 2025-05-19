@@ -3,6 +3,7 @@
   padding: var(--lumo-space-m);
   max-width: 1100px;
   margin: 0 auto;
+  margin-top: 10px;
   min-height: auto;
   display: flex;
   flex-direction: column;

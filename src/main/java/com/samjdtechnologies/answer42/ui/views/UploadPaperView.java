@@ -80,9 +80,10 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
         this.paperService = paperService;
         this.projectService = projectService;
         
-        LoggingUtil.debug(LOG, "UploadPaperView", "UploadPaperView initialized");
         addClassName(UIConstants.CSS_UPLOAD_PAPER_VIEW);
-        setSizeFull();
+        getStyle().setHeight("auto");
+
+        LoggingUtil.debug(LOG, "UploadPaperView", "UploadPaperView initialized");
     }
     
     private void initializeView() {
@@ -95,21 +96,17 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
         H2 title = new H2("Upload Paper");
         Paragraph subtitle = new Paragraph("Upload a scientific paper to analyze and manage in Answer42");
         
-        // Create the content
-        VerticalLayout content = new VerticalLayout();
-        content.setHeightFull();
-        content.setWidthFull();
-        content.setPadding(true);
-        content.setSpacing(true);
+        // Action buttons - created before steps so we can position them
+        Component actionButtons = createActionButtons();
         
-        // Add steps
-        content.add(createFileUploadStep(), createDetailsStep());
-        
-        // Add action buttons at the bottom
-        content.add(createActionButtons());
-        
-        // Add everything to the view
-        add(title, subtitle, content);
+        // Add components to the view in the desired order
+        add(
+            title, 
+            subtitle, 
+            createFileUploadStep(),
+            actionButtons,
+            createDetailsStep()
+        );
     }
     
     private Component createFileUploadStep() {

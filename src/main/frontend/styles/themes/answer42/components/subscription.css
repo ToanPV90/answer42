@@ -3,11 +3,11 @@
   padding: var(--lumo-space-m);
   max-width: 1100px;
   margin: 0 auto;
+  margin-top: 10px;
   min-height: auto;
   display: flex;
   flex-direction: column;
   background-color: var(--lumo-contrast-5pct);
-  align-items: center;
 }
 
 .subscription-title {
@@ -218,8 +218,8 @@
 
 .faq-column {
   flex: 1;
-  padding: 0 1rem;
   max-width: 48%;
+  background-color: var(--lumo-base-color);
 }
 
 .faq-column:first-child {

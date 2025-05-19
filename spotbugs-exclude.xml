@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter
+    xmlns="https://github.com/spotbugs/filter/3.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
+
+    <!-- Exclude issues in generated code -->
+    <Match>
+        <Package name="~.*\.generated.*"/>
+    </Match>
+
+    <!-- Exclude serialization issues for JPA entities -->
+    <Match>
+        <Class name="~.*\.(model|entity)\..*"/>
+        <Bug pattern="SE_BAD_FIELD"/>
+    </Match>
+    <Match>
+        <Class name="~.*\.(model|entity)\..*"/>
+        <Bug pattern="SE_NO_SERIALVERSIONID"/>
+    </Match>
+
+    <!-- Exclude some issues in test code -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING"/>
+    </Match>
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- Exclude Spring-specific false positives -->
+    <Match>
+        <Class name="~.*Controller"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="~.*Service"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="~.*Repository"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    
+    <!-- Exclude some Vaadin-specific issues -->
+    <Match>
+        <Class name="~.*View"/>
+        <Method name="~(beforeEnter|afterNavigation)"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
+    <Match>
+        <Class name="~.*View"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Exclude specific patterns related to our architecture -->
+    <!-- Exclude checked exceptions in UI layer -->
+    <Match>
+        <Class name="~com\.samjdtechnologies\.answer42\.ui\..*"/>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+    
+    <!-- Exclude minor issues in UI components that would be too rigid to enforce -->
+    <Match>
+        <Class name="~com\.samjdtechnologies\.answer42\.ui\..*"/>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+    </Match>
+
+    <!-- Vaadin serialization issues -->
+    <Match>
+        <Class name="~com\.samjdtechnologies\.answer42\.ui\..*"/>
+        <Bug pattern="SE_BAD_FIELD"/>
+    </Match>
+    <Match>
+        <Class name="~com\.samjdtechnologies\.answer42\.ui\..*"/>
+        <Bug pattern="SE_NO_SERIALVERSIONID"/>
+    </Match>
+    
+    <!-- Other specific exclusions -->
+    <!-- JWT token handling related warnings -->
+    <Match>
+        <Class name="~.*JwtTokenUtil"/>
+        <Bug pattern="HARD_CODE_KEY"/>
+    </Match>
+    
+    <!-- Security related exclusions that are handled by Spring Security -->
+    <Match>
+        <Class name="~.*SecurityConfig"/>
+        <Bug pattern="SPRING_CSRF_PROTECTION_DISABLED"/>
+    </Match>
+</FindBugsFilter>

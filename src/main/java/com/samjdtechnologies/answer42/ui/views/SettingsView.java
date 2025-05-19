@@ -13,6 +13,7 @@ import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -69,25 +70,32 @@ public class SettingsView extends Div implements BeforeEnterObserver {
     }
     
     private void initializeView() {
-        LoggingUtil.debug(LOG, "initializeView", "Initializing settings view components");
+        LoggingUtil.debug(LOG, "initializeView", "Initializing view components");
         
-        // Title
-        H1 settingsTitle = new H1("Settings");
-        settingsTitle.addClassName(UIConstants.CSS_SETTINGS_TITLE);
-        
-        // User Profile section
-        Div userProfileSection = createUserProfileSection();
-        
-        // Preferences section
-        Div preferencesSection = createPreferencesSection();
-        
-        // Danger Zone section
-        Div dangerZoneSection = createDangerZoneSection();
+        // Configure the view
+        removeAll();
         
         // Add all components to the view
-        add(settingsTitle, userProfileSection, preferencesSection, dangerZoneSection);
-        
+        add(createWelcomeSection(), 
+            createUserProfileSection(), 
+            createPreferencesSection(), 
+            createDangerZoneSection());
+
         LoggingUtil.debug(LOG, "initializeView", "Settings view components initialized");
+    }
+
+    private Component createWelcomeSection() {
+        Div section = new Div();
+        section.addClassName(UIConstants.CSS_WELCOME_SECTION);
+
+        H1 welcomeTitle = new H1("My Settings");
+        welcomeTitle.addClassName(UIConstants.CSS_WELCOME_TITLE);
+        
+        Paragraph welcomeSubtitle = new Paragraph("Customize Your Experience and Manage Account Preferences");
+        welcomeSubtitle.addClassName(UIConstants.CSS_WELCOME_SUBTITLE);
+        
+        section.add(welcomeTitle, welcomeSubtitle);
+        return section;
     }
     
     private Div createUserProfileSection() {

@@ -123,13 +123,9 @@ public class PapersView extends Div implements BeforeEnterObserver {
         uploadButton.addClickListener(e -> UI.getCurrent().navigate(UIConstants.ROUTE_UPLOAD_PAPER));
         
         Button bulkUploadButton = new Button("Bulk Upload", new Icon(VaadinIcon.FILE_TREE));
-        bulkUploadButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        bulkUploadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         bulkUploadButton.getElement().setAttribute("title", "Upload multiple papers at once");
-        // Note: actual implementation will be added in the future
-        bulkUploadButton.addClickListener(e -> {
-            Notification.show("Bulk upload functionality coming soon!", 
-                3000, Notification.Position.BOTTOM_START);
-        });
+        bulkUploadButton.addClickListener(e -> UI.getCurrent().navigate(UIConstants.ROUTE_BULK_UPLOAD));
 
         HorizontalLayout rightButtons = new HorizontalLayout(bulkUploadButton, uploadButton);
         rightButtons.setSpacing(true);

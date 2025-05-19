@@ -78,10 +78,11 @@ public class SubscriptionView extends VerticalLayout implements BeforeEnterObser
         
         // Add all components to the view
         add(createWelcomeSection(), 
-        createBitcoinBanner(), 
-        createBillingToggle(), 
-        plansContainer, 
-        createFaqSection());
+            createBitcoinBanner(), 
+            createBillingToggle(), 
+            plansContainer, 
+            createFaqSection()
+        );
     }
 
     private Component createWelcomeSection() {

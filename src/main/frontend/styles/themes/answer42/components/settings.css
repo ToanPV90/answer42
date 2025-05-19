@@ -10,27 +10,6 @@
   background-color: var(--lumo-contrast-5pct);
 }
 
-.settings-title {
-  margin-top: 0;
-  margin-bottom: var(--lumo-space-l);
-  color: var(--lumo-primary-text-color);
-}
-
-.settings-section {
-  background-color: var(--lumo-base-color);
-  border-radius: var(--lumo-border-radius);
-  box-shadow: var(--lumo-box-shadow-xs);
-  padding: var(--lumo-space-m);
-  margin-bottom: var(--lumo-space-l);
-}
-
-.settings-section h3 {
-  margin-top: 0;
-  color: var(--lumo-secondary-text-color);
-  font-weight: 500;
-  margin-bottom: var(--lumo-space-s);
-}
-
 .help-text {
   font-size: var(--lumo-font-size-xs);
   color: var(--lumo-tertiary-text-color);

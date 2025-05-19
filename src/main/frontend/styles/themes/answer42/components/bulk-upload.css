@@ -1,0 +1,117 @@
+/* Bulk Upload Page Styles */
+
+.bulk-upload-view {
+  padding: var(--lumo-space-m);
+  max-width: 1100px;
+  margin: 0 auto;
+  margin-top: 10px;
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--lumo-contrast-5pct);
+}
+
+.bulk-upload-container {
+    background-color: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: var(--lumo-box-shadow-xs);
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    transition: box-shadow 0.3s;
+}
+
+.bulk-upload-container:hover {
+    box-shadow: var(--lumo-box-shadow-s);
+}
+
+/* File list and items styling */
+.file-list {
+    border: 1px dashed var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-m);
+    margin-top: 1rem;
+    padding: 0.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.file-item {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--lumo-border-radius-s);
+    background-color: var(--lumo-base-color);
+    border: 1px solid var(--lumo-contrast-10pct);
+}
+
+.file-status {
+    font-size: var(--lumo-font-size-s);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--lumo-border-radius-s);
+}
+
+.file-status.pending {
+    background-color: var(--lumo-contrast-10pct);
+    color: var(--lumo-contrast-70pct);
+}
+
+.file-status.processing {
+    background-color: var(--lumo-primary-color-10pct);
+    color: var(--lumo-primary-color);
+}
+
+.file-status.success {
+    background-color: var(--lumo-success-color-10pct);
+    color: var(--lumo-success-color);
+}
+
+.file-status.error {
+    background-color: var(--lumo-error-color-10pct);
+    color: var(--lumo-error-color);
+}
+
+/* Upload progress styling */
+.upload-progress {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--lumo-contrast-5pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+/* Results section styling */
+.upload-results {
+    margin-top: 1rem;
+}
+
+.action-buttons {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Upload container styling */
+.upload-container {
+    border: 2px dashed var(--lumo-contrast-20pct);
+    padding: 2rem;
+    border-radius: var(--lumo-border-radius-m);
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+.upload-container:hover {
+    border-color: var(--lumo-primary-color-50pct);
+    background-color: var(--lumo-primary-color-5pct);
+}
+
+.drop-label {
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+}
+
+.file-info {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-tertiary-text-color);
+    margin-top: 0.5rem;
+}
+
+.help-text-secondary {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-tertiary-text-color);
+    margin-top: 0.25rem;
+}

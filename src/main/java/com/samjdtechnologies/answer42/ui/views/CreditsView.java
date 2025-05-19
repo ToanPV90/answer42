@@ -25,7 +25,7 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Paragraph;
@@ -35,7 +35,6 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
@@ -74,46 +73,27 @@ public class CreditsView extends VerticalLayout implements BeforeEnterObserver {
         removeAll();
 
         // Create page header
-        add(createHeader());
+        add(createWelcomeSection(),
+            createCreditBalanceSection(getUserCreditBalance()),
+            createHowCreditsWorkSection(),
+            createTransactionsSection(getUserTransactions())
+        );
+    }
+
+    private Component createWelcomeSection() {
+        Div section = new Div();
+        section.addClassName(UIConstants.CSS_WELCOME_SECTION);
+
+        H1 welcomeTitle = new H1("My Credits");
+        welcomeTitle.addClassName(UIConstants.CSS_WELCOME_TITLE);
         
-        // Create credit balance section
-        CreditBalance balance = getUserCreditBalance();
-        add(createCreditBalanceSection(balance));
+        Paragraph welcomeSubtitle = new Paragraph("Manage Your Credits and Balance History.");
+        welcomeSubtitle.addClassName(UIConstants.CSS_WELCOME_SUBTITLE);
         
-        // Create how credits work section
-        add(createHowCreditsWorkSection());
-        
-        // Create credit transactions section
-        List<CreditTransaction> transactions = getUserTransactions();
-        add(createTransactionsSection(transactions));
+        section.add(welcomeTitle, welcomeSubtitle);
+        return section;
     }
     
-    private Component createHeader() {
-        LoggingUtil.debug(LOG, "createHeader", "Creating credits view header");
-        
-        HorizontalLayout header = new HorizontalLayout();
-        header.setWidthFull();
-        header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        header.setAlignItems(FlexComponent.Alignment.CENTER);
-        
-        H2 title = new H2("Credits");
-        title.addClassName(UIConstants.CSS_CREDITS_TITLE);
-        
-        HorizontalLayout buttonLayout = new HorizontalLayout();
-        
-        Button purchaseButton = new Button("Purchase Credits", new Icon(VaadinIcon.CART));
-        purchaseButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        purchaseButton.addClickListener(e -> onPurchaseClicked());
-        
-        Button subscriptionButton = new Button("Subscription Plans", new Icon(VaadinIcon.COIN_PILES));
-        subscriptionButton.addClickListener(e -> onSubscriptionPlansClicked());
-        
-        buttonLayout.add(purchaseButton, subscriptionButton);
-        buttonLayout.setSpacing(true);
-        
-        header.add(title, buttonLayout);
-        return header;
-    }
     
     private Component createCreditBalanceSection(CreditBalance balance) {
         LoggingUtil.debug(LOG, "createCreditBalanceSection", "Creating credit balance section");

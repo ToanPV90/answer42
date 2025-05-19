@@ -60,7 +60,7 @@ The project uses the following static analysis tools:
 
 ## Running the Linting Tools
 
-The linting tools are automatically executed during the build process. To run them separately:
+The linting tools are configured to run only when explicitly called, not automatically during the build process. This gives you more control over when to apply code quality checks.
 
 ```bash
 # Run Checkstyle only
@@ -72,8 +72,11 @@ mvn pmd:check
 # Run SpotBugs only
 mvn spotbugs:check
 
+# Run Maven Enforcer only
+mvn enforcer:enforce
+
 # Run all validations
-mvn validate
+mvn checkstyle:check pmd:check spotbugs:check enforcer:enforce
 ```
 
 ## Fixing Common Issues

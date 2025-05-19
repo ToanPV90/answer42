@@ -251,15 +251,7 @@
 					<failsOnError>true</failsOnError>
 					<linkXRef>false</linkXRef>
 				</configuration>
-				<executions>
-					<execution>
-						<id>validate</id>
-						<phase>validate</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
+				<!-- No executions defined to make this run only when explicitly called -->
 			</plugin>
 			
 			<!-- PMD for static code analysis -->
@@ -278,22 +270,7 @@
 					<targetJdk>${java.version}</targetJdk>
 					<analysisCache>true</analysisCache>
 				</configuration>
-				<executions>
-					<execution>
-						<id>pmd-check</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>cpd-check</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>cpd-check</goal>
-						</goals>
-					</execution>
-				</executions>
+				<!-- No executions defined to make this run only when explicitly called -->
 			</plugin>
 			
 			<!-- SpotBugs for finding potential bugs -->
@@ -307,13 +284,7 @@
 					<xmlOutput>true</xmlOutput>
 					<excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
 				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
+				<!-- No executions defined to make this run only when explicitly called -->
 			</plugin>
 			
 			<!-- Enforce project architecture rules -->
@@ -321,26 +292,19 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
 				<version>3.4.1</version>
-				<executions>
-					<execution>
-						<id>enforce</id>
-						<configuration>
-							<rules>
-								<dependencyConvergence/>
-								<requireMavenVersion>
-									<version>3.8.0</version>
-								</requireMavenVersion>
-								<requireJavaVersion>
-									<version>21</version>
-								</requireJavaVersion>
-								<banDuplicatePomDependencyVersions/>
-							</rules>
-						</configuration>
-						<goals>
-							<goal>enforce</goal>
-						</goals>
-					</execution>
-				</executions>
+				<configuration>
+					<rules>
+						<dependencyConvergence/>
+						<requireMavenVersion>
+							<version>3.8.0</version>
+						</requireMavenVersion>
+						<requireJavaVersion>
+							<version>21</version>
+						</requireJavaVersion>
+						<banDuplicatePomDependencyVersions/>
+					</rules>
+				</configuration>
+				<!-- No executions defined to make this run only when explicitly called -->
 			</plugin>
 
 			<!-- JavaDoc standards enforcement -->

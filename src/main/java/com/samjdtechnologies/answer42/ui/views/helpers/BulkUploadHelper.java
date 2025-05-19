@@ -25,14 +25,25 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 
 /**
- * Helper class for bulk paper uploads
+ * Helper class for bulk paper uploads.
  */
 public class BulkUploadHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(BulkUploadHelper.class);
     
     /**
-     * Process multiple files in a bulk upload
+     * Process multiple files in a bulk upload.
+     * 
+     * @param buffers the list of memory buffers containing the uploaded files
+     * @param fileEntries the map of file entries to track upload status
+     * @param authors the list of authors to associate with the papers
+     * @param currentUser the current user uploading the papers
+     * @param selectedProject the project to add papers to, or null if none
+     * @param makePublic whether to make the uploaded papers public
+     * @param paperService the service to handle paper operations
+     * @param projectService the service to handle project operations
+     * @param ui the UI instance for thread-safe UI updates
+     * @param updateProgressCallback callback to update progress in the UI
      */
     public static void processBulkUpload(
             List<MemoryBuffer> buffers,
@@ -146,7 +157,13 @@ public class BulkUploadHelper {
     }
     
     /**
-     * Update the status of a file in the file entries map
+     * Update the status of a file in the file entries map.
+     * 
+     * @param fileEntry the file entry to update status for
+     * @param status the new status to set
+     * @param statusDetail detailed message about the status, can be null
+     * @param ui the UI instance for thread-safe UI updates
+     * @param fileEntries the map of file entries being processed
      */
     private static void updateFileStatus(FileEntry fileEntry, FileStatus status, String statusDetail, UI ui, Map<String, FileEntry> fileEntries) {
         // Run in UI thread to avoid concurrency issues with the UI
@@ -160,7 +177,12 @@ public class BulkUploadHelper {
     }
     
     /**
-     * Update the progress of the bulk upload
+     * Update the progress of the bulk upload.
+     * 
+     * @param processed the number of files processed so far
+     * @param total the total number of files to process
+     * @param ui the UI instance for thread-safe UI updates
+     * @param updateProgressCallback callback to update progress text in the UI
      */
     private static void updateProgress(int processed, int total, UI ui, Consumer<String> updateProgressCallback) {
         if (updateProgressCallback != null) {
@@ -175,7 +197,10 @@ public class BulkUploadHelper {
     }
     
     /**
-     * Convert a list of MemoryBuffers to a map of file entries
+     * Convert a list of MemoryBuffers to a map of file entries.
+     * 
+     * @param buffers the list of MemoryBuffers to convert
+     * @return a map of file entries where the keys are file names and values are FileEntry objects
      */
     public static Map<String, FileEntry> createFileEntriesMap(List<MemoryBuffer> buffers) {
         Map<String, FileEntry> fileEntries = new ConcurrentHashMap<>();
@@ -201,7 +226,10 @@ public class BulkUploadHelper {
     }
     
     /**
-     * Parse authors list from a comma-separated string
+     * Parse authors list from a comma-separated string.
+     * 
+     * @param authorsInput the comma-separated string of author names
+     * @return a list of individual author names, trimmed and with empty entries removed
      */
     public static List<String> parseAuthors(String authorsInput) {
         if (authorsInput == null || authorsInput.trim().isEmpty()) {

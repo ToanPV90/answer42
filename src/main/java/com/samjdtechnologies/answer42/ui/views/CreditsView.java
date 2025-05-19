@@ -59,6 +59,12 @@ public class CreditsView extends VerticalLayout implements BeforeEnterObserver {
     private User currentUser;
     private Grid<CreditTransaction> transactionsGrid;
     
+    /**
+     * Constructs the Credits view with necessary service dependencies.
+     * Initializes the credits view that displays the user's credit balance and transaction history.
+     * 
+     * @param creditService the service for credit operations including balance and transaction management
+     */
     public CreditsView(CreditService creditService) {
         this.creditService = creditService;
         
@@ -93,7 +99,6 @@ public class CreditsView extends VerticalLayout implements BeforeEnterObserver {
         section.add(welcomeTitle, welcomeSubtitle);
         return section;
     }
-    
     
     private Component createCreditBalanceSection(CreditBalance balance) {
         LoggingUtil.debug(LOG, "createCreditBalanceSection", "Creating credit balance section");

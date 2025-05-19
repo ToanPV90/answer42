@@ -42,11 +42,23 @@ public class AIConfig {
     @Value("${spring.ai.openai.chat.options.model}")
     private String openaiModel;
 
+    /**
+     * Creates a no-operation observation registry used for the AI model components.
+     * 
+     * @return A no-operation ObservationRegistry instance
+     */
     @Bean
     public ObservationRegistry observationRegistry() {
         return ObservationRegistry.NOOP;
     }
     
+    /**
+     * Creates a tool callback resolver for handling AI tool calls.
+     * This implementation returns null for all tool requests as we're not
+     * implementing custom tools in this configuration.
+     * 
+     * @return A ToolCallbackResolver implementation
+     */
     @Bean
     public ToolCallbackResolver toolCallbackResolver() {
         // Create a concrete implementation of ToolCallbackResolver
@@ -58,16 +70,31 @@ public class AIConfig {
         };
     }
     
+    /**
+     * Creates a tool execution exception processor for handling errors during tool calls.
+     * 
+     * @return A ToolExecutionExceptionProcessor that processes exceptions during tool execution
+     */
     @Bean
     public ToolExecutionExceptionProcessor toolExecutionExceptionProcessor() {
         return new DefaultToolExecutionExceptionProcessor(false);
     }
     
+    /**
+     * Creates an Anthropic API client with the configured API key.
+     * 
+     * @return An AnthropicApi client for making requests to Anthropic's services
+     */
     @Bean
     public AnthropicApi anthropicApi() {
         return new AnthropicApi(anthropicApiKey);
     }
     
+    /**
+     * Creates a tool calling manager for handling AI model tool integrations.
+     * 
+     * @return A ToolCallingManager that manages tool calls from AI models
+     */
     @Bean
     public ToolCallingManager toolCallingManager() {
         return new DefaultToolCallingManager(
@@ -77,11 +104,22 @@ public class AIConfig {
         );
     }
     
+    /**
+     * Creates a default retry template for handling transient failures in API calls.
+     * 
+     * @return A RetryTemplate with default settings
+     */
     @Bean
     public RetryTemplate retryTemplate() {
         return RetryTemplate.builder().build();
     }
     
+    /**
+     * Creates and configures the primary Anthropic chat model used for AI interactions.
+     * 
+     * @param anthropicApi The Anthropic API client
+     * @return A configured AnthropicChatModel using the specified model name
+     */
     @Bean
     @Primary
     public AnthropicChatModel anthropicChatModel(AnthropicApi anthropicApi) {
@@ -97,12 +135,23 @@ public class AIConfig {
                 observationRegistry());
     }
     
+    /**
+     * Creates the primary chat client using the Anthropic chat model.
+     * 
+     * @param anthropicChatModel The configured Anthropic chat model
+     * @return A ChatClient that uses the Anthropic model for conversations
+     */
     @Bean
     @Primary
     public ChatClient anthropicChatClient(AnthropicChatModel anthropicChatModel) {
         return ChatClient.builder(anthropicChatModel).build();
     }
     
+    /**
+     * Creates an OpenAI API client with the configured API key and base URL.
+     * 
+     * @return An OpenAiApi client for making requests to OpenAI's services
+     */
     @Bean
     public OpenAiApi openAiApi() {
         // Use the builder pattern which properly handles all required parameters
@@ -113,6 +162,12 @@ public class AIConfig {
             .build();
     }
     
+    /**
+     * Creates and configures an OpenAI chat model for AI interactions.
+     * 
+     * @param openAiApi The OpenAI API client
+     * @return A configured OpenAiChatModel using the specified model name
+     */
     @Bean
     public OpenAiChatModel openAiChatModel(OpenAiApi openAiApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
@@ -127,6 +182,12 @@ public class AIConfig {
                 observationRegistry());
     }
     
+    /**
+     * Creates a chat client using the OpenAI chat model.
+     * 
+     * @param openAiChatModel The configured OpenAI chat model
+     * @return A ChatClient that uses the OpenAI model for conversations
+     */
     @Bean
     public ChatClient openAiChatClient(OpenAiChatModel openAiChatModel) {
         return ChatClient.builder(openAiChatModel).build();

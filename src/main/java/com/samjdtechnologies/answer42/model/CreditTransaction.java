@@ -75,10 +75,24 @@ public class CreditTransaction {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    // Constructors
+    /**
+     * Default constructor for CreditTransaction.
+     * Required by JPA.
+     */
     public CreditTransaction() {
     }
     
+    /**
+     * Constructor with all fields for creating a new credit transaction.
+     * 
+     * @param userId The ID of the user this transaction belongs to
+     * @param transactionType The type of transaction (e.g., PURCHASE, SUBSCRIPTION_RENEWAL)
+     * @param amount The amount of credits involved in the transaction
+     * @param balanceAfter The user's credit balance after the transaction
+     * @param operationType The type of operation this transaction is for
+     * @param description A human-readable description of the transaction
+     * @param referenceId An optional reference ID to link to other entities
+     */
     public CreditTransaction(UUID userId, TransactionType transactionType, 
                           Integer amount, Integer balanceAfter, 
                           OperationType operationType, String description, 
@@ -91,6 +105,7 @@ public class CreditTransaction {
         this.description = description;
         this.referenceId = referenceId;
     }
+
     
     // Getters and Setters
     public UUID getId() {

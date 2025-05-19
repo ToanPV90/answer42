@@ -52,11 +52,24 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    /**
+     * Creates and configures the JWT token utility bean.
+     * 
+     * @return a configured JwtTokenUtil instance for JWT token generation and validation
+     */
     @Bean
     public JwtTokenUtil jwtTokenUtil() {
         return new JwtTokenUtil(jwtSecret, jwtExpiration, jwtHeader, jwtPrefix);
     }
 
+    /**
+     * Configures the application's security filter chain with authentication rules,
+     * JWT token processing, and defining public/protected endpoints.
+     * 
+     * @param http the HttpSecurity instance to configure
+     * @return the configured SecurityFilterChain
+     * @throws Exception if an error occurs during security configuration
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         LoggingUtil.debug(LOG, "securityFilterChain", "Configuring security filter chain");
@@ -138,6 +151,12 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Creates and configures the JWT authentication filter which processes 
+     * incoming requests for JWT tokens.
+     * 
+     * @return a configured JwtAuthenticationFilter instance
+     */
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         LoggingUtil.debug(LOG, "jwtAuthenticationFilter", "Creating JwtAuthenticationFilter bean");
@@ -147,6 +166,11 @@ public class SecurityConfig {
         return filter;
     }
 
+    /**
+     * Configures Cross-Origin Resource Sharing (CORS) settings for the application.
+     * 
+     * @return a CorsConfigurationSource with allowed origins, methods, and headers
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -159,11 +183,21 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * Creates a password encoder for securely hashing and verifying passwords.
+     * 
+     * @return a BCryptPasswordEncoder instance
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Configures the authentication provider with user details service and password encoder.
+     * 
+     * @return a configured DaoAuthenticationProvider
+     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -172,6 +206,13 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    /**
+     * Creates an authentication manager from the given configuration.
+     * 
+     * @param authConfig the authentication configuration
+     * @return the AuthenticationManager instance
+     * @throws Exception if authentication manager creation fails
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();

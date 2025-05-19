@@ -66,6 +66,12 @@ public class PapersView extends Div implements BeforeEnterObserver {
     private final Button nextButton = new Button("Next");
     private final Span pageInfo = new Span("0 of 0");
 
+    /**
+     * Constructs the Papers view with necessary service dependencies.
+     * Initializes the view for displaying, searching, and managing uploaded papers.
+     * 
+     * @param paperService the service for paper-related operations including retrieval and management
+     */
     public PapersView(PaperService paperService) {
         this.paperService = paperService;
 

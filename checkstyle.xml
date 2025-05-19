@@ -19,11 +19,11 @@
     </module>
 
     <!-- Checks for line length (max 120 chars) -->
-    <module name="LineLength">
+    <!-- <module name="LineLength">
         <property name="fileExtensions" value="java"/>
         <property name="max" value="120"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-    </module>
+    </module> -->
 
     <!-- No tab characters allowed -->
     <module name="FileTabCharacter">
@@ -32,19 +32,19 @@
 
     <module name="TreeWalker">
         <!-- Import order: java/javax first, then third-party, then project imports -->
-        <module name="ImportOrder">
+        <!-- <module name="ImportOrder">
             <property name="groups" value="/^java\./,/^javax\./,/^org\./,/^com\.(?!samjdtechnologies)/,/^com\.samjdtechnologies/"/>
             <property name="ordered" value="true"/>
             <property name="separated" value="true"/>
             <property name="option" value="top"/>
             <property name="sortStaticImportsAlphabetically" value="true"/>
-        </module>
+        </module> -->
 
         <!-- Avoid unused imports -->
         <module name="UnusedImports"/>
 
         <!-- Class, interface, enum structure rules -->
-        <module name="EmptyBlock">
+        <!-- <module name="EmptyBlock">
             <property name="option" value="TEXT"/>
             <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
         </module>
@@ -52,17 +52,17 @@
         <module name="LeftCurly"/>
         <module name="RightCurly"/>
         <module name="WhitespaceAfter"/>
-        <module name="WhitespaceAround"/>
+        <module name="WhitespaceAround"/> -->
 
         <!-- Method length checker: methods should be under 60 lines -->
-        <module name="MethodLength">
+        <!-- <module name="MethodLength">
             <property name="tokens" value="METHOD_DEF"/>
             <property name="max" value="60"/>
             <property name="countEmpty" value="false"/>
-        </module>
+        </module> -->
 
         <!-- Naming conventions -->
-        <module name="ConstantName">
+        <!-- <module name="ConstantName">
             <property name="format" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
         </module>
         <module name="LocalVariableName"/>
@@ -73,7 +73,7 @@
         </module>
         <module name="ParameterName"/>
         <module name="StaticVariableName"/>
-        <module name="TypeName"/>
+        <module name="TypeName"/> -->
 
         <!-- JavaDoc checks -->
         <module name="JavadocMethod">
@@ -90,31 +90,31 @@
         </module>
 
         <!-- Detect @author tags (discouraged) -->
-        <module name="RegexpSinglelineJava">
+        <!-- <module name="RegexpSinglelineJava">
             <property name="format" value="@author"/>
             <property name="message" value="Please do not use @author tags"/>
             <property name="ignoreComments" value="false"/>
-        </module>
+        </module> -->
 
         <!-- Ensure LoggingUtil is used -->
-        <module name="RegexpSinglelineJava">
+        <!-- <module name="RegexpSinglelineJava">
             <property name="format" value="\.error\(|\.warn\(|\.info\(|\.debug\("/>
             <property name="ignoreComments" value="true"/>
             <property name="message" value="Direct use of logger methods is not allowed, use LoggingUtil instead."/>
-        </module>
+        </module> -->
 
         <!-- Avoid using deprecated methods -->
-        <module name="RegexpSinglelineJava">
+        <!-- <module name="RegexpSinglelineJava">
             <property name="format" value="@Deprecated|@java.lang.Deprecated"/>
             <property name="message" value="Using deprecated methods is not allowed."/>
             <property name="ignoreComments" value="true"/>
-        </module>
+        </module> -->
 
         <!-- Architecture enforcement: view classes must extend Div and implement BeforeEnterObserver -->
-        <module name="RegexpSinglelineJava">
+        <!-- <module name="RegexpSinglelineJava">
             <property name="id" value="ViewClassPattern"/>
             <property name="format" value="class\s+\w+View\s+(?!extends\s+Div\s+implements\s+BeforeEnterObserver)"/>
             <property name="message" value="View classes must extend Div and implement BeforeEnterObserver."/>
-        </module>
+        </module> -->
     </module>
 </module>

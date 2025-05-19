@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.request.WebRequest;
 
 /**
- * Configuration for custom error handling and error attributes
+ * Configuration for custom error handling and error attributes.
  */
 @Configuration
 public class ErrorConfig {
@@ -18,6 +18,8 @@ public class ErrorConfig {
     /**
      * Customizes the error attributes that will be included in error responses.
      * This replaces the need to configure ServerProperties error settings.
+     * 
+     * @return a custom implementation of ErrorAttributes that controls error response content
      */
     @Bean
     public ErrorAttributes errorAttributes() {

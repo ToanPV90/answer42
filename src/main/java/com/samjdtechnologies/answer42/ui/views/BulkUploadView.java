@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.annotation.Secured;
 
-import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.model.Project;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.PaperService;
@@ -61,7 +60,6 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
     
     private final PaperService paperService;
     private final ProjectService projectService;
-    private final AIConfig aiConfig;
     
     private User currentUser;
     private List<MemoryBuffer> fileBuffers = new ArrayList<>();
@@ -78,10 +76,16 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
     private VerticalLayout resultsContainer;
     private Div fileListContainer;
     
-    public BulkUploadView(PaperService paperService, ProjectService projectService, AIConfig aiConfig) {
+    /**
+     * Constructs the bulk upload view with necessary service dependencies.
+     * Initializes the view for uploading and processing multiple research papers in a batch.
+     * 
+     * @param paperService the service for paper-related operations including upload and metadata management
+     * @param projectService the service for project-related operations and paper-project associations
+     */
+    public BulkUploadView(PaperService paperService, ProjectService projectService) {
         this.paperService = paperService;
         this.projectService = projectService;
-        this.aiConfig = aiConfig;
         
         addClassName(UIConstants.CSS_BULK_UPLOAD_VIEW);
         getStyle().setHeight("auto");
@@ -477,7 +481,7 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
     }
     
     /**
-     * Get all projects for a user, wrapper around the pageable method
+     * Get all projects for a user, wrapper around the pageable method.
      * 
      * @param user The user whose projects to retrieve
      * @return List of projects

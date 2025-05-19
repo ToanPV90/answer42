@@ -48,9 +48,17 @@ public class UserPreferences {
     private LocalDateTime updatedAt;
     
     // Constructors
+    /**
+     * Default constructor for UserPreferences.
+     */
     public UserPreferences() {
     }
     
+    /**
+     * Creates user preferences for a specific user.
+     * 
+     * @param userId the UUID of the user these preferences belong to
+     */
     public UserPreferences(UUID userId) {
         this.userId = userId;
     }
@@ -120,6 +128,11 @@ public class UserPreferences {
         this.updatedAt = updatedAt;
     }
     
+    /**
+     * Returns a string representation of the user preferences.
+     * 
+     * @return a string containing the user preferences details
+     */
     @Override
     public String toString() {
         return "UserPreferences{" +

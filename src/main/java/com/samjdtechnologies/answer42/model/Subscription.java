@@ -57,9 +57,22 @@ public class Subscription {
     private LocalDateTime updatedAt;
     
     // Constructors
+    /**
+     * Default constructor for Subscription.
+     */
     public Subscription() {
     }
     
+    /**
+     * Creates a subscription with the specified details.
+     * 
+     * @param userId The unique identifier of the user who owns this subscription
+     * @param planId The identifier of the subscription plan
+     * @param status The status of the subscription (e.g., "active", "canceled")
+     * @param currentPeriodStart The start date of the current subscription period
+     * @param currentPeriodEnd The end date of the current subscription period
+     * @param paymentProvider The payment provider used for this subscription
+     */
     public Subscription(UUID userId, String planId, String status, 
                       LocalDateTime currentPeriodStart, LocalDateTime currentPeriodEnd,
                       String paymentProvider) {
@@ -178,22 +191,47 @@ public class Subscription {
     }
     
     // Helper methods
+    /**
+     * Checks if this subscription is in an active state.
+     * 
+     * @return true if the status equals "active" (case-insensitive), false otherwise
+     */
     public boolean isActive() {
         return "active".equalsIgnoreCase(status);
     }
     
+    /**
+     * Checks if this subscription is in a trial period.
+     * 
+     * @return true if the status equals "trialing" (case-insensitive), false otherwise
+     */
     public boolean isTrialing() {
         return "trialing".equalsIgnoreCase(status);
     }
     
+    /**
+     * Checks if this subscription has been canceled.
+     * 
+     * @return true if the status equals "canceled" (case-insensitive), false otherwise
+     */
     public boolean isCanceled() {
         return "canceled".equalsIgnoreCase(status);
     }
     
+    /**
+     * Checks if this subscription period has ended.
+     * 
+     * @return true if the current period end date is in the past, false otherwise
+     */
     public boolean isExpired() {
         return currentPeriodEnd != null && currentPeriodEnd.isBefore(LocalDateTime.now());
     }
     
+    /**
+     * Checks if this subscription is active and will renew automatically.
+     * 
+     * @return true if the subscription is active and not expired, false otherwise
+     */
     public boolean isRenewing() {
         return isActive() && !isExpired();
     }

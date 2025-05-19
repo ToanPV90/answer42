@@ -39,14 +39,26 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
 
 /**
- * Helper class for PapersView to handle non-UI rendering logic
+ * Helper class for PapersView to handle non-UI rendering logic.
  */
 public class PapersHelper {
     
     private static final Logger LOG = LoggerFactory.getLogger(PapersHelper.class);
 
     /**
-     * Update list of papers and refresh the grid based on search and filter criteria
+     * Update list of papers and refresh the grid based on search and filter criteria.
+     * 
+     * @param currentUser the user whose papers are being displayed
+     * @param searchTerm the search term to filter papers by
+     * @param statusValue the status filter to apply
+     * @param page the current page number (0-based)
+     * @param pageSize the number of items per page
+     * @param grid the Grid component to update with papers
+     * @param pageInfo the Span component displaying pagination information
+     * @param prevButton the Button for navigating to previous page
+     * @param nextButton the Button for navigating to next page
+     * @param paperService the service for accessing paper data
+     * @param pageUpdateCallback callback function to update page when pagination changes
      */
     public static void updateList(User currentUser, 
                                String searchTerm, 
@@ -85,7 +97,11 @@ public class PapersHelper {
     }
 
     /**
-     * Configure the grid with standard paper columns and behaviors
+     * Configure the grid with standard paper columns and behaviors.
+     * 
+     * @param grid the Grid component to configure with paper columns
+     * @param actionsRenderer renderer for the actions column
+     * @param itemClickHandler callback function to handle double-click on grid rows
      */
     public static void configureGrid(Grid<Paper> grid, 
                                      ComponentRenderer<Component, Paper> actionsRenderer,
@@ -145,7 +161,15 @@ public class PapersHelper {
     }
 
     /**
-     * Updates the grid with papers based on search and filter criteria
+     * Updates the grid with papers based on search and filter criteria.
+     * 
+     * @param currentUser the user whose papers are being fetched
+     * @param searchTerm the search term to filter papers by
+     * @param statusValue the status filter to apply
+     * @param page the current page number (0-based)
+     * @param pageSize the number of items per page
+     * @param paperService the service for accessing paper data
+     * @return a Page object containing papers matching the search criteria and pagination parameters
      */
     public static Page<Paper> fetchPapersList(User currentUser, String searchTerm, String statusValue, 
                                              int page, int pageSize, PaperService paperService) {
@@ -213,7 +237,16 @@ public class PapersHelper {
     }
 
     /**
-     * Update pagination information
+     * Update pagination information.
+     * 
+     * @param currentPage the current page number (0-based)
+     * @param totalPages the total number of pages
+     * @param totalItems the total number of items
+     * @param pageInfo the Span component to update with pagination text
+     * @param prevButton the Button for navigating to previous page
+     * @param nextButton the Button for navigating to next page
+     * @return the adjusted page number, which may be different from the current page if
+     *         pagination boundaries were exceeded
      */
     public static int updatePagination(int currentPage, int totalPages, long totalItems, Span pageInfo,
                                     Button prevButton, Button nextButton) {
@@ -235,7 +268,12 @@ public class PapersHelper {
     }
 
     /**
-     * Validate upload form fields
+     * Validate upload form fields and enable/disable the submit button based on validation results.
+     * 
+     * @param titleField the text field for paper title
+     * @param authorsField the text field for paper authors
+     * @param fileUploaded boolean indicating whether a file has been uploaded
+     * @param submitButton the submit button to enable/disable based on validation
      */
     public static void validateUploadForm(TextField titleField, TextField authorsField, boolean fileUploaded, Button submitButton) {
         boolean titleValid = !titleField.isEmpty();
@@ -245,7 +283,10 @@ public class PapersHelper {
     }
 
     /**
-     * Create a MultipartFile from a MemoryBuffer
+     * Create a MultipartFile from a MemoryBuffer.
+     * 
+     * @param buffer the MemoryBuffer containing file data
+     * @return a MultipartFile implementation created from the provided buffer
      */
     public static MultipartFile createMultipartFileFromBuffer(MemoryBuffer buffer) {
         return new MultipartFile() {
@@ -308,7 +349,11 @@ public class PapersHelper {
     }
 
     /**
-     * Download a paper by creating a stream resource and triggering download
+     * Download a paper by creating a stream resource and triggering download.
+     * 
+     * @param paper the paper object containing the file path to download
+     * @param ui the UI instance to use for download operations
+     * @param viewComponent the parent component where download elements will be temporarily added
      */
     public static void downloadPaper(Paper paper, UI ui, HasComponents viewComponent) {
         try {

@@ -21,6 +21,11 @@ public class UserPreferencesService {
     
     private final UserPreferencesRepository userPreferencesRepository;
     
+    /**
+     * Constructs a new UserPreferencesService with the necessary dependencies.
+     * 
+     * @param userPreferencesRepository the repository for UserPreferences entity operations
+     */
     public UserPreferencesService(UserPreferencesRepository userPreferencesRepository) {
         this.userPreferencesRepository = userPreferencesRepository;
     }

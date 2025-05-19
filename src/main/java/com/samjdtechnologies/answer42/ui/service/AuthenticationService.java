@@ -27,6 +27,12 @@ public class AuthenticationService {
     private final AuthController authController;
     private final UserService userService;
 
+    /**
+     * Constructs a new AuthenticationService with the necessary dependencies.
+     * 
+     * @param authController the controller that handles authentication API requests
+     * @param userService the service that provides user operations and data access
+     */
     public AuthenticationService(AuthController authController, UserService userService) {
         this.authController = authController;
         this.userService = userService;
@@ -121,14 +127,31 @@ public class AuthenticationService {
 
     /**
      * Logs out the current user.
+     * 
+     * Important: This method does NOT invalidate the session as that would make
+     * UI.getCurrent() return null, preventing navigation. The session should be
+     * invalidated after any UI operations are complete.
      */
     public void logout() {
-        // Clear the Vaadin session
-        VaadinSession.getCurrent().getSession().invalidate();
+        // First, clear the JWT token from localStorage if UI is available
+        UI ui = UI.getCurrent();
+        if (ui != null && ui.getPage() != null) {
+            ui.getPage().executeJs("window.clearJwtToken()");
+        }
+        
         // Clear Spring Security context
         SecurityContextHolder.clearContext();
-        // Clear the JWT token from localStorage
-        UI.getCurrent().getPage().executeJs("window.clearJwtToken()");
+    }
+    
+    /**
+     * Completes the logout process by invalidating the session.
+     * This should only be called after all UI operations are complete.
+     */
+    public void invalidateSession() {
+        VaadinSession currentSession = VaadinSession.getCurrent();
+        if (currentSession != null && currentSession.getSession() != null) {
+            currentSession.getSession().invalidate();
+        }
     }
 
     /**

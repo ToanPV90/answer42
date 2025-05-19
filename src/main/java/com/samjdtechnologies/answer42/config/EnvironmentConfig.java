@@ -29,6 +29,10 @@ public class EnvironmentConfig {
     @Value("${OPENAI_API_KEY:#{null}}")
     private String perplexityApiKey;
 
+    /**
+     * Logs information about loaded environment variables when the application context is refreshed.
+     * Checks for the presence of API keys and provides masked versions for logging purposes.
+     */
     @EventListener(ContextRefreshedEvent.class)
     public void logEnvironmentSetup() {
         LOG.info("Loaded environment variables from .env file");
@@ -48,12 +52,18 @@ public class EnvironmentConfig {
         }
     }
 
+    /**
+     * Initializes the environment configuration by manually loading environment variables
+     * from .env file if they weren't loaded automatically by PropertySource.
+     * This method is called after the bean is constructed but before it's put into service.
+     */
     @PostConstruct
     public void init() {
         // Load .env file manually if PropertySource wasn't able to
         if (anthropicApiKey == null && perplexityApiKey == null) {
             loadEnvironmentVariables();
         }
+
     }
 
     private void loadEnvironmentVariables() {

@@ -32,6 +32,13 @@ public class CreditService {
     private final CreditTransactionRepository transactionRepository;
     private final SubscriptionService subscriptionService;
     
+    /**
+     * Constructs a new CreditService with the necessary dependencies.
+     * 
+     * @param balanceRepository the repository for CreditBalance entity operations
+     * @param transactionRepository the repository for CreditTransaction entity operations
+     * @param subscriptionService the service for subscription-related operations
+     */
     public CreditService(
             CreditBalanceRepository balanceRepository,
             CreditTransactionRepository transactionRepository,
@@ -144,6 +151,7 @@ public class CreditService {
      * @param description the transaction description
      * @param referenceId the reference ID (can be null)
      * @return the updated credit balance
+     * @throws IllegalArgumentException if amount is not positive
      */
     @Transactional
     public CreditBalance addCredits(
@@ -185,6 +193,7 @@ public class CreditService {
      * @param description the transaction description
      * @param referenceId the reference ID (can be null)
      * @return true if credits were successfully used, false if insufficient credits
+     * @throws IllegalArgumentException if amount is not positive
      */
     @Transactional
     public boolean useCredits(

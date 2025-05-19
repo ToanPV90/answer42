@@ -24,6 +24,8 @@ public class AppConfig {
     /**
      * Bean to verify that all required configurations are loaded
      * and application settings are properly initialized.
+     * 
+     * @return A ConfigurationVerifier instance that can check if configurations are valid
      */
     @Bean
     public ConfigurationVerifier configurationVerifier() {
@@ -35,9 +37,15 @@ public class AppConfig {
      */
     public static class ConfigurationVerifier {
         
+        /**
+         * Verifies that all configurations are loaded properly.
+         * 
+         * @return true if all configurations are valid, false otherwise
+         */
         public boolean verifyConfigurations() {
             // Add any verification logic here
             return true;
         }
+
     }
 }

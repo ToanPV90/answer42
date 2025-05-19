@@ -1,7 +1,7 @@
 package com.samjdtechnologies.answer42.security;
 
-import com.samjdtechnologies.answer42.model.User;
-import com.samjdtechnologies.answer42.repository.UserRepository;
+import java.util.stream.Collectors;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,13 +9,23 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.stream.Collectors;
+import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.repository.UserRepository;
 
+/**
+ * Custom implementation of Spring Security's UserDetailsService that loads
+ * user-specific data for authentication from our database.
+ */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    /**
+     * Constructs a new CustomUserDetailsService with the necessary dependencies.
+     * 
+     * @param userRepository the repository for User entity operations
+     */
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }

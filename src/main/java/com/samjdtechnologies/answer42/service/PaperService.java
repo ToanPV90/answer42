@@ -1,21 +1,5 @@
 package com.samjdtechnologies.answer42.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.samjdtechnologies.answer42.model.Paper;
-import com.samjdtechnologies.answer42.model.User;
-import com.samjdtechnologies.answer42.repository.PaperRepository;
-import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +11,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.samjdtechnologies.answer42.model.Paper;
+import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
+
+import jakarta.transaction.Transactional;
+
 /**
  * Service for handling paper operations.
  */
@@ -36,16 +36,20 @@ public class PaperService {
     private static final Logger logger = LoggerFactory.getLogger(PaperService.class);
     
     private final PaperRepository paperRepository;
-    private final UserService userService;
     private final ObjectMapper objectMapper;
     
     // Configure base upload directory for papers
     private final Path uploadDir = Paths.get("uploads/papers");
     
-    @Autowired
-    public PaperService(PaperRepository paperRepository, UserService userService, ObjectMapper objectMapper) {
+    /**
+     * Constructs a new PaperService with the necessary dependencies and initializes
+     * the upload directory for storing paper files.
+     * 
+     * @param paperRepository the repository for Paper entity operations
+     * @param objectMapper the mapper for JSON and Java object conversion
+     */
+    public PaperService(PaperRepository paperRepository, ObjectMapper objectMapper) {
         this.paperRepository = paperRepository;
-        this.userService = userService;
         this.objectMapper = objectMapper;
         
         // Create upload directories if they don't exist
@@ -188,6 +192,7 @@ public class PaperService {
      * @param authors The paper authors
      * @param currentUser The current user
      * @return The created paper
+     * @throws IOException if there's an error reading from or writing to the file system
      */
     @Transactional
     public Paper uploadPaper(MultipartFile file, String title, String[] authors, User currentUser) throws IOException {

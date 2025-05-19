@@ -30,6 +30,12 @@ public class SubscriptionService {
     private final SubscriptionPlanRepository planRepository;
     private final SubscriptionRepository subscriptionRepository;
     
+    /**
+     * Constructs a new SubscriptionService with the necessary dependencies.
+     * 
+     * @param planRepository the repository for SubscriptionPlan entity operations
+     * @param subscriptionRepository the repository for Subscription entity operations
+     */
     public SubscriptionService(SubscriptionPlanRepository planRepository, 
                               SubscriptionRepository subscriptionRepository) {
         this.planRepository = planRepository;

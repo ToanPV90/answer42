@@ -33,7 +33,9 @@ public class SystemController {
     private TransactionMonitor transactionMonitor;
     
     /**
-     * Simple health check endpoint
+     * Simple health check endpoint.
+     * 
+     * @return ResponseEntity containing system health status information
      */
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> healthCheck() {
@@ -44,7 +46,9 @@ public class SystemController {
     }
     
     /**
-     * Tests database connection
+     * Tests database connection.
+     * 
+     * @return ResponseEntity containing database connection status and timestamp information
      */
     @GetMapping("/db-status")
     public ResponseEntity<Map<String, Object>> dbStatus() {
@@ -66,7 +70,9 @@ public class SystemController {
     }
     
     /**
-     * Tests transaction management
+     * Tests transaction management.
+     * 
+     * @return ResponseEntity containing transaction isolation level and status information
      */
     @GetMapping("/transaction-info")
     public ResponseEntity<Map<String, Object>> transactionInfo() {
@@ -86,7 +92,9 @@ public class SystemController {
     }
     
     /**
-     * Runs a test transaction
+     * Runs a test transaction.
+     * 
+     * @return ResponseEntity containing the status and result of the test transaction execution
      */
     @PostMapping("/test-transaction")
     public ResponseEntity<Map<String, Object>> testTransaction() {

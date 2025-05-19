@@ -46,6 +46,12 @@ public class ProfileView extends Div implements BeforeEnterObserver {
     private TextField fullNameField;
     private Button saveChangesButton;
 
+    /**
+     * Constructs the profile view with necessary service dependencies.
+     * Initializes the view for displaying and managing user profile information.
+     * 
+     * @param userService the service for user-related operations including profile updates
+     */
     public ProfileView(UserService userService) {
         this.userService = userService;
         

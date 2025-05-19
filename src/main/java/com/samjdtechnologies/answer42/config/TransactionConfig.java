@@ -8,6 +8,10 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/**
+ * Configuration class for transaction management.
+ * Sets up transaction templates with different isolation levels and read/write properties.
+ */
 @Configuration
 @EnableTransactionManagement
 public class TransactionConfig {
@@ -15,6 +19,13 @@ public class TransactionConfig {
     @Value("${spring.datasource.hikari.transaction-isolation}")
     private String transactionIsolation;
 
+    /**
+     * Creates a transaction template for read-only operations.
+     * This template is configured with the isolation level from application properties.
+     * 
+     * @param transactionManager The platform transaction manager
+     * @return A read-only transaction template
+     */
     @Bean
     public TransactionTemplate readOnlyTransactionTemplate(PlatformTransactionManager transactionManager) {
         TransactionTemplate template = new TransactionTemplate(transactionManager);
@@ -24,6 +35,13 @@ public class TransactionConfig {
         return template;
     }
 
+    /**
+     * Creates a transaction template for write operations.
+     * This template is configured with the isolation level from application properties.
+     * 
+     * @param transactionManager The platform transaction manager
+     * @return A transaction template for write operations
+     */
     @Bean
     public TransactionTemplate writeTransactionTemplate(PlatformTransactionManager transactionManager) {
         TransactionTemplate template = new TransactionTemplate(transactionManager);
@@ -32,6 +50,7 @@ public class TransactionConfig {
         template.setIsolationLevel(getIsolationLevel(transactionIsolation));
         return template;
     }
+
 
     private int getIsolationLevel(String isolationLevel) {
         if (isolationLevel == null) {

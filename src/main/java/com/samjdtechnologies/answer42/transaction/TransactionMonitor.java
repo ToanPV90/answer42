@@ -3,9 +3,10 @@ package com.samjdtechnologies.answer42.transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -26,14 +27,13 @@ public class TransactionMonitor {
     private EntityManager entityManager;
     
     @Autowired
-    private TransactionTemplate readOnlyTransactionTemplate;
-    
-    @Autowired
     private TransactionTemplate writeTransactionTemplate;
     
     /**
      * Checks the current transaction isolation level.
      * Must be called within a transaction context.
+     * 
+     * @return a string representing the current transaction isolation level
      */
     @Transactional(readOnly = true)
     public String checkIsolationLevel() {
@@ -54,24 +54,31 @@ public class TransactionMonitor {
             logger.info("Transaction is active with name: {}", 
                     TransactionSynchronizationManager.getCurrentTransactionName());
             
-            TransactionSynchronizationManager.registerSynchronization(
-                    new TransactionSynchronizationAdapter() {
-                        @Override
-                        public void beforeCommit(boolean readOnly) {
-                            logger.info("Before commit, readOnly={}", readOnly);
-                        }
-                        
-                        @Override
-                        public void afterCommit() {
-                            logger.info("After commit");
-                        }
-                        
-                        @Override
-                        public void afterCompletion(int status) {
-                            logger.info("After completion with status: {}", 
-                                    statusToString(status));
-                        }
-                    });
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void beforeCommit(boolean readOnly) {
+                    logger.info("Before commit, readOnly={}", readOnly);
+                }
+                
+                @Override
+                public void afterCommit() {
+                    logger.info("After commit");
+                }
+                
+                @Override
+                public void afterCompletion(int status) {
+                    logger.info("After completion with status: {}", 
+                            status == TransactionSynchronization.STATUS_COMMITTED ? "COMMITTED" :
+                            status == TransactionSynchronization.STATUS_ROLLED_BACK ? "ROLLED_BACK" :
+                            status == TransactionSynchronization.STATUS_UNKNOWN ? "UNKNOWN" : 
+                            String.valueOf(status));
+                }
+                
+                @Override
+                public int getOrder() {
+                    return Ordered.LOWEST_PRECEDENCE;
+                }
+            });
         } else {
             logger.warn("No active transaction found");
         }
@@ -93,14 +100,13 @@ public class TransactionMonitor {
             logger.info("Transaction isolation level: {}", isolationLevel);
             
             // Register synchronization to log transaction completion
-            TransactionSynchronizationManager.registerSynchronization(
-                    new TransactionSynchronizationAdapter() {
-                        @Override
-                        public void afterCompletion(int status) {
-                            logger.info("Transaction completed with status: {}", 
-                                    statusToString(status));
-                        }
-                    });
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    logger.info("Transaction completed with status: {}", 
+                            statusToString(status));
+                }
+            });
             
             return null;
         });
@@ -108,11 +114,11 @@ public class TransactionMonitor {
     
     private String statusToString(int status) {
         switch (status) {
-            case TransactionSynchronizationAdapter.STATUS_COMMITTED:
+            case TransactionSynchronization.STATUS_COMMITTED:
                 return "COMMITTED";
-            case TransactionSynchronizationAdapter.STATUS_ROLLED_BACK:
+            case TransactionSynchronization.STATUS_ROLLED_BACK:
                 return "ROLLED_BACK";
-            case TransactionSynchronizationAdapter.STATUS_UNKNOWN:
+            case TransactionSynchronization.STATUS_UNKNOWN:
                 return "UNKNOWN";
             default:
                 return "INVALID(" + status + ")";

@@ -76,6 +76,13 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
     
     private VerticalLayout authorsContainer;
 
+    /**
+     * Constructs the upload paper view with necessary service dependencies.
+     * Initializes the view for uploading and cataloging new research papers.
+     * 
+     * @param paperService the service for paper-related operations including upload and metadata management
+     * @param projectService the service for project-related operations and paper-project associations
+     */
     public UploadPaperView(PaperService paperService, ProjectService projectService) {
         this.paperService = paperService;
         this.projectService = projectService;
@@ -405,7 +412,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
     }
     
     /**
-     * Get all projects for a user, wrapper around the pageable method
+     * Get all projects for a user, wrapper around the pageable method.
      * 
      * @param user The user whose projects to retrieve
      * @return List of projects
@@ -415,7 +422,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
     }
     
     /**
-     * Update the paper-project relationship
+     * Update the paper-project relationship.
      * 
      * @param paper The paper to update
      * @param project The project to associate with the paper

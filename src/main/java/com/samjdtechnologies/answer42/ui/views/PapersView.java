@@ -20,6 +20,7 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
@@ -68,21 +69,37 @@ public class PapersView extends Div implements BeforeEnterObserver {
     public PapersView(PaperService paperService) {
         this.paperService = paperService;
 
-        LoggingUtil.debug(LOG, "PapersView", "PapersView initialized");
         addClassName(UIConstants.CSS_PAPERS_VIEW);
-        setSizeFull();
+        getStyle().setHeight("750px");
+
+        LoggingUtil.debug(LOG, "PapersView", "PapersView initialized");
     }
     
     private void initializeView() {
         LoggingUtil.debug(LOG, "initializeView", "Initializing view components");
+        
         // Configure the view
         removeAll();
         
         // Add components directly to the view
-        add(createToolbar(), createContent());
+        add(createWelcomeSection(), createToolbar(), createContent());
 
         // Load initial data
         updateList();
+    }
+
+    private Component createWelcomeSection() {
+        Div section = new Div();
+        section.addClassName(UIConstants.CSS_WELCOME_SECTION);
+
+        H1 welcomeTitle = new H1("My Papers");
+        welcomeTitle.addClassName(UIConstants.CSS_WELCOME_TITLE);
+        
+        Paragraph welcomeSubtitle = new Paragraph("Upload, organize, and analyze your scientific papers");
+        welcomeSubtitle.addClassName(UIConstants.CSS_WELCOME_SUBTITLE);
+        
+        section.add(welcomeTitle, welcomeSubtitle);
+        return section;
     }
 
     private Component createToolbar() {

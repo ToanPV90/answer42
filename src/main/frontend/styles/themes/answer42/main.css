@@ -62,6 +62,23 @@ vaadin-button.error {
   box-sizing: border-box;
 }
 
+/* Welcome section - using UIConstants.CSS_WELCOME_SECTION */
+.page-welcome-section {
+  margin-bottom: var(--lumo-space-m);
+}
+
+.page-welcome-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--lumo-body-text-color);
+  margin-bottom: var(--lumo-space-xs);
+}
+
+.page-welcome-subtitle {
+  font-size: 1rem;
+  color: var(--lumo-secondary-text-color);
+}
+
 /* Section header with view-all link */
 .section-header {
   display: flex;

@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Code Style Guidelines
 
-Write end to end implementation with no placeholder code or mock objects or backwards compatibility. try and keep the files less then 300 lines of code by writing utili classes and components.  Use supabase mcp to access and review our db. Use our UIConstants file, we perfer external css classes to be put in our theme.  Only use inline styles if you must.  NO PLACEHOLDER CODE. check your work.  DONT USE ANY DEPRECATED METHODS. ALWAYS use LoggingUtil.  All routes should be in the UIConstants.
+Write end to end implementation with no placeholder code or mock objects or backwards compatibility. try and keep the files less then 300 lines of code by writing utili classes and components.  Use supabase mcp to access and review our db. Use our UIConstants file, we perfer external css classes to be put in our theme.  Only use inline styles if you must.  NO PLACEHOLDER CODE. check your work.  DONT USE ANY DEPRECATED METHODS. ALWAYS use LoggingUtil.  All routes should be in the UIConstants.  All View classes must extends Div implements BeforeEnterObserver and add child components to itself and not an extra container Div.
 
 - **Imports**: Organize imports with java/javax first, then third-party, then project imports
 - **Naming**: Use camelCase for methods/variables, PascalCase for classes, ALL_CAPS for constants

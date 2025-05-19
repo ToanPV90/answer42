@@ -60,24 +60,14 @@ public class SubscriptionView extends VerticalLayout implements BeforeEnterObser
         this.subscriptionService = subscriptionService;
         
         addClassName(UIConstants.CSS_SUBSCRIPTION_VIEW);
-        
+        getStyle().setHeight("auto");
+
         LoggingUtil.debug(LOG, "SubscriptionView", "SubscriptionView initialized");
     }
 
     private void initializeView() {
-        // Title and description
-        H1 title = new H1("Choose Your Plan");
-        title.addClassName(UIConstants.CSS_SUBSCRIPTION_TITLE);
-        
-        Paragraph description = new Paragraph();
-        description.add("Select the plan that best fits your research needs. All plans include core features with varying usage limits.");
-        description.addClassName(UIConstants.CSS_SUBSCRIPTION_DESCRIPTION);
-        
-        // Bitcoin payment banner
-        Component bitcoinBanner = createBitcoinBanner();
-        
-        // Billing period toggle
-        Component billingToggle = createBillingToggle();
+        // Configure the view
+        removeAll();
         
         // Plans container
         plansContainer = new HorizontalLayout();
@@ -86,11 +76,26 @@ public class SubscriptionView extends VerticalLayout implements BeforeEnterObser
         // Add the subscription plans
         populateSubscriptionPlans();
         
-        // FAQ section
-        Component faqSection = createFaqSection();
-        
         // Add all components to the view
-        add(title, description, bitcoinBanner, billingToggle, plansContainer, faqSection);
+        add(createWelcomeSection(), 
+        createBitcoinBanner(), 
+        createBillingToggle(), 
+        plansContainer, 
+        createFaqSection());
+    }
+
+    private Component createWelcomeSection() {
+        Div section = new Div();
+        section.addClassName(UIConstants.CSS_WELCOME_SECTION);
+
+        H1 welcomeTitle = new H1("Choose Your Plan");
+        welcomeTitle.addClassName(UIConstants.CSS_WELCOME_TITLE);
+        
+        Paragraph welcomeSubtitle = new Paragraph("Select the plan that best fits your research needs. All plans include core features with varying usage limits.");
+        welcomeSubtitle.addClassName(UIConstants.CSS_WELCOME_SUBTITLE);
+        
+        section.add(welcomeTitle, welcomeSubtitle);
+        return section;
     }
     
     private Component createBitcoinBanner() {

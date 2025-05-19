@@ -5,29 +5,13 @@
   padding: var(--lumo-space-m);
   max-width: 1100px;
   margin: 0 auto;
+  margin-top: 10px;
   min-height: auto;
   display: flex;
   flex-direction: column;
   background-color: var(--lumo-contrast-5pct);
 }
 
-
-/* Welcome section - using UIConstants.CSS_WELCOME_SECTION */
-.welcome-section {
-  margin-bottom: var(--lumo-space-m);
-}
-
-.welcome-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--lumo-body-text-color);
-  margin-bottom: var(--lumo-space-xs);
-}
-
-.welcome-subtitle {
-  font-size: 1rem;
-  color: var(--lumo-secondary-text-color);
-}
 
 /* Stats container - using UIConstants.CSS_STATS_CONTAINER */
 .stats-container {

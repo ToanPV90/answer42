@@ -145,8 +145,7 @@ public class AuthenticationService {
         LoggingUtil.debug(LOG, "isAuthenticated", 
                 "Authentication check: %s, Result: %s", 
                 (authentication != null ? 
-                    authentication.getName() + " (authenticated: " + authentication.isAuthenticated() + 
-                    ", principal: " + authentication.getPrincipal().getClass().getName() + ")" 
+                    authentication.getName() + " authenticated: " + authentication.isAuthenticated()
                     : "null"), 
                 isAuth);
         

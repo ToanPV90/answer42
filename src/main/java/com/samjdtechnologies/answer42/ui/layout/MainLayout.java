@@ -10,6 +10,7 @@ import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.service.AuthenticationService;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -51,21 +52,14 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private final UserService userService;
     private User currentUser;
 
-    private Div content;
-    private static final String CONTENT_PADDING = "var(--lumo-space-l)";
-    
     public MainLayout(AuthenticationService authenticationService, UserService userService) {
         this.authenticationService = authenticationService;
         this.userService = userService;
         
         addClassName(UIConstants.CSS_MAIN_VIEW);
         
-        // Create content container with proper padding
-        content = new Div();
-        content.setSizeFull();
-        content.addClassNames("main-content", "content");
-        content.getStyle().set("padding", CONTENT_PADDING);
-        setContent(content);
+        // Apply padding to content area directly using CSS custom property
+        getElement().getStyle().set("--app-layout-content-padding", "var(--lumo-space-l)");
         
         // Core AppLayout components following the AppLayoutNavbarPlacement pattern
         DrawerToggle toggle = new DrawerToggle();
@@ -233,7 +227,6 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     /**
      * Creates the navigation menu
      */
-    
     private SideNav createSideNav() {
         // Create vertical layout to hold all sidebar components
         VerticalLayout sidebarLayout = new VerticalLayout();
@@ -380,7 +373,15 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
     @Override
     public void showRouterLayoutContent(HasElement content) {
-        this.content.getElement().appendChild(content.getElement());
+        // Use the super implementation to let AppLayout handle the content properly
+        super.showRouterLayoutContent(content);
+        
+        // Add additional classes to the content container if needed
+        if (content != null && content instanceof Component) {
+            Component component = (Component) content;
+            component.getElement().getClassList().add("main-content");
+            component.getElement().getClassList().add("content");
+        }
     }
     
     /**
@@ -451,6 +452,4 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
             LoggingUtil.debug(LOG, "beforeEnter", "Using cached user from session: %s", currentUser.getUsername());
         }
     }
-
-
 }

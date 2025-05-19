@@ -14,28 +14,28 @@
   width: 100%;
 }
 
-/* Sidebar styling - using UIConstants.CSS_SIDEBAR */
-.sidebar {
-  width: var(--answer42-sidebar-width);
-  height: 100%;
-  background-color: var(--lumo-base-color);
-  border-right: 1px solid var(--lumo-contrast-10pct);
+/* Custom property for AppLayout content padding */
+vaadin-app-layout::part(content) {
+  padding: var(--app-layout-content-padding, var(--lumo-space-l));
+  overflow-y: auto;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  overflow-y: auto;
-  z-index: 100;
-  box-shadow: var(--lumo-box-shadow-s);
+  height: 100%;
 }
 
-.sidebar-header {
-  padding: var(--lumo-space-m);
+/* Main content styling that applies to view components */
+.main-content {
   display: flex;
-  align-items: center;
-  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  flex-grow: 1;
+}
+
+/* Content class for components displayed in the main content area */
+.content {
   height: var(--answer42-topbar-height);
 }
 
@@ -121,8 +121,8 @@
 }
 
 .assistant-avatar {
-  width: 32px;
-  height: 32px;
+  width: 65px;
+  height: 65px;
   border-radius: 50%;
   background-color: var(--lumo-primary-color);
   color: white;
@@ -196,8 +196,8 @@
 .theme-toggle {
   background-color: transparent;
   color: var(--lumo-secondary-text-color);
-  width: 32px;
-  height: 32px;
+  width: 65px;
+  height: 65px;
   min-width: unset;
   border-radius: 50%;
   padding: 0;
@@ -226,8 +226,8 @@
 }
 
 .user-initial {
-  width: 32px;
-  height: 32px;
+  width: 65px;
+  height: 65px;
   border-radius: 50%;
   background-color: var(--lumo-primary-color);
   color: white;
@@ -245,26 +245,6 @@
 .dropdown-icon {
   color: var(--lumo-tertiary-text-color);
   font-size: 14px;
-}
-
-/* Content wrapper - using UIConstants.CSS_CONTENT_WRAPPER */
-.content-wrapper {
-  margin-left: var(--answer42-sidebar-width);
-  width: calc(100% - var(--answer42-sidebar-width));
-  min-height: 100vh;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Content area - using UIConstants.CSS_CONTENT */
-.content {
-  padding: var(--lumo-space-l);
-  display: flex;
-  flex-direction: column;
-  gap: var(--lumo-space-l);
-  flex: 1;
-  overflow-y: auto;
 }
 
 /* Logo Layout */
@@ -337,15 +317,6 @@
     transform: translateX(0);
   }
 
-  .content-wrapper {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .content {
-    padding: var(--lumo-space-m);
-  }
-  
   .user-name {
     display: none;
   }

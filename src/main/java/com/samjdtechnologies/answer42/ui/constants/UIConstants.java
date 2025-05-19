@@ -34,8 +34,6 @@ public class UIConstants {
     // Main layout related
     public static final String CSS_MAIN_VIEW = "main-view";
     public static final String CSS_SIDEBAR = "sidebar";
-    public static final String CSS_CONTENT = "content";
-    public static final String CSS_CONTENT_WRAPPER = "content-wrapper";
     public static final String CSS_ARROW_ICON = "arrow-icon";
     public static final String CSS_LOGO_LAYOUT = "logo-layout";
     public static final String CSS_LOGO_LAYOUT_TITLE = "logo-layout-title";
@@ -64,9 +62,9 @@ public class UIConstants {
     
     // Dashboard related
     public static final String CSS_DASHBOARD_VIEW = "dashboard-view";
-    public static final String CSS_WELCOME_SECTION = "welcome-section";
-    public static final String CSS_WELCOME_TITLE = "welcome-title";
-    public static final String CSS_WELCOME_SUBTITLE = "welcome-subtitle";
+    public static final String CSS_WELCOME_SECTION = "page-welcome-section";
+    public static final String CSS_WELCOME_TITLE = "page-welcome-title";
+    public static final String CSS_WELCOME_SUBTITLE = "page-welcome-subtitle";
     public static final String CSS_STATS_CONTAINER = "stats-container";
     public static final String CSS_STAT_CARD = "stat-card";
     public static final String CSS_STAT_HEADER = "stat-header";
@@ -129,7 +127,6 @@ public class UIConstants {
     
     // Profile view related
     public static final String CSS_PROFILE_VIEW = "profile-view";
-    public static final String CSS_PROFILE_TITLE = "profile-title";
     public static final String CSS_PROFILE_SECTION = "profile-section";
     public static final String CSS_HELP_TEXT = "help-text";
     public static final String CSS_INFO_LABEL = "info-label";

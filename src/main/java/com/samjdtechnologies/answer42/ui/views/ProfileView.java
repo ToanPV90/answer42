@@ -12,10 +12,12 @@ import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -47,25 +49,36 @@ public class ProfileView extends Div implements BeforeEnterObserver {
     public ProfileView(UserService userService) {
         this.userService = userService;
         
-        LoggingUtil.debug(LOG, "ProfileView", "ProfileView initialized");
         addClassName(UIConstants.CSS_PROFILE_VIEW);
-        setSizeFull();
+        getStyle().setHeight("auto");
+
+        LoggingUtil.debug(LOG, "ProfileView", "ProfileView initialized");
     }
     
     private void initializeView() {
-        LoggingUtil.debug(LOG, "initializeView", "Initializing profile view components");
-        
-        // Title
-        H1 profileTitle = new H1("Your Profile");
-        profileTitle.addClassName(UIConstants.CSS_PROFILE_TITLE);
-        
-        // Profile form
-        VerticalLayout profileForm = createProfileForm();
+        LoggingUtil.debug(LOG, "initializeView", "Initializing profile view components.");
+
+        // Configure the view
+        removeAll();
         
         // Add all components to the view
-        add(profileTitle, profileForm);
+        add(createWelcomeSection(), createProfileForm());
         
         LoggingUtil.debug(LOG, "initializeView", "Profile view components initialized");
+    }
+
+    private Component createWelcomeSection() {
+        Div section = new Div();
+        section.addClassName(UIConstants.CSS_WELCOME_SECTION);
+
+        H1 welcomeTitle = new H1("Your Profile");
+        welcomeTitle.addClassName(UIConstants.CSS_WELCOME_TITLE);
+        
+        Paragraph welcomeSubtitle = new Paragraph("Update your personal details and view account information");
+        welcomeSubtitle.addClassName(UIConstants.CSS_WELCOME_SUBTITLE);
+        
+        section.add(welcomeTitle, welcomeSubtitle);
+        return section;
     }
     
     private VerticalLayout createProfileForm() {

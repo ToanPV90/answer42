@@ -112,6 +112,22 @@ public class UIConstants {
     public static final String CSS_PAPERS_ACTION_BUTTON = "papers-action-button"; 
     public static final String CSS_PAPERS_ACTION_BUTTONS_CONTAINER = "papers-action-buttons-container";
     
+    // Projects view related
+    public static final String CSS_PROJECTS_VIEW = "projects-view";
+    public static final String CSS_PROJECT_CARD = "project-card";
+    public static final String CSS_PROJECT_HEADER = "project-header";
+    public static final String CSS_PROJECT_TITLE = "project-title";
+    public static final String CSS_PROJECT_DESCRIPTION = "project-description";
+    public static final String CSS_PROJECT_METADATA = "project-metadata";
+    public static final String CSS_PROJECT_FOOTER = "project-footer";
+    public static final String CSS_PROJECT_ACTIONS = "project-actions";
+    public static final String CSS_PROJECT_PAPERS_COUNT = "project-papers-count";
+    public static final String CSS_PROJECT_DIALOG = "project-dialog";
+    public static final String CSS_PROJECTS_CONTAINER = "projects-container";
+    public static final String CSS_CREATE_PROJECT_BUTTON = "create-project-button";
+    public static final String CSS_PROJECT_DATE = "project-date";
+    public static final String CSS_EMPTY_PROJECTS = "empty-projects";
+    
     // Upload Paper view related
     public static final String CSS_UPLOAD_PAPER_VIEW = "upload-paper-view";
     public static final String CSS_BULK_UPLOAD_VIEW = "bulk-upload-view";

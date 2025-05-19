@@ -176,10 +176,23 @@
 
 /* Papers list - using UIConstants.CSS_PAPERS_LIST */
 .papers-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--lumo-space-m);
   margin-top: var(--lumo-space-xs);
+  grid-template-columns: repeat(auto-fill, minmax(550px, 1fr));
+}
+
+/* Responsive layout for papers-list */
+@media (max-width: 899px) {
+  .papers-list {
+    grid-template-columns: 1fr; /* 1 card per row for small screens */
+  }
+}
+
+@media (min-width: 900px) {
+  .papers-list {
+    grid-template-columns: repeat(auto-fill, minmax(550px, 1fr)); /* 2+ cards per row for larger screens */
+  }
 }
 
 /* Paper card - using UIConstants.CSS_PAPER_CARD */
@@ -287,6 +300,15 @@
   width: 16px;
   height: 16px;
   color: inherit;
+}
+
+.paper-abstract {
+  background-color: var(--lumo-contrast-5pct);
+  padding: var(--lumo-space-m);
+  border-radius: var(--lumo-border-radius-m);
+  margin: var(--lumo-space-m) 0;
+  font-style: italic;
+  line-height: 1.6;
 }
 
 /* Empty state message styling */

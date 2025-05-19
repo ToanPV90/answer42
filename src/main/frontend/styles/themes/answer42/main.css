@@ -149,7 +149,7 @@ vaadin-button.error {
 .paper-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--lumo-body-text-color);
+  color: var(--lumo-primary-text-color);
   margin: 0;
 }
 

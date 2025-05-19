@@ -57,34 +57,49 @@ public class ProjectService {
     
     /**
      * Get projects for a specific user with pagination.
+     * This method ensures the papers collection is initialized to avoid LazyInitializationException.
      *
      * @param user The user whose projects to retrieve
      * @param pageable Pagination information
      * @return Page of projects
      */
+    @Transactional
     public Page<Project> getProjectsByUser(User user, Pageable pageable) {
-        return projectRepository.findByUser(user, pageable);
+        Page<Project> projects = projectRepository.findByUser(user, pageable);
+        // Initialize the papers collection for each project to avoid LazyInitializationException
+        projects.getContent().forEach(project -> project.getPapers().size());
+        return projects;
     }
     
     /**
      * Get project by ID.
+     * This method ensures the papers collection is initialized to avoid LazyInitializationException.
      *
      * @param id The project ID
      * @return Optional containing the project if found
      */
+    @Transactional
     public Optional<Project> getProjectById(UUID id) {
-        return projectRepository.findById(id);
+        Optional<Project> projectOpt = projectRepository.findById(id);
+        // Initialize the papers collection if project exists to avoid LazyInitializationException
+        projectOpt.ifPresent(project -> project.getPapers().size());
+        return projectOpt;
     }
     
     /**
      * Get project by ID and user.
+     * This method ensures the papers collection is initialized to avoid LazyInitializationException.
      *
      * @param id The project ID
      * @param user The user
      * @return Optional containing the project if found
      */
+    @Transactional
     public Optional<Project> getProjectByIdAndUser(UUID id, User user) {
-        return projectRepository.findByIdAndUser(id, user);
+        Optional<Project> projectOpt = projectRepository.findByIdAndUser(id, user);
+        // Initialize the papers collection if project exists to avoid LazyInitializationException
+        projectOpt.ifPresent(project -> project.getPapers().size());
+        return projectOpt;
     }
     
     /**
@@ -157,24 +172,34 @@ public class ProjectService {
     
     /**
      * Search projects by name or description.
+     * This method ensures the papers collection is initialized to avoid LazyInitializationException.
      *
      * @param user The user whose projects to search
      * @param searchTerm The search term
      * @param pageable Pagination information
      * @return Page of matching projects
      */
+    @Transactional
     public Page<Project> searchProjectsByUser(User user, String searchTerm, Pageable pageable) {
-        return projectRepository.searchProjectsByUser(user, searchTerm, pageable);
+        Page<Project> projects = projectRepository.searchProjectsByUser(user, searchTerm, pageable);
+        // Initialize the papers collection for each project to avoid LazyInitializationException
+        projects.getContent().forEach(project -> project.getPapers().size());
+        return projects;
     }
     
     /**
      * Find public projects with pagination.
+     * This method ensures the papers collection is initialized to avoid LazyInitializationException.
      *
      * @param pageable Pagination information
      * @return Page of public projects
      */
+    @Transactional
     public Page<Project> getPublicProjects(Pageable pageable) {
-        return projectRepository.findByIsPublicTrue(pageable);
+        Page<Project> projects = projectRepository.findByIsPublicTrue(pageable);
+        // Initialize the papers collection for each project to avoid LazyInitializationException
+        projects.getContent().forEach(project -> project.getPapers().size());
+        return projects;
     }
     
     /**

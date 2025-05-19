@@ -18,7 +18,7 @@ Write end to end implementation with no placeholder code or mock objects or back
 - **Naming**: Use camelCase for methods/variables, PascalCase for classes, ALL_CAPS for constants
 - **Error Handling**: Use LoggingUtil for errors, throw meaningful exceptions with context
 - **Transactions**: Add @Transactional to service methods (readOnly where appropriate)
-- **Annotations**: Use Spring annotations (@Service, @Repository, @Autowired, etc.)
+- **Annotations**: Use Spring annotations (@Transactional, @Service, @Repository, @Autowired, etc.)
 - **JPA/Database**: Use UUID for IDs, proper schema naming (answer42 schema), appropriate fetch types
 - **Formatting**: 4-space indentation, no tabs, 120 character line limit
 - **Documentation**: Add JavaDoc for public methods with @param and @return tags

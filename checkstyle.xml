@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+    <property name="severity" value="error"/>
+    <property name="fileExtensions" value="java, properties, xml"/>
+
+    <!-- Excludes all 'module-info.java' files -->
+    <module name="BeforeExecutionExclusionFileFilter">
+        <property name="fileNamePattern" value="module\-info\.java$"/>
+    </module>
+
+    <!-- Checks that files end with a new line -->
+    <module name="NewlineAtEndOfFile"/>
+
+    <!-- Checks for file length (max 2000 lines) -->
+    <module name="FileLength">
+        <property name="max" value="2000"/>
+    </module>
+
+    <!-- Checks for line length (max 120 chars) -->
+    <module name="LineLength">
+        <property name="fileExtensions" value="java"/>
+        <property name="max" value="120"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+
+    <!-- No tab characters allowed -->
+    <module name="FileTabCharacter">
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <module name="TreeWalker">
+        <!-- Import order: java/javax first, then third-party, then project imports -->
+        <module name="ImportOrder">
+            <property name="groups" value="/^java\./,/^javax\./,/^org\./,/^com\.(?!samjdtechnologies)/,/^com\.samjdtechnologies/"/>
+            <property name="ordered" value="true"/>
+            <property name="separated" value="true"/>
+            <property name="option" value="top"/>
+            <property name="sortStaticImportsAlphabetically" value="true"/>
+        </module>
+
+        <!-- Avoid unused imports -->
+        <module name="UnusedImports"/>
+
+        <!-- Class, interface, enum structure rules -->
+        <module name="EmptyBlock">
+            <property name="option" value="TEXT"/>
+            <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
+        </module>
+        <module name="NeedBraces"/>
+        <module name="LeftCurly"/>
+        <module name="RightCurly"/>
+        <module name="WhitespaceAfter"/>
+        <module name="WhitespaceAround"/>
+
+        <!-- Method length checker: methods should be under 60 lines -->
+        <module name="MethodLength">
+            <property name="tokens" value="METHOD_DEF"/>
+            <property name="max" value="60"/>
+            <property name="countEmpty" value="false"/>
+        </module>
+
+        <!-- Naming conventions -->
+        <module name="ConstantName">
+            <property name="format" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+        </module>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+        </module>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName"/>
+        <module name="TypeName"/>
+
+        <!-- JavaDoc checks -->
+        <module name="JavadocMethod">
+            <property name="accessModifiers" value="public"/>
+            <property name="allowMissingParamTags" value="false"/>
+            <property name="allowMissingReturnTag" value="false"/>
+            <property name="validateThrows" value="true"/>
+        </module>
+        <module name="JavadocStyle"/>
+        <module name="MissingJavadocMethod">
+            <property name="scope" value="public"/>
+            <property name="allowMissingPropertyJavadoc" value="true"/>
+            <property name="ignoreMethodNamesRegex" value="^(get|set|is)[A-Z].*$"/>
+        </module>
+
+        <!-- Detect @author tags (discouraged) -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="@author"/>
+            <property name="message" value="Please do not use @author tags"/>
+            <property name="ignoreComments" value="false"/>
+        </module>
+
+        <!-- Ensure LoggingUtil is used -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.error\(|\.warn\(|\.info\(|\.debug\("/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="Direct use of logger methods is not allowed, use LoggingUtil instead."/>
+        </module>
+
+        <!-- Avoid using deprecated methods -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="@Deprecated|@java.lang.Deprecated"/>
+            <property name="message" value="Using deprecated methods is not allowed."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- Architecture enforcement: view classes must extend Div and implement BeforeEnterObserver -->
+        <module name="RegexpSinglelineJava">
+            <property name="id" value="ViewClassPattern"/>
+            <property name="format" value="class\s+\w+View\s+(?!extends\s+Div\s+implements\s+BeforeEnterObserver)"/>
+            <property name="message" value="View classes must extend Div and implement BeforeEnterObserver."/>
+        </module>
+    </module>
+</module>

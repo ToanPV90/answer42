@@ -59,6 +59,13 @@ public class SettingsView extends Div implements BeforeEnterObserver {
     private Checkbox emailNotificationsToggle;
     private Checkbox systemNotificationsToggle;
 
+    /**
+     * Constructs the settings view with necessary service dependencies.
+     * Initializes the view with user-specific settings and preferences.
+     * 
+     * @param userService the service for user data operations
+     * @param userPreferencesService the service for user preferences operations
+     */
     public SettingsView(UserService userService, UserPreferencesService userPreferencesService) {
         this.userService = userService;
         this.userPreferencesService = userPreferencesService;
@@ -79,7 +86,8 @@ public class SettingsView extends Div implements BeforeEnterObserver {
         add(createWelcomeSection(), 
             createUserProfileSection(), 
             createPreferencesSection(), 
-            createDangerZoneSection());
+            createDangerZoneSection()
+        );
 
         LoggingUtil.debug(LOG, "initializeView", "Settings view components initialized");
     }

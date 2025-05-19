@@ -52,6 +52,13 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private final UserService userService;
     private User currentUser;
 
+    /**
+     * Constructs the main layout for the application with navigation drawer and header.
+     * Sets up the application structure including navigation, user controls, and theme switching.
+     * 
+     * @param authenticationService the authentication service for user login/logout operations
+     * @param userService the user service for fetching user information
+     */
     public MainLayout(AuthenticationService authenticationService, UserService userService) {
         this.authenticationService = authenticationService;
         this.userService = userService;
@@ -82,7 +89,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     }
     
     /**
-     * Creates the logo and title layout for the navbar
+     * Creates the logo and title layout for the navbar.
      */
     private HorizontalLayout createLogoLayout() {
         // App title with logo
@@ -102,7 +109,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     }
     
     /**
-     * Creates the right side components for the navbar
+     * Creates the right side components for the navbar.
+     * 
+     * @return a HorizontalLayout containing search field, theme toggle button, and user avatar
      */
     private HorizontalLayout createRightSideComponents() {
         // User related components
@@ -203,7 +212,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     }
     
     /**
-     * Creates the drawer content with navigation, logout button and footer
+     * Creates the drawer content with navigation, logout button and footer.
+     * 
+     * @param nav the SideNav navigation component to include in the drawer
+     * @return a Scroller component containing the drawer content
      */
     private Scroller createDrawerContent(SideNav nav) {
         // Add assistant footer to drawer
@@ -225,7 +237,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     }
     
     /**
-     * Creates the navigation menu
+     * Creates the navigation menu.
+     * 
+     * @return a SideNav component with all navigation items
      */
     private SideNav createSideNav() {
         // Create vertical layout to hold all sidebar components
@@ -313,7 +327,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     }
     
     /**
-     * Creates the assistant footer for the drawer
+     * Creates the assistant footer for the drawer.
+     * 
+     * @return a Footer component containing the assistant avatar and information
      */
     private Footer createAssistantFooter() {
         Footer footer = new Footer();
@@ -347,10 +363,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     }
     
     /**
-     * Handles user logout
+     * Handles user logout.
      * 
-     * Note: VaadinSession invalidation is handled by AuthenticationService.logout(),
-     * so we don't need to invalidate it again here.
+     * Note: Proper order is critical to avoid NullPointerException. 
+     * We must navigate first, then clear security context, and optionally invalidate session last.
      */
     private void logout() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -358,16 +374,37 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
                 auth != null ? auth.getName() : "unknown");
         
         try {
-            // Log the user out (includes session invalidation)
+            // First, get a reference to the UI before any security context changes
+            UI ui = UI.getCurrent();
+            if (ui == null) {
+                LoggingUtil.warn(LOG, "logout", "UI is null, cannot navigate.");
+                return;
+            }
+            
+            // Logout with the service (clears security context & localStorage token, but NOT session)
             authenticationService.logout();
             
             // Redirect to login page
-            UI.getCurrent().navigate(UIConstants.ROUTE_LOGIN);
+            ui.navigate(UIConstants.ROUTE_LOGIN);
             LoggingUtil.info(LOG, "logout", "User logged out and redirected to login page");
+            
+            // Optionally add a small delay for navigation and page load before session invalidation
+            // Uncomment if needed:
+            // ui.access(() -> {
+            //     authenticationService.invalidateSession();
+            // });
+            
         } catch (Exception e) {
             LoggingUtil.error(LOG, "logout", "Error during logout", e);
-            // Still try to redirect to login page in case of errors
-            UI.getCurrent().navigate(UIConstants.ROUTE_LOGIN);
+            // Try to recover by navigating to login page
+            try {
+                UI ui = UI.getCurrent();
+                if (ui != null) {
+                    ui.navigate(UIConstants.ROUTE_LOGIN);
+                }
+            } catch (Exception ne) {
+                LoggingUtil.error(LOG, "logout", "Could not navigate after error", ne);
+            }
         }
     }
 

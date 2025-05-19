@@ -7,9 +7,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -35,6 +35,12 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     private Button loginButton;
     private RouterLink registerLink;
 
+    /**
+     * Constructs the login view with necessary authentication service dependency.
+     * Initializes the login form with username and password fields.
+     * 
+     * @param authenticationService the service for authentication operations including login
+     */
     public LoginView(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
         

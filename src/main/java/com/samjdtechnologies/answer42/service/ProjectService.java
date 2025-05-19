@@ -33,6 +33,12 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final ObjectMapper objectMapper;
     
+    /**
+     * Constructs a new ProjectService with the necessary dependencies.
+     * 
+     * @param projectRepository the repository for Project entity operations
+     * @param objectMapper the mapper for JSON and Java object conversion
+     */
     public ProjectService(ProjectRepository projectRepository, ObjectMapper objectMapper) {
         this.projectRepository = projectRepository;
         this.objectMapper = objectMapper;

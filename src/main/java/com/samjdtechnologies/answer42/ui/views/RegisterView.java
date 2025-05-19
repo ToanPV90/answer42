@@ -46,6 +46,12 @@ public class RegisterView extends VerticalLayout implements BeforeEnterObserver 
     
     private Binder<RegistrationFormData> binder;
 
+    /**
+     * Constructs the registration view with necessary authentication service.
+     * Initializes the registration form with username, email, password fields and validation.
+     * 
+     * @param authenticationService the service for authentication operations including user registration
+     */
     public RegisterView(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
         

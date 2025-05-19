@@ -56,6 +56,12 @@ public class SubscriptionView extends VerticalLayout implements BeforeEnterObser
     private Span yearlyLabel;
     private Checkbox periodToggle;
     
+    /**
+     * Constructs the subscription view with necessary service dependencies.
+     * Initializes the view for displaying and managing subscription plans.
+     * 
+     * @param subscriptionService the service for subscription-related operations including plan retrieval
+     */
     public SubscriptionView(SubscriptionService subscriptionService) {
         this.subscriptionService = subscriptionService;
         

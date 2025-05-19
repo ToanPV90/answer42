@@ -27,12 +27,25 @@ public class AuthController {
     private final JwtTokenUtil jwtTokenUtil;
     private final UserService userService;
 
+    /**
+     * Constructs a new AuthController with required dependencies.
+     *
+     * @param authenticationManager The authentication manager for authenticating users
+     * @param jwtTokenUtil The JWT utility for generating and validating tokens
+     * @param userService The user service for user management operations
+     */
     public AuthController(AuthenticationManager authenticationManager, JwtTokenUtil jwtTokenUtil, UserService userService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenUtil = jwtTokenUtil;
         this.userService = userService;
     }
 
+    /**
+     * Authenticates a user with provided credentials and returns a JWT token.
+     *
+     * @param loginRequest The login request containing username and password
+     * @return A ResponseEntity containing the JWT token and other authentication details
+     */
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -56,6 +69,12 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Registers a new user with the provided details.
+     *
+     * @param registerRequest The registration request containing username, email, and password
+     * @return A ResponseEntity containing the created user information or an error message
+     */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
         if (userService.existsByUsername(registerRequest.getUsername())) {
@@ -100,21 +119,44 @@ public class AuthController {
         private String username;
         private String password;
 
+        /**
+         * Default constructor for LoginRequest.
+         */
         public LoginRequest() {
         }
 
+        /**
+         * Gets the username for authentication.
+         *
+         * @return The username
+         */
         public String getUsername() {
             return username;
         }
 
+        /**
+         * Sets the username for authentication.
+         *
+         * @param username The username to set
+         */
         public void setUsername(String username) {
             this.username = username;
         }
 
+        /**
+         * Gets the password for authentication.
+         *
+         * @return The password
+         */
         public String getPassword() {
             return password;
         }
 
+        /**
+         * Sets the password for authentication.
+         *
+         * @param password The password to set
+         */
         public void setPassword(String password) {
             this.password = password;
         }
@@ -125,29 +167,62 @@ public class AuthController {
         private String email;
         private String password;
 
+        /**
+         * Default constructor for RegisterRequest.
+         */
         public RegisterRequest() {
         }
 
+        /**
+         * Gets the username for registration.
+         *
+         * @return The username
+         */
         public String getUsername() {
             return username;
         }
 
+        /**
+         * Sets the username for registration.
+         *
+         * @param username The username to set
+         */
         public void setUsername(String username) {
             this.username = username;
         }
 
+        /**
+         * Gets the email for registration.
+         *
+         * @return The email
+         */
         public String getEmail() {
             return email;
         }
 
+        /**
+         * Sets the email for registration.
+         *
+         * @param email The email to set
+         */
         public void setEmail(String email) {
             this.email = email;
         }
 
+        /**
+         * Gets the password for registration.
+         *
+         * @return The password
+         */
         public String getPassword() {
             return password;
         }
 
+        /**
+         * Sets the password for registration.
+         *
+         * @param password The password to set
+         */
         public void setPassword(String password) {
             this.password = password;
         }

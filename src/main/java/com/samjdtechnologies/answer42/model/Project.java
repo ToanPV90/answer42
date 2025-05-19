@@ -66,13 +66,21 @@ public class Project {
     )
     private Set<Paper> papers = new HashSet<>();
 
-    // Default constructor
+    /**
+     * Default constructor for Project.
+     * Initializes creation and update timestamps to the current time.
+     */
     public Project() {
         this.createdAt = ZonedDateTime.now();
         this.updatedAt = ZonedDateTime.now();
     }
 
-    // Constructor with required fields
+    /**
+     * Constructor with required fields for creating a new project.
+     * 
+     * @param name The name of the project
+     * @param user The user who owns the project
+     */
     public Project(String name, User user) {
         this();
         this.name = name;
@@ -153,14 +161,24 @@ public class Project {
         this.papers = papers;
     }
 
-    // Helper methods
+    /**
+     * Adds a paper to this project's collection of papers.
+     *
+     * @param paper The paper to add to the project
+     */
     public void addPaper(Paper paper) {
         this.papers.add(paper);
     }
 
+    /**
+     * Removes a paper from this project's collection of papers.
+     *
+     * @param paper The paper to remove from the project
+     */
     public void removePaper(Paper paper) {
         this.papers.remove(paper);
     }
+
 
     @PreUpdate
     protected void onUpdate() {

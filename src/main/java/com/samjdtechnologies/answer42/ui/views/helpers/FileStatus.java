@@ -1,7 +1,7 @@
 package com.samjdtechnologies.answer42.ui.views.helpers;
 
 /**
- * Status of each file in the bulk upload
+ * Status of each file in the bulk upload.
  */
 public enum FileStatus {
     PENDING("Pending"),

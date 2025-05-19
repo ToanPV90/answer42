@@ -16,6 +16,13 @@ public class LoggingConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingConfig.class);
 
+    /**
+     * Configures the logging levels for different packages in the application.
+     * This method sets up appropriate logging levels for application components
+     * and third-party libraries based on the application's needs.
+     * 
+     * @return The configured LoggerContext with all logging levels applied
+     */
     @Bean(name = "loggerContext")
     public LoggerContext configureLoggers() {
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -36,6 +43,7 @@ public class LoggingConfig {
             logbackLogger.setLevel(entry.getValue());
             logger.info("Set logging level for {} to {}", entry.getKey(), entry.getValue());
         }
+
 
         // Return the configured LoggerContext
         return loggerContext;

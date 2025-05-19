@@ -3,7 +3,7 @@ package com.samjdtechnologies.answer42.ui.views.helpers;
 import java.util.UUID;
 
 /**
- * Model representing a file in the bulk upload
+ * Model representing a file in the bulk upload process.
  */
 public class FileEntry {
     private String fileName;
@@ -12,6 +12,13 @@ public class FileEntry {
     private String statusDetail;
     private UUID paperId;
     
+    /**
+     * Constructs a new file entry with the specified name and size.
+     * The status is automatically set to PENDING.
+     * 
+     * @param fileName the name of the file
+     * @param fileSize the size of the file in bytes
+     */
     public FileEntry(String fileName, long fileSize) {
         this.fileName = fileName;
         this.fileSize = fileSize;

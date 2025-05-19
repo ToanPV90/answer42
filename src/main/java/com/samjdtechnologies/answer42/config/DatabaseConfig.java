@@ -62,6 +62,12 @@ public class DatabaseConfig {
     @Value("${spring.jpa.hibernate.ddl-auto}")
     private String hibernateDdlAuto;
 
+    /**
+     * Configures and creates a HikariCP configuration with connection properties
+     * from application.properties.
+     * 
+     * @return the configured HikariConfig instance
+     */
     @Bean
     public HikariConfig hikariConfig() {
         HikariConfig config = new HikariConfig();
@@ -89,12 +95,23 @@ public class DatabaseConfig {
         return config;
     }
     
+    /**
+     * Creates the primary DataSource bean using HikariCP connection pool.
+     * 
+     * @return a DataSource configured with HikariCP properties
+     */
     @Bean
     @Primary
     public DataSource dataSource() {
         return new HikariDataSource(hikariConfig());
     }
     
+    /**
+     * Creates the EntityManagerFactory with Hibernate as the JPA provider.
+     * Configures entity scanning, database connection, and Hibernate properties.
+     * 
+     * @return a LocalContainerEntityManagerFactoryBean for JPA entity management
+     */
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
@@ -126,6 +143,12 @@ public class DatabaseConfig {
         return factory;
     }
     
+    /**
+     * Creates a JPA transaction manager linked to the entity manager factory.
+     * 
+     * @param entityManagerFactory the EntityManagerFactory to manage transactions for
+     * @return a PlatformTransactionManager implementation for JPA
+     */
     @Bean
     public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
         JpaTransactionManager txManager = new JpaTransactionManager();

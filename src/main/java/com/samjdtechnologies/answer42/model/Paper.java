@@ -179,13 +179,23 @@ public class Paper {
     @Column(name = "processing_status")
     private String processingStatus = "pending";
 
-    // Default constructor
+    /**
+     * Default constructor for Paper.
+     * Initializes creation and update timestamps to the current time.
+     */
     public Paper() {
         this.createdAt = ZonedDateTime.now();
         this.updatedAt = ZonedDateTime.now();
     }
 
-    // Constructor with required fields - updated for List<String>
+    /**
+     * Constructor with required fields for creating a new paper.
+     * 
+     * @param title The title of the paper
+     * @param authors The list of authors of the paper
+     * @param filePath The path to the paper file
+     * @param user The user who uploaded the paper
+     */
     public Paper(String title, List<String> authors, String filePath, User user) {
         this();
         this.title = title;
@@ -193,6 +203,7 @@ public class Paper {
         this.filePath = filePath;
         this.user = user;
     }
+
 
     // Getters and setters - updated for List<String>
 

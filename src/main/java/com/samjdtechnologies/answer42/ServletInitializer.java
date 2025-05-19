@@ -7,6 +7,7 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 
@@ -27,6 +28,8 @@ public class ServletInitializer extends SpringBootServletInitializer {
     /**
      * Provides a custom ServletContextListener to handle application lifecycle events
      * like context initialization and destruction, ensuring proper cleanup of threads.
+     * 
+     * @return a ServletContextInitializer that adds a custom listener to the servlet context
      */
     @Bean
     public ServletContextInitializer servletContextListenerInitializer() {

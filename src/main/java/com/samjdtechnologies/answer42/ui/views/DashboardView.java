@@ -46,6 +46,13 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
     private User currentUser;
     
 
+    /**
+     * Constructs the dashboard view with necessary service dependencies.
+     * Initializes the main view that displays user's papers, projects, and quick actions.
+     * 
+     * @param paperService the service for paper-related operations including retrieval
+     * @param projectService the service for project-related operations including retrieval
+     */
     public DashboardView(PaperService paperService, ProjectService projectService) {
         this.paperService = paperService;
         this.projectService = projectService;

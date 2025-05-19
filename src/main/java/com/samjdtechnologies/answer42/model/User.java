@@ -15,6 +15,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 
+/**
+ * Entity representing a user in the system.
+ * Maps to the 'users' table in the answer42 schema.
+ */
 @Entity
 @Table(name = "users", schema = "answer42")
 public class User {
@@ -42,11 +46,20 @@ public class User {
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
 
-    // Default constructor
+    /**
+     * Default constructor for User.
+     * Required by JPA.
+     */
     public User() {
     }
 
-    // Constructor with fields
+    /**
+     * Constructor with required fields for creating a new user.
+     *
+     * @param username The username for the user account
+     * @param password The password for the user account (should be encrypted before storage)
+     * @param email The email address for the user account
+     */
     public User(String username, String password, String email) {
         this.username = username;
         this.password = password;
@@ -101,6 +114,11 @@ public class User {
         this.roles = roles;
     }
 
+    /**
+     * Adds a role to this user's set of roles.
+     *
+     * @param role The role to add to the user
+     */
     public void addRole(String role) {
         this.roles.add(role);
     }
@@ -115,4 +133,5 @@ public class User {
                 ", roles=" + roles +
                 '}';
     }
+
 }

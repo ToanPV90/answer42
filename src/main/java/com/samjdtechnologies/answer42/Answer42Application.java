@@ -27,7 +27,9 @@ public class Answer42Application implements DisposableBean {
     private final ExecutorService shutdownExecutor = Executors.newSingleThreadExecutor();
     
     /**
-     * Main method to start the application
+     * Main method to start the application.
+     * 
+     * @param args command line arguments passed to the application
      */
     public static void main(String[] args) {
         SpringApplication.run(Answer42Application.class, args);

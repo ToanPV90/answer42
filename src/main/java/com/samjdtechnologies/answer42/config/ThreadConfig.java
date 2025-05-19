@@ -33,6 +33,11 @@ public class ThreadConfig {
     @Value("${spring.task.scheduling.shutdown.await-termination-period}")
     private String schedulingAwaitTerminationPeriod;
 
+    /**
+     * Configures and creates a thread pool task executor for asynchronous task execution.
+     * 
+     * @return an Executor instance configured with thread pool settings from application properties
+     */
     @Bean
     public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -48,6 +53,11 @@ public class ThreadConfig {
         return executor;
     }
 
+    /**
+     * Configures and creates a thread pool task scheduler for scheduled task execution.
+     * 
+     * @return a ThreadPoolTaskScheduler instance configured with settings from application properties
+     */
     @Bean
     public ThreadPoolTaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();

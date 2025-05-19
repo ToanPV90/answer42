@@ -28,16 +28,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenUtil jwtTokenUtil;
     private UserDetailsService userDetailsService;
 
+    /**
+     * Constructs a JwtAuthenticationFilter with the specified JWT token utility.
+     * 
+     * @param jwtTokenUtil the utility for JWT token operations
+     */
     public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil) {
         this.jwtTokenUtil = jwtTokenUtil;
     }
     
-    // Add additional constructor for JwtConfig support
+    /**
+     * Constructs a JwtAuthenticationFilter with the specified JWT token utility and configuration.
+     * 
+     * @param jwtTokenUtil the utility for JWT token operations
+     * @param jwtConfig the JWT configuration properties
+     */
     public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil, JwtConfig jwtConfig) {
         this.jwtTokenUtil = jwtTokenUtil;
         // You can use jwtConfig properties here if needed
     }
 
+    /**
+     * Sets the UserDetailsService used to load user-specific data.
+     * 
+     * @param userDetailsService the service to load UserDetails by username
+     */
     public void setUserDetailsService(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }

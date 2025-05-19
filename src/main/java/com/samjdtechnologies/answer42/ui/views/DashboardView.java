@@ -429,8 +429,8 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
         
-        // Add buttons to the actions container
-        actions.add(viewButton, editButton, downloadButton, deleteButton);
+        // Add buttons to the actions container - download button first
+        actions.add(downloadButton, viewButton, editButton, deleteButton);
         footer.add(actions);
 
         // Add all parts to the card

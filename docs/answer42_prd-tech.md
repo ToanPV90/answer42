@@ -302,16 +302,6 @@ To democratize research comprehension and accelerate knowledge synthesis by leve
 
 ## 5. Technical Architecture
 
-### 5.1 Frontend
-
-#### 5.1.1 Framework & Technologies
-
-- Next.js with TypeScript
-- React for component architecture
-- Tailwind CSS for styling (mobile-first with desktop optimizations)
-- React Context for state management
-- PDF.js for PDF rendering and interaction
-
 #### 5.1.2 Key Components
 
 - Responsive layout system with device-specific optimizations
@@ -320,25 +310,34 @@ To democratize research comprehension and accelerate knowledge synthesis by leve
 - Interactive concept map visualization
 - Project management dashboard with multiple view modes
 
-### 5.2 Backend
+### Technology Stack
 
-#### 5.2.1 Framework & Technologies
+### Backend
 
-- Node.js with Express
-- TypeScript for type safety
-- Docker for containerization
-- RESTful API design with OpenAPI specification
-- WebSockets for real-time updates
+- **Java 21**: Core programming language
+- **Spring Boot 3.4.5**: Application framework
+- **Spring Security**: Authentication and authorization
+- **Spring Data JPA**: Database access
+- **Spring AI**: AI integration
+- **Spring Transaction**: Standard transaction management
+- **JWT (JSON Web Tokens)**: Stateless authentication
+- **PostgreSQL (Supabase)**: Relational database
+- **Hibernate**: ORM with JSONB support
 
-#### 5.2.2 Key Services
+### Frontend
 
-- Authentication service
-- PDF processing pipeline
-- AI provider abstraction layer
-- Vector embedding service
-- User management service
-- Payment processing service
-- Hardware detection service
+- **Vaadin 24.7.3**: Java web framework for building UIs
+- **HTML/CSS/JavaScript**: Web technologies
+- **PWA Support**: Progressive Web App capabilities
+
+### Development Tools
+
+- **Maven**: Dependency management and build automation
+- **Spring Boot DevTools**: Development utilities
+- **JUnit**: Testing framework
+- **Supabase**: Database hosting
+
+
 
 ### 5.3 Database & Storage
 
@@ -422,16 +421,6 @@ In summary:
   - OpenAI (GPT-4)
   - Anthropic (Claude)
   - Perplexity API
-  - Local Ollama models
-
-#### 5.4.3 Hardware Detection System
-
-- CPU capabilities detection
-- GPU detection and VRAM assessment
-- Available RAM analysis
-- Storage space verification
-- Ollama compatibility check
-- Model recommendations based on specs
 
 ### 5.5 Integration Points
 
@@ -449,85 +438,7 @@ In summary:
 - BTCPay Server for Bitcoin payments
 - Subscription management service
 
----
 
-## 6. Payment & Monetization
-
-### 6.1 Subscription Tiers
-
-#### 6.1.1 Free Tier
-
-- 5 paper uploads/analyses per month
-- Basic summarization features
-- Limited citation management
-- Standard AI models only
-- One active project
-- No API access
-- Limited Perplexity searches (5 per month)
-
-#### 6.1.2 Student Plan ($9.99/month)
-
-- 50 paper uploads/analyses per month
-- All summarization features
-- Full citation management
-- Premium AI models
-- Up to 5 active projects
-- Study guide generation
-- Moderate Perplexity access (25 searches per month)
-
-#### 6.1.3 Researcher Plan ($19.99/month)
-
-- Unlimited paper uploads/analyses
-- All features included
-- Advanced AI models
-- Unlimited projects
-- Priority processing
-- Advanced semantic search
-- API access (limited)
-- Unlimited Perplexity integration
-
-#### 6.1.4 Team/Department Plan (Custom pricing)
-
-- All Researcher features
-- Collaborative workspaces
-- Team member management
-- Shared libraries
-- Custom integration options
-- Dedicated support
-- Volume discounts
-
-### 6.2 Payment Processing
-
-#### 6.2.1 Standard Payment Options
-
-- Credit card via Stripe
-- PayPal
-- ACH/bank transfer (where available)
-
-#### 6.2.2 Bitcoin Payments
-
-- 10% discount on monthly subscriptions
-- 15% discount on annual subscriptions
-- Self-hosted BTCPay Server
-- On-chain and Lightning Network support
-- Automated payment verification
-
-#### 6.2.3 Alternative Payment Methods
-
-- Open source payment processors
-- Invoice billing for institutions
-- Regional payment methods as needed
-
-### 6.3 Billing & Subscription Logic
-
-- Monthly and annual billing options
-- Prorated upgrades and downgrades
-- Automatic renewal with notifications
-- Grace period for payment issues
-- Usage tracking and limits
-- Upgrade prompts based on usage
-
----
 
 ## 7. Deployment & Infrastructure
 
@@ -540,128 +451,7 @@ In summary:
 - Hetzner
 - Option to use Replit for development and non-payment components
 
-#### 7.1.2 Deployment Architecture
-
-- Frontend: Static hosting with CDN
-- Backend API: Containerized services
-- Database: Managed PostgreSQL
-- Storage: Object storage service
-- BTCPay Server: Dedicated instance
-
-### 7.2 Scaling Strategy
-
-- Horizontal scaling for API servers
-- Read replicas for database as needed
-- CDN for static assets and cached content
-- Memory caching layer for frequent operations
-- Batch processing for intensive operations
-
-### 7.3 Security Considerations
-
-- SOC2 compliance preparation
-- Data encryption at rest and in transit
-- Regular security audits
-- Rate limiting and abuse prevention
-- API key management and rotation
-- User data minimization practices
-
----
-
-## 8. Device-Optimized Approach
-
-### 8.1 Mobile-First Design Principles
-
-- Mobile viewport as primary design target
-- Touch-optimized interface elements
-- Bottom navigation for thumb accessibility
-- Responsive text sizing and spacing
-- Offline capability for reading
-
-### 8.2 Desktop Power-User Optimizations
-
-- Advanced multi-view layouts for large screens
-- Comprehensive keyboard shortcuts for all actions
-- Multiple document comparison views
-- Command palette for quick access to functions
-- Support for external monitors and multi-window workflows
-- Advanced editing tools with precision controls
-
-### 8.3 Progressive Enhancement
-
-- Core functionality available on all devices
-- Enhanced features based on device capabilities
-- Touch-first, with optimized keyboard/mouse support for desktop
-- Performance optimization for all network conditions
-- Battery usage optimization for mobile
-
-### 8.4 Device-Specific Features
-
-- **Mobile:**
-  
-  - Optimized reading experience
-  - Gestural interface for navigation
-  - Study mode for distraction-free reading
-  - Mobile notifications for processing completion
-  - Share integration with mobile OS
-
-- **Desktop:**
-  
-  - Multi-document workspaces
-  - Advanced annotation tools
-  - Split-screen and multi-panel views
-  - Drag-and-drop organization
-  - Custom workspace layouts
-  - Comprehensive keyboard shortcuts
-
----
-
-## 9. Testing Requirements
-
-### 9.1 Automated Testing
-
-- Unit tests for core functionality
-- Integration tests for service interactions
-- End-to-end tests for critical user flows
-- Visual regression tests for UI components
-- Performance benchmark tests
-
-### 9.2 User Testing
-
-- Usability testing with target personas
-- Beta program for early feedback
-- A/B testing for key conversion points
-- Feature validation with user interviews
-- Satisfaction and NPS tracking
-
-### 9.3 Specialized Testing
-
-- Mobile device testing across platforms
-- Desktop browser and input device testing
-- AI quality evaluation protocol
-- Citation accuracy verification
-- PDF processing quality assessment
-- Payment flow validation
-
----
-
 ## 10. Development Constraints
-
-### 10.1 Code Quality Standards
-
-- Maximum file size of 300 lines
-- TypeScript for all code with strict typing
-- Comprehensive test coverage (>80%)
-- Consistent styling with ESLint/Prettier
-- Documentation requirements for all modules
-
-### 10.2 Performance Requirements
-
-- Page load under 2 seconds on 4G
-- API response time under 500ms
-- PDF processing under 60 seconds
-- Search results under 300ms
-- Mobile battery impact minimization
-- Desktop response time under 100ms for UI interactions
 
 ### 10.3 Accessibility Standards
 
@@ -670,60 +460,3 @@ In summary:
 - Keyboard navigation support
 - Color contrast requirements
 - Reduced motion support
-
----
-
-## 11. Future Considerations (Post-MVP)
-
-### 11.1 Feature Expansion
-
-- Collaborative annotation
-- Chrome extension for web capture
-- Literature gap analysis
-- AI-generated research proposals
-- Integration with reference managers
-
-### 11.2 Platform Growth
-
-- Mobile app (native)
-- Public API for ecosystem
-- White-label option for institutions
-- Additional language support
-- Academic conferencing features
-
----
-
-## 12. Appendix
-
-### 12.1 Glossary
-
-- **PDF Processing Pipeline:** System for extracting and structuring text from PDFs
-- **Vector Embedding:** Numerical representation of text for similarity search
-- **AI Agent:** Specialized AI model with specific role and capabilities
-- **Orchestrator:** Component that coordinates between different AI agents
-- **Ollama:** Framework for running LLMs locally
-
-### 12.2 References
-
-- IEEE citation style guide
-- APA style guide
-- Open source AI best practices
-- Device-optimized design principles
-- Research paper structure standards
-
----
-
-## 13. File Naming Convention
-
-All project files should follow the Answer42 naming convention:
-
-- Frontend components: `Answer42[ComponentName].tsx`
-- Backend services: `answer42.[service-name].ts`
-- Database models: `Answer42[ModelName].model.ts`
-- Configuration files: `answer42.config.[type].ts`
-
----
-
-*This document will be updated throughout the development process as requirements are refined.*
-
----

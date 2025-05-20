@@ -222,18 +222,6 @@ This approach provides the flexibility of schema-less data within a relational d
 
 ## AI Integration
 
-Answer42 integrates with multiple AI models:
-
-1. **Anthropic Claude**: 
-   
-   - Model: claude-3-7-sonnet-latest
-   - Features: Advanced conversation and research assistance
-
-2. **Perplexity API**: 
-   
-   - Model: llama-3.1-sonar-small-128k-online
-   - Features: Knowledge retrieval and research support
-
 AI integration is managed through Spring AI, providing a unified interface for different AI providers.
 
 ### Agent System
@@ -259,6 +247,48 @@ Our system initializes agents through a standardized bootstrapping process:
 3. Each agent is registered with the `agentManager` singleton
 4. Specialized agents are linked to the orchestrator for task routing
 5. System-wide agents are created at startup, while user-specific agents are created on demand
+
+enum AgentProvider {
+  OPENAI = 'openai',
+  ANTHROPIC = 'anthropic',
+  PERPLEXITY = 'perplexity',
+}
+
+enum AgentType {
+  ORCHESTRATOR = 'orchestrator',
+  PAPER_PROCESSOR = 'paper-processor',
+  RESEARCH_ANALYZER = 'research-analyzer',
+  CONTENT_SUMMARIZER = 'content-summarizer',
+  CONCEPT_EXPLAINER = 'concept-explainer',
+  CITATION_FORMATTER = 'citation-formatter',
+  EMBEDDING_GENERATOR = 'embedding-generator',
+  QUALITY_CHECKER = 'quality-checker',
+  PERPLEXITY_RESEARCHER = 'perplexity-researcher',
+  PERPLEXITY_PAPER_ANALYZER = 'perplexity-paper-analyzer',
+  FLASHCARD_CREATOR = 'flashcard-creator',
+  PRACTICE_QUESTIONS_CREATOR = 'practice-questions-creator',
+  CONCEPT_MAP_CREATOR = 'concept-map-creator',
+  GENERAL = 'general',
+}
+
+export const RECOMMENDED_PROVIDER: Record<AgentType, AgentProvider> = {
+
+  [AgentType.ORCHESTRATOR]: AgentProvider.OPENAI,
+  [AgentType.PAPER_PROCESSOR]: AgentProvider.OPENAI,
+  [AgentType.RESEARCH_ANALYZER]: AgentProvider.OPENAI,
+  [AgentType.CONTENT_SUMMARIZER]: AgentProvider.ANTHROPIC,
+  [AgentType.CONCEPT_EXPLAINER]: AgentProvider.OPENAI,
+  [AgentType.QUALITY_CHECKER]: AgentProvider.ANTHROPIC,
+  [AgentType.CITATION_FORMATTER]: AgentProvider.OPENAI,
+  [AgentType.PERPLEXITY_RESEARCHER]: AgentProvider.PERPLEXITY,
+  [AgentType.PERPLEXITY_PAPER_ANALYZER]: AgentProvider.PERPLEXITY,
+  [AgentType.EMBEDDING_GENERATOR]: AgentProvider.OPENAI,
+  [AgentType.FLASHCARD_CREATOR]: AgentProvider.OPENAI,
+  [AgentType.PRACTICE_QUESTIONS_CREATOR]: AgentProvider.OPENAI,
+  [AgentType.CONCEPT_MAP_CREATOR]: AgentProvider.ANTHROPIC,
+  [AgentType.GENERAL]: AgentProvider.OPENAI,
+
+};
 
 This process ensures all agents are properly initialized with appropriate models and configurations.
 
@@ -491,8 +521,9 @@ The application requires the following environment variables:
 
 ```
 # AI API Keys
-OPENAI_API_KEY=your_perplexity_api_key
+OPENAI_API_KEY=your_openai_api_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
+PERPLEXITY_API_KEY=your_perplexity_api_key
 ```
 
 You can set these up in two ways:

@@ -337,8 +337,6 @@ To democratize research comprehension and accelerate knowledge synthesis by leve
 - **JUnit**: Testing framework
 - **Supabase**: Database hosting
 
-
-
 ### 5.3 Database & Storage
 
 #### 5.3.1 Primary Database
@@ -437,8 +435,6 @@ In summary:
 - PayPal integration
 - BTCPay Server for Bitcoin payments
 - Subscription management service
-
-
 
 ## 7. Deployment & Infrastructure
 

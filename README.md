@@ -663,7 +663,7 @@ Key configuration properties:
 To build for production:
 
 ```
-mvn clean package -Pproduction
+mvn clean package -production
 ```
 
 This builds an optimized version with:

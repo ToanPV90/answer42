@@ -39,6 +39,15 @@ public class UserPreferences {
     @Column(name = "system_notifications_enabled", nullable = false)
     private boolean systemNotificationsEnabled = true;
     
+    @Column(name = "openai_api_key")
+    private String openaiApiKey;
+    
+    @Column(name = "perplexity_api_key")
+    private String perplexityApiKey;
+    
+    @Column(name = "anthropic_api_key")
+    private String anthropicApiKey;
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -112,6 +121,30 @@ public class UserPreferences {
         this.systemNotificationsEnabled = systemNotificationsEnabled;
     }
     
+    public String getOpenaiApiKey() {
+        return openaiApiKey;
+    }
+    
+    public void setOpenaiApiKey(String openaiApiKey) {
+        this.openaiApiKey = openaiApiKey;
+    }
+    
+    public String getPerplexityApiKey() {
+        return perplexityApiKey;
+    }
+    
+    public void setPerplexityApiKey(String perplexityApiKey) {
+        this.perplexityApiKey = perplexityApiKey;
+    }
+    
+    public String getAnthropicApiKey() {
+        return anthropicApiKey;
+    }
+    
+    public void setAnthropicApiKey(String anthropicApiKey) {
+        this.anthropicApiKey = anthropicApiKey;
+    }
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -142,6 +175,7 @@ public class UserPreferences {
                 ", studyMaterialGenerationEnabled=" + studyMaterialGenerationEnabled +
                 ", emailNotificationsEnabled=" + emailNotificationsEnabled +
                 ", systemNotificationsEnabled=" + systemNotificationsEnabled +
+                ", apiKeysConfigured=" + (openaiApiKey != null || perplexityApiKey != null || anthropicApiKey != null) +
                 '}';
     }
 }

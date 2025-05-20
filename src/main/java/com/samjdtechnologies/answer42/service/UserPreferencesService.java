@@ -128,6 +128,54 @@ public class UserPreferencesService {
     }
     
     /**
+     * Update user's OpenAI API key.
+     * 
+     * @param userId The ID of the user
+     * @param apiKey The OpenAI API key
+     * @return The updated user preferences
+     */
+    @Transactional
+    public UserPreferences updateOpenAIApiKey(UUID userId, String apiKey) {
+        LoggingUtil.debug(LOG, "updateOpenAIApiKey", "Updating OpenAI API key for user ID: %s", userId);
+        
+        UserPreferences preferences = getByUserId(userId);
+        preferences.setOpenaiApiKey(apiKey);
+        return userPreferencesRepository.save(preferences);
+    }
+    
+    /**
+     * Update user's Perplexity API key.
+     * 
+     * @param userId The ID of the user
+     * @param apiKey The Perplexity API key
+     * @return The updated user preferences
+     */
+    @Transactional
+    public UserPreferences updatePerplexityApiKey(UUID userId, String apiKey) {
+        LoggingUtil.debug(LOG, "updatePerplexityApiKey", "Updating Perplexity API key for user ID: %s", userId);
+        
+        UserPreferences preferences = getByUserId(userId);
+        preferences.setPerplexityApiKey(apiKey);
+        return userPreferencesRepository.save(preferences);
+    }
+    
+    /**
+     * Update user's Anthropic API key.
+     * 
+     * @param userId The ID of the user
+     * @param apiKey The Anthropic API key
+     * @return The updated user preferences
+     */
+    @Transactional
+    public UserPreferences updateAnthropicApiKey(UUID userId, String apiKey) {
+        LoggingUtil.debug(LOG, "updateAnthropicApiKey", "Updating Anthropic API key for user ID: %s", userId);
+        
+        UserPreferences preferences = getByUserId(userId);
+        preferences.setAnthropicApiKey(apiKey);
+        return userPreferencesRepository.save(preferences);
+    }
+    
+    /**
      * Delete user preferences.
      * 
      * @param userId The ID of the user

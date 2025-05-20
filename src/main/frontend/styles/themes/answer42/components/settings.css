@@ -76,3 +76,24 @@
 .save-button {
   margin-top: var(--lumo-space-m);
 }
+
+/* API Keys section */
+.api-keys-section {
+  margin-top: var(--lumo-space-m);
+}
+
+.api-key-field {
+  width: 100%;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.api-key-help {
+  margin-top: var(--lumo-space-s);
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-xs);
+  line-height: 1.5;
+  padding: var(--lumo-space-xs);
+  background-color: var(--lumo-contrast-5pct);
+  border-radius: var(--lumo-border-radius-s);
+}

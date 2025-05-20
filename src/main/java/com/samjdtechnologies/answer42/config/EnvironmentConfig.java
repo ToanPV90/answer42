@@ -27,6 +27,9 @@ public class EnvironmentConfig {
     private String anthropicApiKey;
 
     @Value("${OPENAI_API_KEY:#{null}}")
+    private String openaiApiKey;
+
+    @Value("${PERPLEXITY_API_KEY:#{null}}")
     private String perplexityApiKey;
 
     /**
@@ -43,9 +46,16 @@ public class EnvironmentConfig {
         } else {
             LOG.warning("ANTHROPIC_API_KEY is not set");
         }
-        
+
         if (perplexityApiKey != null && !perplexityApiKey.isEmpty()) {
             String maskedKey = maskApiKey(perplexityApiKey);
+            LOG.info("PERPLEXITY_API_KEY is set " + maskedKey);
+        } else {
+            LOG.warning("PERPLEXITY_API_KEY is not set");
+        }
+        
+        if (openaiApiKey != null && !openaiApiKey.isEmpty()) {
+            String maskedKey = maskApiKey(openaiApiKey);
             LOG.info("OPENAI_API_KEY is set " + maskedKey);
         } else {
             LOG.warning("OPENAI_API_KEY is not set");
@@ -60,7 +70,7 @@ public class EnvironmentConfig {
     @PostConstruct
     public void init() {
         // Load .env file manually if PropertySource wasn't able to
-        if (anthropicApiKey == null && perplexityApiKey == null) {
+        if (anthropicApiKey == null && perplexityApiKey == null && openaiApiKey == null) {
             loadEnvironmentVariables();
         }
 

@@ -5,11 +5,13 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.controller.AuthController;
 import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -26,6 +28,7 @@ public class AuthenticationService {
 
     private final AuthController authController;
     private final UserService userService;
+    private AIConfig aiConfig;
 
     /**
      * Constructs a new AuthenticationService with the necessary dependencies.
@@ -36,6 +39,17 @@ public class AuthenticationService {
     public AuthenticationService(AuthController authController, UserService userService) {
         this.authController = authController;
         this.userService = userService;
+    }
+    
+    /**
+     * Sets the AIConfig dependency. This is done via setter injection to avoid
+     * circular dependency issues between AIConfig and AuthenticationService.
+     * 
+     * @param aiConfig the configuration for AI services
+     */
+    @Autowired
+    public void setAiConfig(AIConfig aiConfig) {
+        this.aiConfig = aiConfig;
     }
 
     /**
@@ -74,9 +88,14 @@ public class AuthenticationService {
                 
                 // Update the user's last login timestamp
                 userService.findByUsername(username).ifPresent(user -> {
+                    // Update the last login timestamp
                     user.setLastLogin(java.time.LocalDateTime.now());
                     userService.save(user);
                     LoggingUtil.debug(LOG, "login", "Updated last login timestamp for user: %s", username);
+                    
+                    // Update AI API keys based on user preferences
+                    aiConfig.updateKeysForUser(user);
+                    LoggingUtil.debug(LOG, "login", "Updated API keys for user: %s", username);
                 });
                 
                 LoggingUtil.debug(LOG, "login", "JWT token stored in session and localStorage for user: %s", username);
@@ -145,6 +164,10 @@ public class AuthenticationService {
         if (ui != null && ui.getPage() != null) {
             ui.getPage().executeJs("window.clearJwtToken()");
         }
+        
+        // Reset AI API keys to system defaults
+        aiConfig.resetToSystemDefaults();
+        LoggingUtil.debug(LOG, "logout", "Reset API keys to system defaults");
         
         // Clear Spring Security context
         SecurityContextHolder.clearContext();

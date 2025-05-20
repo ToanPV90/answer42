@@ -172,6 +172,9 @@ public class UIConstants {
     public static final String CSS_DANGER_ZONE = "danger-zone";
     public static final String CSS_DELETE_ACCOUNT_BUTTON = "delete-account-button";
     public static final String CSS_SAVE_BUTTON = "save-button";
+    public static final String CSS_API_KEYS_SECTION = "api-keys-section";
+    public static final String CSS_API_KEY_FIELD = "api-key-field";
+    public static final String CSS_API_KEY_HELP = "api-key-help";
     
     // Subscription view related
     public static final String CSS_SUBSCRIPTION_VIEW = "subscription-view";

@@ -30,6 +30,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -55,6 +56,12 @@ public class SettingsView extends Div implements BeforeEnterObserver {
     private Checkbox studyMaterialGenerationToggle;
     private Checkbox emailNotificationsToggle;
     private Checkbox systemNotificationsToggle;
+    
+    // API Key fields
+    private PasswordField openaiApiKeyField;
+    private PasswordField perplexityApiKeyField;
+    private PasswordField anthropicApiKeyField;
+    private Button saveApiKeysButton;
 
     /**
      * Constructs the settings view with necessary service dependencies.
@@ -81,7 +88,8 @@ public class SettingsView extends Div implements BeforeEnterObserver {
         
         // Add all components to the view
         add(createWelcomeSection(), 
-            createPreferencesSection(), 
+            createPreferencesSection(),
+            createApiKeysSection(),
             createDangerZoneSection()
         );
 
@@ -188,6 +196,150 @@ public class SettingsView extends Div implements BeforeEnterObserver {
         preferencesSection.add(sectionTitle, studyMaterialOption, emailNotificationsOption, systemNotificationsOption);
         
         return preferencesSection;
+    }
+    
+    private Div createApiKeysSection() {
+        Div apiKeysSection = new Div();
+        apiKeysSection.addClassName(UIConstants.CSS_SETTINGS_SECTION);
+        apiKeysSection.addClassName(UIConstants.CSS_API_KEYS_SECTION);
+        
+        H3 sectionTitle = new H3("AI API Keys");
+        
+        Paragraph description = new Paragraph(
+            "Configure your personal API keys for AI services. If provided, your keys will be used instead of the shared system keys. " +
+            "This gives you more control and potentially higher rate limits based on your account tier."
+        );
+        
+        // OpenAI API Key
+        Div openaiContainer = new Div();
+        openaiContainer.addClassName(UIConstants.CSS_SETTING_OPTION);
+        
+        Div openaiDescription = new Div();
+        openaiDescription.addClassName(UIConstants.CSS_OPTION_DESCRIPTION);
+        
+        Span openaiTitle = new Span("OpenAI API Key");
+        openaiTitle.addClassName(UIConstants.CSS_OPTION_TITLE);
+        
+        Span openaiDetail = new Span("Used for paper analysis, summaries, and general AI operations.");
+        openaiDetail.addClassName(UIConstants.CSS_OPTION_DETAIL);
+        
+        openaiDescription.add(openaiTitle, openaiDetail);
+        
+        openaiApiKeyField = new com.vaadin.flow.component.textfield.PasswordField();
+        openaiApiKeyField.setPlaceholder("sk-...");
+        openaiApiKeyField.setWidthFull();
+        openaiApiKeyField.addClassName(UIConstants.CSS_API_KEY_FIELD);
+        
+        openaiContainer.add(openaiDescription, openaiApiKeyField);
+        
+        // Perplexity API Key
+        Div perplexityContainer = new Div();
+        perplexityContainer.addClassName(UIConstants.CSS_SETTING_OPTION);
+        
+        Div perplexityDescription = new Div();
+        perplexityDescription.addClassName(UIConstants.CSS_OPTION_DESCRIPTION);
+        
+        Span perplexityTitle = new Span("Perplexity API Key");
+        perplexityTitle.addClassName(UIConstants.CSS_OPTION_TITLE);
+        
+        Span perplexityDetail = new Span("Used for research queries and web-enhanced responses.");
+        perplexityDetail.addClassName(UIConstants.CSS_OPTION_DETAIL);
+        
+        perplexityDescription.add(perplexityTitle, perplexityDetail);
+        
+        perplexityApiKeyField = new com.vaadin.flow.component.textfield.PasswordField();
+        perplexityApiKeyField.setPlaceholder("pplx-...");
+        perplexityApiKeyField.setWidthFull();
+        perplexityApiKeyField.addClassName(UIConstants.CSS_API_KEY_FIELD);
+        
+        perplexityContainer.add(perplexityDescription, perplexityApiKeyField);
+        
+        // Anthropic API Key
+        Div anthropicContainer = new Div();
+        anthropicContainer.addClassName(UIConstants.CSS_SETTING_OPTION);
+        
+        Div anthropicDescription = new Div();
+        anthropicDescription.addClassName(UIConstants.CSS_OPTION_DESCRIPTION);
+        
+        Span anthropicTitle = new Span("Anthropic API Key");
+        anthropicTitle.addClassName(UIConstants.CSS_OPTION_TITLE);
+        
+        Span anthropicDetail = new Span("Used for advanced contextual understanding and creative content.");
+        anthropicDetail.addClassName(UIConstants.CSS_OPTION_DETAIL);
+        
+        anthropicDescription.add(anthropicTitle, anthropicDetail);
+        
+        anthropicApiKeyField = new com.vaadin.flow.component.textfield.PasswordField();
+        anthropicApiKeyField.setPlaceholder("sk-ant-...");
+        anthropicApiKeyField.setWidthFull();
+        anthropicApiKeyField.addClassName(UIConstants.CSS_API_KEY_FIELD);
+        
+        anthropicContainer.add(anthropicDescription, anthropicApiKeyField);
+        
+        // Save button
+        saveApiKeysButton = new Button("Save API Keys");
+        saveApiKeysButton.addClassName(UIConstants.CSS_SAVE_BUTTON);
+        saveApiKeysButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        saveApiKeysButton.addClickListener(e -> saveApiKeys());
+        
+        // Help text
+        Paragraph helpText = new Paragraph(
+            "Your API keys are stored securely and used only for your account. They will be checked on login and take precedence over system keys."
+        );
+        helpText.addClassName(UIConstants.CSS_API_KEY_HELP);
+        
+        apiKeysSection.add(sectionTitle, description, openaiContainer, perplexityContainer, anthropicContainer, saveApiKeysButton, helpText);
+        
+        return apiKeysSection;
+    }
+    
+    private void saveApiKeys() {
+        if (currentUser == null) {
+            LoggingUtil.error(LOG, "saveApiKeys", "No user found in session");
+            Notification.show("Error: Not logged in", 3000, Notification.Position.TOP_CENTER)
+                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return;
+        }
+        
+        try {
+            UUID userId = currentUser.getId();
+            
+            // Update OpenAI API key
+            String openaiKey = openaiApiKeyField.getValue();
+            if (openaiKey != null && !openaiKey.trim().isEmpty()) {
+                userPreferencesService.updateOpenAIApiKey(userId, openaiKey);
+            } else if (openaiKey != null && openaiKey.trim().isEmpty()) {
+                // Empty string clears the key
+                userPreferencesService.updateOpenAIApiKey(userId, null);
+            }
+            
+            // Update Perplexity API key
+            String perplexityKey = perplexityApiKeyField.getValue();
+            if (perplexityKey != null && !perplexityKey.trim().isEmpty()) {
+                userPreferencesService.updatePerplexityApiKey(userId, perplexityKey);
+            } else if (perplexityKey != null && perplexityKey.trim().isEmpty()) {
+                userPreferencesService.updatePerplexityApiKey(userId, null);
+            }
+            
+            // Update Anthropic API key
+            String anthropicKey = anthropicApiKeyField.getValue();
+            if (anthropicKey != null && !anthropicKey.trim().isEmpty()) {
+                userPreferencesService.updateAnthropicApiKey(userId, anthropicKey);
+            } else if (anthropicKey != null && anthropicKey.trim().isEmpty()) {
+                userPreferencesService.updateAnthropicApiKey(userId, null);
+            }
+            
+            LoggingUtil.info(LOG, "saveApiKeys", "API keys updated for user ID: %s", userId);
+            
+            Notification.show("API keys updated successfully", 3000, Notification.Position.TOP_CENTER)
+                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                
+        } catch (Exception ex) {
+            LoggingUtil.error(LOG, "saveApiKeys", "Error saving API keys", ex);
+            
+            Notification.show("Error saving API keys: " + ex.getMessage(), 5000, Notification.Position.TOP_CENTER)
+                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
     
     private Div createDangerZoneSection() {
@@ -317,6 +469,19 @@ public class SettingsView extends Div implements BeforeEnterObserver {
                     studyMaterialGenerationToggle.setValue(preferences.isStudyMaterialGenerationEnabled());
                     emailNotificationsToggle.setValue(preferences.isEmailNotificationsEnabled());
                     systemNotificationsToggle.setValue(preferences.isSystemNotificationsEnabled());
+                    
+                    // Set API key fields
+                    if (preferences.getOpenaiApiKey() != null) {
+                        openaiApiKeyField.setValue(preferences.getOpenaiApiKey());
+                    }
+                    
+                    if (preferences.getPerplexityApiKey() != null) {
+                        perplexityApiKeyField.setValue(preferences.getPerplexityApiKey());
+                    }
+                    
+                    if (preferences.getAnthropicApiKey() != null) {
+                        anthropicApiKeyField.setValue(preferences.getAnthropicApiKey());
+                    }
                     
                     LoggingUtil.debug(LOG, "beforeEnter", "User preferences loaded successfully");
                 }

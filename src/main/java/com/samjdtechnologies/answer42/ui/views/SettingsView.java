@@ -30,7 +30,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -50,10 +49,8 @@ public class SettingsView extends Div implements BeforeEnterObserver {
     private final UserPreferencesService userPreferencesService;
     private User currentUser;
     
-    private TextField fullNameField;
-    private TextField emailField;
+    
     private ComboBox<String> academicFieldComboBox;
-    private Button saveChangesButton;
     
     private Checkbox studyMaterialGenerationToggle;
     private Checkbox emailNotificationsToggle;
@@ -84,7 +81,6 @@ public class SettingsView extends Div implements BeforeEnterObserver {
         
         // Add all components to the view
         add(createWelcomeSection(), 
-            createUserProfileSection(), 
             createPreferencesSection(), 
             createDangerZoneSection()
         );
@@ -106,43 +102,6 @@ public class SettingsView extends Div implements BeforeEnterObserver {
         return section;
     }
     
-    private Div createUserProfileSection() {
-        Div userProfileSection = new Div();
-        userProfileSection.addClassName(UIConstants.CSS_SETTINGS_SECTION);
-        
-        H3 sectionTitle = new H3("User Profile");
-        
-        // Full Name field
-        this.fullNameField = new TextField("Full Name");
-        this.fullNameField.setValue(currentUser != null ? currentUser.getUsername() : "");
-        this.fullNameField.setWidthFull();
-        
-        // Email field (read-only)
-        this.emailField = new TextField("Email");
-        this.emailField.setValue(currentUser != null ? currentUser.getEmail() : "");
-        this.emailField.setReadOnly(true);
-        this.emailField.setWidthFull();
-        
-        Span emailHelpText = new Span("Email cannot be changed. Contact support if you need to update your email.");
-        emailHelpText.addClassName(UIConstants.CSS_HELP_TEXT);
-        
-        // Academic Field dropdown
-        this.academicFieldComboBox = new ComboBox<>("Academic Field");
-        this.academicFieldComboBox.setItems("Select field", "Computer Science", "Engineering", "Mathematics", "Physics", 
-                "Chemistry", "Biology", "Medicine", "Psychology", "Sociology", "Economics", 
-                "Business", "Law", "Humanities", "Arts", "Education", "Other");
-        this.academicFieldComboBox.setValue("Select field");
-        this.academicFieldComboBox.setWidthFull();
-        
-        // Save changes button
-        this.saveChangesButton = new Button("Save Changes");
-        this.saveChangesButton.addClassName(UIConstants.CSS_SAVE_BUTTON);
-        this.saveChangesButton.addClickListener(e -> saveProfileChanges());
-        
-        userProfileSection.add(sectionTitle, fullNameField, emailField, emailHelpText, academicFieldComboBox, saveChangesButton);
-        
-        return userProfileSection;
-    }
     
     private Div createPreferencesSection() {
         Div preferencesSection = new Div();
@@ -250,59 +209,7 @@ public class SettingsView extends Div implements BeforeEnterObserver {
         return dangerZoneSection;
     }
     
-    private void saveProfileChanges() {
-        LoggingUtil.debug(LOG, "saveProfileChanges", "Saving profile changes for user: %s", 
-                currentUser != null ? currentUser.getUsername() : "unknown");
-        
-        if (currentUser != null) {
-            try {
-                // Update the user's name
-                currentUser.setUsername(fullNameField.getValue());
-                userService.save(currentUser);
-                
-                // Update user preferences
-                LoggingUtil.debug(LOG, "saveProfileChanges", "Updating user preferences for user: %s", currentUser.getId());
-                
-                // Get or create user preferences
-                UserPreferences preferences = userPreferencesService.getByUserId(currentUser.getId());
-                
-                // Update academic field
-                preferences.setAcademicField(academicFieldComboBox.getValue());
-                
-                // Update notification preferences
-                preferences.setStudyMaterialGenerationEnabled(studyMaterialGenerationToggle.getValue());
-                preferences.setEmailNotificationsEnabled(emailNotificationsToggle.getValue());
-                preferences.setSystemNotificationsEnabled(systemNotificationsToggle.getValue());
-                
-                // Save preferences
-                userPreferencesService.save(preferences);
-                
-                // Show success notification
-                Notification success = Notification.show("Settings updated successfully");
-                success.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                success.setPosition(Notification.Position.TOP_CENTER);
-                success.setDuration(3000);
-                
-                LoggingUtil.info(LOG, "saveProfileChanges", "Settings updated successfully for user: %s", currentUser.getId());
-            } catch (Exception e) {
-                // Show error notification
-                Notification error = Notification.show("Error updating settings: " + e.getMessage());
-                error.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                error.setPosition(Notification.Position.TOP_CENTER);
-                error.setDuration(5000);
-                
-                LoggingUtil.error(LOG, "saveProfileChanges", "Error updating settings", e);
-            }
-        } else {
-            LoggingUtil.error(LOG, "saveProfileChanges", "Cannot save changes: currentUser is null");
-            
-            // Show error notification
-            Notification error = Notification.show("Error: Cannot identify current user");
-            error.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            error.setPosition(Notification.Position.TOP_CENTER);
-            error.setDuration(5000);
-        }
-    }
+    
     
     private void confirmDeleteAccount() {
         LoggingUtil.debug(LOG, "confirmDeleteAccount", "Showing delete account confirmation dialog");

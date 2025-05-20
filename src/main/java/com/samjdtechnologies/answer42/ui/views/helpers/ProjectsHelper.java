@@ -55,6 +55,7 @@ public class ProjectsHelper {
      * @param grid the Grid component to configure
      * @param actionsRenderer renderer for the actions column
      * @param detailsRenderer renderer for the expandable details
+     * @param isPublicRenderer renderer for the public/private status column
      */
     public static void configureGrid(Grid<Project> grid, 
                                    ComponentRenderer<Component, Project> actionsRenderer,
@@ -301,6 +302,16 @@ public class ProjectsHelper {
         dialog.addClassName(UIConstants.CSS_PROJECT_DIALOG);
         dialog.setHeaderTitle("Create New Project");
         dialog.setWidth("600px");
+        
+        // Add a close button to the corner
+        Button closeButton = new Button(new Icon(VaadinIcon.CLOSE));
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        closeButton.getElement().getStyle().set("position", "absolute");
+        closeButton.getElement().getStyle().set("right", "0");
+        closeButton.getElement().getStyle().set("top", "0");
+        closeButton.getElement().getStyle().set("margin", "var(--lumo-space-m)");
+        closeButton.addClickListener(e -> dialog.close());
+        dialog.getHeader().add(closeButton);
         
         FormLayout form = new FormLayout();
         

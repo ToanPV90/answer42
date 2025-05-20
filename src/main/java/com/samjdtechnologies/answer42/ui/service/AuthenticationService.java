@@ -72,6 +72,13 @@ public class AuthenticationService {
                 UI.getCurrent().getPage().executeJs(
                     "window.storeJwtToken($0)", token);
                 
+                // Update the user's last login timestamp
+                userService.findByUsername(username).ifPresent(user -> {
+                    user.setLastLogin(java.time.LocalDateTime.now());
+                    userService.save(user);
+                    LoggingUtil.debug(LOG, "login", "Updated last login timestamp for user: %s", username);
+                });
+                
                 LoggingUtil.debug(LOG, "login", "JWT token stored in session and localStorage for user: %s", username);
                 
                 return Optional.of(token);

@@ -152,6 +152,10 @@ public class UIConstants {
     // Profile view related
     public static final String CSS_PROFILE_VIEW = "profile-view";
     public static final String CSS_PROFILE_SECTION = "profile-section";
+    public static final String CSS_ACCOUNT_INFO_SECTION = "account-info-section";
+    public static final String CSS_ACCOUNT_INFO_GRID = "account-info-grid";
+    public static final String CSS_ACCOUNT_INFO_LABEL = "account-info-label";
+    public static final String CSS_ACCOUNT_INFO_VALUE = "account-info-value";
     public static final String CSS_HELP_TEXT = "help-text";
     public static final String CSS_INFO_LABEL = "info-label";
     public static final String CSS_INFO_VALUE = "info-value";
@@ -193,6 +197,14 @@ public class UIConstants {
     public static final String CSS_SUBSCRIPTION_FAQ = "subscription-faq";
     public static final String CSS_FAQ_COLUMNS = "faq-columns";
     public static final String CSS_FAQ_COLUMN = "faq-column";
+    public static final String CSS_PAYMENT_DIALOG_HEADER = "payment-dialog-header";
+    public static final String CSS_PAYMENT_METHOD_SELECTOR = "payment-method-selector";
+    public static final String CSS_BITCOIN_PAYMENT_MESSAGE = "bitcoin-payment-message";
+    public static final String CSS_BITCOIN_QR_SECTION = "bitcoin-qr-section";
+    public static final String CSS_BITCOIN_ADDRESS_BOX = "bitcoin-address-box";
+    public static final String CSS_BITCOIN_INSTRUCTIONS = "bitcoin-instructions";
+    public static final String CSS_PAYPAL_INFO = "paypal-info";
+    public static final String CSS_SUBSCRIPTION_NEXT_STEPS = "subscription-next-steps";
     
     // Credits view related
     public static final String CSS_CREDITS_VIEW = "credits-view";

@@ -234,14 +234,6 @@ vaadin-upload {
   margin-bottom: var(--lumo-space-m);
 }
 
-.paper-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--lumo-body-text-color);
-  margin: 0;
-  margin-bottom: var(--lumo-space-xs);
-}
-
 .paper-authors {
   font-size: 0.875rem;
   color: var(--lumo-secondary-text-color);

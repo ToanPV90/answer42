@@ -21,7 +21,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -283,9 +283,21 @@ public class CreditsView extends VerticalLayout implements BeforeEnterObserver {
     private void onPurchaseClicked() {
         LoggingUtil.debug(LOG, "onPurchaseClicked", "Purchase credits button clicked");
         
-        ConfirmDialog purchaseDialog = new ConfirmDialog();
-        purchaseDialog.setHeader("Purchase Credits");
+        // Use Dialog instead of ConfirmDialog to customize footer and add close button
+        Dialog purchaseDialog = new Dialog();
+        purchaseDialog.setCloseOnEsc(true);
+        purchaseDialog.setHeaderTitle("Purchase Credits");
         purchaseDialog.addClassName(UIConstants.CSS_PURCHASE_CREDITS_DIALOG);
+        
+        // Add a close button to the corner
+        Button closeButton = new Button(new Icon(VaadinIcon.CLOSE));
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        closeButton.getElement().getStyle().set("position", "absolute");
+        closeButton.getElement().getStyle().set("right", "0");
+        closeButton.getElement().getStyle().set("top", "0");
+        closeButton.getElement().getStyle().set("margin", "var(--lumo-space-m)");
+        closeButton.addClickListener(e -> purchaseDialog.close());
+        purchaseDialog.getHeader().add(closeButton);
         
         // Create package options
         VerticalLayout content = new VerticalLayout();
@@ -320,20 +332,30 @@ public class CreditsView extends VerticalLayout implements BeforeEnterObserver {
         
         content.add(paymentTitle, paymentButtons);
         
-        purchaseDialog.setText(content);
+        purchaseDialog.add(content);
+        
+        // Add footer with buttons
+        HorizontalLayout footer = new HorizontalLayout();
+        footer.setPadding(true);
+        footer.setSpacing(true);
+        footer.setJustifyContentMode(JustifyContentMode.END);
+        footer.setWidthFull();
+        
+        // Cancel button
+        Button cancelButton = new Button("Cancel", e -> purchaseDialog.close());
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         
         // Confirm button
-        purchaseDialog.setConfirmText("Purchase Now");
-        purchaseDialog.setConfirmButtonTheme("primary");
-        purchaseDialog.addConfirmListener(event -> {
+        Button purchaseButton = new Button("Purchase Now", e -> {
             // Call the service to add credits
             int creditAmount = selectedOption[0] == 0 ? 100 : (selectedOption[0] == 1 ? 500 : 1000);
             processCreditsPayment(creditAmount);
+            purchaseDialog.close();
         });
+        purchaseButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         
-        // Cancel button
-        purchaseDialog.setCancelText("Cancel");
-        purchaseDialog.addCancelListener(event -> purchaseDialog.close());
+        footer.add(cancelButton, purchaseButton);
+        purchaseDialog.getFooter().add(footer);
         
         purchaseDialog.open();
     }

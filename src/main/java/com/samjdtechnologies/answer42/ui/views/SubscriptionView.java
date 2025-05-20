@@ -12,8 +12,10 @@ import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.SubscriptionService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
+import com.samjdtechnologies.answer42.ui.views.helpers.SubscriptionProcessor;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -26,8 +28,6 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -355,16 +355,26 @@ public class SubscriptionView extends VerticalLayout implements BeforeEnterObser
     }
     
     private void handleSubscription(SubscriptionPlan plan) {
-        // This would typically call a payment processor or initiate a subscription
-        String message = "Subscription to " + plan.getName() + " plan will be available soon!";
-        Notification notification = Notification.show(message);
-        notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-        notification.setPosition(Notification.Position.MIDDLE);
-        notification.setDuration(3000);
-        
         LoggingUtil.info(LOG, "handleSubscription", 
-            "User %s attempted to subscribe to plan %s", 
+            "User %s initiating subscription to plan %s", 
             currentUser.getUsername(), plan.getName());
+            
+        // Create a subscription processor
+        SubscriptionProcessor processor = new SubscriptionProcessor(subscriptionService, currentUser);
+        
+        // Show the payment dialog
+        processor.showPaymentDialog(plan, isYearly, subscription -> {
+            // This is called after successful subscription
+            LoggingUtil.info(LOG, "handleSubscription", 
+                "Subscription successful for user %s to plan %s", 
+                currentUser.getUsername(), plan.getName());
+                
+            // Update the current plan
+            currentPlan = plan;
+            
+            // Refresh the view to reflect changes
+            UI.getCurrent().access(this::populateSubscriptionPlans);
+        });
     }
     
     private Component createFaqSection() {

@@ -1,4 +1,7 @@
-/* Subscription view styles */
+/**
+ * Subscription view styles
+ */
+
 .subscription-view {
   padding: var(--lumo-space-m);
   max-width: 1100px;
@@ -7,260 +10,259 @@
   min-height: auto;
   display: flex;
   flex-direction: column;
+  gap: var(--lumo-space-m);
   background-color: var(--lumo-contrast-5pct);
 }
 
-.subscription-title {
-  font-size: 2rem;
-  color: var(--lumo-primary-color);
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.subscription-description {
-  font-size: 1rem;
-  color: var(--lumo-secondary-text-color);
-  margin-bottom: 2rem;
-  text-align: center;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.bitcoin-banner {
-  background-color: rgba(247, 147, 26, 0.1);
-  border: 1px solid rgba(247, 147, 26, 0.3);
-  border-radius: var(--lumo-border-radius-m);
-  padding: 1rem;
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.bitcoin-banner .bitcoin-icon {
-  color: #f7931a;
-  margin-right: 1rem;
-  flex-shrink: 0;
-}
-
-.toggle-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 2rem;
-  gap: 1rem;
-}
-
-.toggle-container span {
-  color: var(--lumo-secondary-text-color);
-}
-
-.toggle-container span.active {
-  color: var(--lumo-primary-text-color);
-  font-weight: 500;
-}
-
-.toggle-container .discount {
-  color: var(--lumo-success-color);
-  font-weight: 500;
-  background-color: rgba(16, 185, 129, 0.1);
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-}
-
+/* Plan cards container */
 .plan-cards-container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lumo-space-m);
+  justify-content: center;
   width: 100%;
 }
 
+/* Individual plan card */
 .plan-card {
-  background-color: var(--lumo-base-color);
-  border-radius: var(--lumo-border-radius-m);
-  box-shadow: var(--lumo-box-shadow-xs);
-  padding: 1.5rem;
+  flex: 1;
+  min-width: 240px;
+  max-width: 280px;
   display: flex;
   flex-direction: column;
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  box-shadow: var(--lumo-box-shadow-xs);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
-  border: 1px solid var(--lumo-contrast-10pct);
 }
 
-.plan-card.current-plan {
-  border: 2px solid var(--lumo-primary-color);
+.plan-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--lumo-box-shadow-s);
 }
 
-.plan-card.popular-plan {
-  border: 2px solid var(--lumo-success-color);
-}
-
-.plan-card.popular-plan::before {
-  content: "POPULAR";
-  position: absolute;
-  top: 0;
-  right: 1rem;
-  background-color: var(--lumo-success-color);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 0 0 var(--lumo-border-radius-s) var(--lumo-border-radius-s);
-}
-
-.plan-card.current-plan::before {
-  content: "CURRENT PLAN";
-  position: absolute;
-  top: 0;
-  right: 1rem;
-  background-color: var(--lumo-primary-color);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 0 0 var(--lumo-border-radius-s) var(--lumo-border-radius-s);
-}
-
+/* Plan card header */
 .plan-card-header {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
+  padding: var(--lumo-space-m);
+  text-align: center;
   border-bottom: 1px solid var(--lumo-contrast-10pct);
 }
 
 .plan-card-title {
-  font-size: 1.5rem;
+  margin: 0 0 var(--lumo-space-s) 0;
+  font-size: var(--lumo-font-size-l);
   font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  color: var(--lumo-primary-text-color);
 }
 
 .plan-card-price {
-  font-size: 2.25rem;
-  font-weight: 700;
+  font-size: var(--lumo-font-size-xxl);
+  font-weight: bold;
   color: var(--lumo-primary-text-color);
-  display: flex;
-  align-items: flex-start;
 }
 
 .plan-card-period {
-  font-size: 0.875rem;
+  font-size: var(--lumo-font-size-s);
   color: var(--lumo-secondary-text-color);
-  margin-left: 0.25rem;
-  margin-top: 0.5rem;
 }
 
+/* Plan features section */
 .plan-card-features {
-  list-style-type: none;
-  padding: 0;
-  margin: 0 0 1.5rem 0;
   flex-grow: 1;
+  padding: var(--lumo-space-m);
+  background-color: var(--lumo-base-color);
 }
 
 .plan-card-feature {
+  padding: var(--lumo-space-xs) 0;
+  margin: 0;
+}
+
+.feature-icon {
+  color: var(--lumo-success-color);
+  margin-right: var(--lumo-space-xs);
+}
+
+/* Plan card button */
+.plan-card-button {
+  margin: var(--lumo-space-m);
+  width: calc(100% - var(--lumo-space-m) * 2);
+}
+
+/* Current plan highlight */
+.current-plan {
+  border: 2px solid var(--lumo-primary-color);
+}
+
+.current-plan::before {
+  content: "Current Plan";
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: var(--lumo-primary-color);
+  color: var(--lumo-primary-contrast-color);
+  font-size: var(--lumo-font-size-xs);
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+  border-bottom-left-radius: var(--lumo-border-radius);
+}
+
+/* Popular plan highlight */
+.popular-plan {
+  border: 2px solid var(--lumo-success-color);
+  transform: scale(1.05);
+}
+
+.popular-plan::before {
+  content: "POPULAR";
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: var(--lumo-success-color);
+  color: var(--lumo-base-color);
+  font-size: var(--lumo-font-size-xs);
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+  border-bottom-left-radius: var(--lumo-border-radius);
+}
+
+/* Bitcoin banner */
+.bitcoin-banner {
+  padding: var(--lumo-space-m);
+  background-color: rgba(247, 147, 26, 0.1); /* Bitcoin orange with 10% opacity */
+  border-radius: var(--lumo-border-radius);
+  border-left: 4px solid #F7931A; /* Official Bitcoin orange */
+  align-items: center;
+}
+
+.bitcoin-icon {
+  font-size: 2.5rem;
+  color: #F7931A; /* Official Bitcoin orange */
+  margin-right: var(--lumo-space-m);
+}
+
+/* Billing toggle */
+.toggle-container {
   display: flex;
   align-items: center;
-  margin-bottom: 0.75rem;
+  justify-content: center;
+  gap: var(--lumo-space-s);
+  padding: var(--lumo-space-s) 0;
+}
+
+.toggle-container span {
+  font-size: var(--lumo-font-size-m);
   color: var(--lumo-secondary-text-color);
-  font-size: 0.875rem;
 }
 
-.plan-card-feature .feature-icon {
-  color: var(--lumo-success-color);
-  margin-right: 0.5rem;
-  flex-shrink: 0;
-  font-size: 1rem;
-}
-
-.plan-card-button {
-  background-color: var(--lumo-primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--lumo-border-radius-m);
-  padding: 0.75rem 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  width: 100%;
-  transition: background-color 0.2s;
-}
-
-.plan-card-button:hover {
-  background-color: var(--lumo-primary-color-50pct);
-}
-
-.plan-card-button.current {
-  background-color: var(--lumo-contrast-10pct);
-  color: var(--lumo-secondary-text-color);
-  cursor: default;
-}
-
-.subscription-faq {
-  margin-top: 3rem;
-  border-top: 1px solid var(--lumo-contrast-10pct);
-  padding-top: 2rem;
-}
-
-.subscription-faq h2 {
-  font-size: 1.5rem;
+.toggle-container span.active {
+  font-weight: bold;
   color: var(--lumo-primary-text-color);
-  margin-bottom: 1.5rem;
-  text-align: center;
 }
 
-/* FAQ Columns Layout */
+.toggle-container .discount {
+  color: var(--lumo-success-color);
+  font-weight: 600;
+}
+
+/* FAQ section */
+.subscription-faq {
+  padding: var(--lumo-space-m);
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  box-shadow: var(--lumo-box-shadow-xs);
+  margin-top: var(--lumo-space-l);
+}
+
 .faq-columns {
   display: flex;
-  justify-content: space-between;
-  width: 100%;
+  flex-wrap: wrap;
+  gap: var(--lumo-space-m);
 }
 
 .faq-column {
   flex: 1;
-  max-width: 48%;
+  min-width: 300px;
+}
+
+/* Payment dialog */
+.payment-dialog-header {
+  background-color: var(--lumo-primary-color-10pct);
+  padding: var(--lumo-space-l);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  position: relative;
+}
+
+.payment-method-selector {
+  margin: var(--lumo-space-m);
+}
+
+/* Bitcoin payment method */
+.bitcoin-payment-message {
+  background-color: rgba(247, 147, 26, 0.1); /* Bitcoin orange with 10% opacity */
+  padding: var(--lumo-space-m);
+  border-radius: var(--lumo-border-radius);
+  margin-bottom: var(--lumo-space-m);
+  border-left: 3px solid #F7931A; /* Official Bitcoin orange */
+}
+
+.bitcoin-qr-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--lumo-space-m);
   background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  margin-bottom: var(--lumo-space-m);
 }
 
-.faq-column:first-child {
-  padding-left: 0;
+.bitcoin-address-box {
+  background-color: var(--lumo-contrast-5pct);
+  padding: var(--lumo-space-m);
+  border-radius: var(--lumo-border-radius);
+  max-width: 300px;
 }
 
-.faq-column:last-child {
-  padding-right: 0;
+.bitcoin-instructions {
+  background-color: var(--lumo-contrast-5pct);
+  padding: var(--lumo-space-m);
+  border-radius: var(--lumo-border-radius);
+  margin-bottom: var(--lumo-space-m);
 }
 
-/* Accordion styling for FAQ */
-.faq-column vaadin-accordion {
+/* PayPal payment method */
+.paypal-info {
+  padding: var(--lumo-space-m);
+  background-color: var(--lumo-contrast-5pct);
+  border-radius: var(--lumo-border-radius);
+  margin-bottom: var(--lumo-space-m);
+}
+
+/* Success dialog */
+.subscription-next-steps {
+  background-color: var(--lumo-contrast-5pct);
+  padding: var(--lumo-space-m);
+  border-radius: var(--lumo-border-radius);
+  margin: var(--lumo-space-m) 0;
   width: 100%;
-  margin-bottom: 1rem;
-}
-
-.faq-column vaadin-accordion-panel {
-  margin-bottom: 0.5rem;
-  box-shadow: none;
-  border: 1px solid var(--lumo-contrast-10pct);
-  border-radius: var(--lumo-border-radius-m);
-}
-
-.faq-column vaadin-accordion-panel::part(summary) {
-  padding: 1rem;
-  font-weight: 500;
-  color: var(--lumo-primary-text-color);
-}
-
-.faq-column vaadin-accordion-panel::part(content) {
-  padding: 0 1rem 1rem;
-}
-
-.faq-column vaadin-accordion-panel p {
-  margin: 0;
-  color: var(--lumo-secondary-text-color);
 }
 
 /* Responsive adjustments */
-@media (max-width: 1100px) {
+@media (max-width: 768px) {
   .plan-cards-container {
-    grid-template-columns: repeat(2, 1fr);
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .plan-card {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .popular-plan {
+    transform: scale(1);
+  }
+
+  .faq-columns {
+    flex-direction: column;
   }
 }

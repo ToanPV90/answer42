@@ -16,12 +16,31 @@
   margin-bottom: 2rem;
 }
 
-.profile-section {
+.profile-section, .account-info-section {
   background-color: var(--lumo-base-color);
   border-radius: var(--lumo-border-radius-m);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: var(--lumo-box-shadow-xs);
+}
+
+.account-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--lumo-space-m);
+  width: 100%;
+}
+
+.account-info-label {
+  font-weight: 500;
+  color: var(--lumo-secondary-text-color);
+  display: block;
+  margin-bottom: var(--lumo-space-xs);
+}
+
+.account-info-value {
+  font-size: var(--lumo-font-size-m);
+  display: block;
 }
 
 .profile-section h3 {

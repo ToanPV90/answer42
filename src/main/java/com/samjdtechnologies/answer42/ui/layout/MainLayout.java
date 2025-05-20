@@ -138,8 +138,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         // Theme toggle button
         Button themeToggle = new Button(new Icon(VaadinIcon.MOON));
         themeToggle.addClassName(UIConstants.CSS_THEME_TOGGLE);
-        themeToggle.setHeight("65px");
-        themeToggle.setWidth("65px");
+        themeToggle.setHeight("32px");
+        themeToggle.setWidth("32px");
         themeToggle.addClickListener(e -> {
             ThemeList themeList = UI.getCurrent().getElement().getThemeList();
             if (themeList.contains(Lumo.DARK)) {
@@ -154,8 +154,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         // User avatar with dropdown menu
         Avatar avatar = new Avatar(username);
         avatar.addClassName(UIConstants.CSS_USER_AVATAR);
-        avatar.setHeight("65px");
-        avatar.setWidth("65px");
+        avatar.setHeight("32px");
+        avatar.setWidth("32px");
         
         // Create dropdown menu for avatar click
         ContextMenu userMenu = new ContextMenu();
@@ -337,8 +337,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         
         Avatar assistantAvatar = new Avatar("A");
         assistantAvatar.addClassNames(UIConstants.CSS_ASSISTANT_AVATAR, UIConstants.CSS_USER_INITIAL);
-        assistantAvatar.setHeight("65px");
-        assistantAvatar.setWidth("65px");
+        assistantAvatar.setHeight("32px");
+        assistantAvatar.setWidth("32px");
         
         VerticalLayout assistantInfo = new VerticalLayout();
         assistantInfo.setPadding(false);

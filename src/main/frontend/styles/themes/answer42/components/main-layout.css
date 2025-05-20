@@ -121,8 +121,8 @@ vaadin-app-layout::part(content) {
 }
 
 .assistant-avatar {
-  width: 65px;
-  height: 65px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background-color: var(--lumo-primary-color);
   color: white;
@@ -196,8 +196,8 @@ vaadin-app-layout::part(content) {
 .theme-toggle {
   background-color: transparent;
   color: var(--lumo-secondary-text-color);
-  width: 65px;
-  height: 65px;
+  width: 32px;
+  height: 32px;
   min-width: unset;
   border-radius: 50%;
   padding: 0;
@@ -226,8 +226,8 @@ vaadin-app-layout::part(content) {
 }
 
 .user-initial {
-  width: 65px;
-  height: 65px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background-color: var(--lumo-primary-color);
   color: white;

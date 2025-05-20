@@ -1,6 +1,8 @@
 package com.samjdtechnologies.answer42.ui.views.helpers;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -13,12 +15,14 @@ import org.springframework.data.domain.Sort;
 import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.Project;
 import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.ProjectService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -54,7 +58,8 @@ public class ProjectsHelper {
      */
     public static void configureGrid(Grid<Project> grid, 
                                    ComponentRenderer<Component, Project> actionsRenderer,
-                                   ComponentRenderer<Component, Project> detailsRenderer) {
+                                   ComponentRenderer<Component, Project> detailsRenderer,
+                                   ComponentRenderer<Component, Project> isPublicRenderer) {
         LoggingUtil.debug(LOG, "configureGrid", "Configuring projects grid");
         
         grid.addClassName(UIConstants.CSS_PAPERS_GRID);
@@ -63,7 +68,7 @@ public class ProjectsHelper {
         // Add actions column first (on the left side)
         grid.addColumn(actionsRenderer)
             .setHeader("Actions")
-            .setWidth("200px")
+            .setWidth("180px")
             .setFlexGrow(0);
         
         // Add data columns
@@ -86,6 +91,13 @@ public class ProjectsHelper {
             .setFlexGrow(2)
             .setSortable(true);
         
+        // Add Is Public column after Last Updated
+        grid.addColumn(isPublicRenderer)
+            .setHeader("Is Public")
+            .setWidth("120px")
+            .setFlexGrow(0)
+            .setTextAlign(com.vaadin.flow.component.grid.ColumnTextAlign.CENTER);
+        
         // Configure row click to open project details
         grid.setItemDetailsRenderer(detailsRenderer);
         grid.setDetailsVisibleOnClick(true);
@@ -106,6 +118,15 @@ public class ProjectsHelper {
                                        Consumer<Project> viewHandler,
                                        Consumer<Project> editHandler,
                                        Consumer<Project> deleteHandler) {
+        // We'll style the row through the container
+        Div container = new Div();
+        // Apply styling class based on project visibility
+        if (project.getIsPublic()) {
+            container.addClassName("public-project");
+        } else {
+            container.addClassName("private-project");
+        }
+        
         // Download button (this would be a placeholder for consistency with other views)
         Button downloadButton = new Button(new Icon(VaadinIcon.DOWNLOAD));
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
@@ -135,13 +156,43 @@ public class ProjectsHelper {
         deleteButton.getElement().setAttribute("title", "Delete project");
         deleteButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
-        // Create a compact layout for actions - download button first
-        HorizontalLayout actions = new HorizontalLayout(downloadButton, viewButton, editButton, deleteButton);
+        // Create a compact layout for actions - without the toggle public/private button
+        HorizontalLayout actions = new HorizontalLayout(
+            downloadButton, viewButton, editButton, deleteButton
+        );
         actions.setSpacing(false);
         actions.setMargin(false);
         actions.setPadding(false);
         actions.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTONS_CONTAINER);
         return actions;
+    }
+    
+    /**
+     * Creates the Is Public column component with toggle button.
+     * 
+     * @param project The project to create the component for
+     * @param togglePublicHandler Handler for toggling public/private status
+     * @return The Is Public column component
+     */
+    public static Component createIsPublicComponent(Project project, Consumer<Project> togglePublicHandler) {
+        // Public/Private toggle button
+        Button togglePublicButton = new Button();
+        if (project.getIsPublic()) {
+            // Project is public, show "make private" icon (lock)
+            togglePublicButton.setIcon(new Icon(VaadinIcon.LOCK));
+            togglePublicButton.getElement().setAttribute("title", "Make project private");
+            togglePublicButton.setText("Public");
+        } else {
+            // Project is private, show "make public" icon (unlock)
+            togglePublicButton.setIcon(new Icon(VaadinIcon.UNLOCK));
+            togglePublicButton.getElement().setAttribute("title", "Make project public");
+            togglePublicButton.setText("Private");
+        }
+        togglePublicButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        togglePublicButton.addClassName("is-public-button");
+        togglePublicButton.addClickListener(e -> togglePublicHandler.accept(project));
+        
+        return togglePublicButton;
     }
     
     /**
@@ -240,11 +291,16 @@ public class ProjectsHelper {
      * Shows the dialog for creating a new project.
      * 
      * @param createHandler Handler to call when creating a project
+     * @param paperService Service to get available papers
+     * @param currentUser Current user for context
      */
-    public static void showCreateProjectDialog(Consumer<Project> createHandler) {
+    public static void showCreateProjectDialog(Consumer<Project> createHandler, 
+                                          PaperService paperService,
+                                          User currentUser) {
         Dialog dialog = new Dialog();
         dialog.addClassName(UIConstants.CSS_PROJECT_DIALOG);
         dialog.setHeaderTitle("Create New Project");
+        dialog.setWidth("600px");
         
         FormLayout form = new FormLayout();
         
@@ -258,8 +314,53 @@ public class ProjectsHelper {
         descriptionField.setMinHeight("150px");
         descriptionField.setMaxHeight("200px");
         
-        form.add(nameField, descriptionField);
+        // Add public checkbox with description
+        Checkbox isPublicCheckbox = new Checkbox("Make project public");
+        Div publicCheckboxDiv = new Div();
+        publicCheckboxDiv.setWidthFull();
+        
+        Span publicDescription = new Span("Allow other users to view this project and its papers");
+        publicDescription.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        publicDescription.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        publicDescription.getStyle().set("display", "block");
+        publicDescription.getStyle().set("padding-left", "1.75em");
+        
+        publicCheckboxDiv.add(isPublicCheckbox, publicDescription);
+        
+        form.add(nameField, descriptionField, publicCheckboxDiv);
         form.setColspan(descriptionField, 2);
+        form.setColspan(publicCheckboxDiv, 2);
+        
+        // Papers section - multi-select grid
+        H3 papersHeader = new H3("Add Papers to Project");
+        papersHeader.getStyle().set("margin-top", "var(--lumo-space-m)");
+        papersHeader.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
+        
+        Grid<Paper> papersGrid = new Grid<>();
+        papersGrid.setSelectionMode(Grid.SelectionMode.MULTI);
+        papersGrid.setHeight("200px");
+        papersGrid.setWidthFull();
+        
+        papersGrid.addColumn(Paper::getTitle).setHeader("Title").setFlexGrow(3);
+        papersGrid.addColumn(paper -> paper.getAuthors() != null ? 
+                String.join(", ", paper.getAuthors()) : "").setHeader("Authors").setFlexGrow(2);
+        papersGrid.addColumn(Paper::getYear).setHeader("Year").setFlexGrow(1);
+        
+        // Load available papers
+        List<Paper> availablePapers = new ArrayList<>();
+        if (currentUser != null && paperService != null) {
+            // Get all papers using default page request
+            PageRequest pageRequest = PageRequest.of(0, 100); // Reasonable limit
+            Page<Paper> papersPage = paperService.getPapersByUser(currentUser, pageRequest);
+            availablePapers = papersPage.getContent();
+        }
+        
+        if (!availablePapers.isEmpty()) {
+            papersGrid.setItems(availablePapers);
+        } else {
+            papersHeader.setText("No papers available to add");
+            papersGrid.setVisible(false);
+        }
         
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.addClassName(UIConstants.CSS_DIALOG_BUTTONS);
@@ -270,6 +371,13 @@ public class ProjectsHelper {
                 Project newProject = new Project();
                 newProject.setName(nameField.getValue());
                 newProject.setDescription(descriptionField.getValue());
+                newProject.setIsPublic(isPublicCheckbox.getValue());
+                
+                // Add selected papers if any
+                Set<Paper> selectedPapers = papersGrid.getSelectedItems();
+                if (!selectedPapers.isEmpty()) {
+                    newProject.setPapers(selectedPapers);
+                }
                 
                 createHandler.accept(newProject);
                 dialog.close();
@@ -280,7 +388,7 @@ public class ProjectsHelper {
         buttonLayout.add(cancelButton, createButton);
         buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         
-        VerticalLayout dialogLayout = new VerticalLayout(form, buttonLayout);
+        VerticalLayout dialogLayout = new VerticalLayout(form, papersHeader, papersGrid, buttonLayout);
         dialogLayout.setPadding(true);
         dialogLayout.setSpacing(true);
         

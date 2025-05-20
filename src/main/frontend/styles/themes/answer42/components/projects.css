@@ -129,6 +129,61 @@
 }
 
 
+/* Public/Private project styling */
+.public-project {
+  position: relative;
+}
+
+.public-project::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background-color: var(--lumo-success-color);
+}
+
+.private-project {
+  position: relative;
+}
+
+.private-project::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background-color: var(--lumo-contrast-50pct);
+}
+
+/* Action buttons styling */
+.papers-action-button[title^="Make project"] {
+  color: var(--lumo-primary-text-color);
+}
+
+/* Is Public column styling */
+.is-public-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lumo-space-xs);
+  width: 100px;
+  margin: 0 auto;
+  border-radius: var(--lumo-border-radius);
+}
+
+.is-public-button[title="Make project private"] {
+  color: var(--lumo-success-text-color);
+  background-color: var(--lumo-success-color-10pct);
+}
+
+.is-public-button[title="Make project public"] {
+  color: var(--lumo-contrast-70pct);
+  background-color: var(--lumo-contrast-10pct);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .projects-container {

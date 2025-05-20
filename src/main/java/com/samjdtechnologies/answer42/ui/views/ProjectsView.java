@@ -2,12 +2,14 @@ package com.samjdtechnologies.answer42.ui.views;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.annotation.Secured;
 
+import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.Project;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.service.PaperService;
@@ -156,7 +158,11 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
         // Create project button
         createProjectButton = new Button("Create Project", new Icon(VaadinIcon.PLUS));
         createProjectButton.addClassName(UIConstants.CSS_CREATE_PROJECT_BUTTON);
-        createProjectButton.addClickListener(e -> ProjectsHelper.showCreateProjectDialog(this::createProject));
+        createProjectButton.addClickListener(e -> ProjectsHelper.showCreateProjectDialog(
+            this::createProject, 
+            paperService, 
+            currentUser
+        ));
         
         // Toolbar layout
         HorizontalLayout toolbar = new HorizontalLayout(searchField, createProjectButton);
@@ -189,7 +195,13 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
                 this::addPaperToProject
             ));
         
-        ProjectsHelper.configureGrid(grid, actionsRenderer, detailsRenderer);
+        ComponentRenderer<Component, Project> isPublicRenderer =
+            new ComponentRenderer<>(project -> ProjectsHelper.createIsPublicComponent(
+                project,
+                this::toggleProjectPublicStatus
+            ));
+        
+        ProjectsHelper.configureGrid(grid, actionsRenderer, detailsRenderer, isPublicRenderer);
 
         // Configure pagination
         HorizontalLayout pagination = new HorizontalLayout(prevButton, pageInfo, nextButton);
@@ -275,7 +287,11 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
         if (searchTerm.isEmpty()) {
             emptyText = new Paragraph("Create your first research project to organize and analyze your papers.");
             Button createButton = new Button("Create Project", new Icon(VaadinIcon.PLUS));
-            createButton.addClickListener(e -> ProjectsHelper.showCreateProjectDialog(this::createProject));
+            createButton.addClickListener(e -> ProjectsHelper.showCreateProjectDialog(
+                this::createProject,
+                paperService,
+                currentUser
+            ));
             
             VerticalLayout content = new VerticalLayout(folderIcon, emptyTitle, emptyText, createButton);
             content.setHorizontalComponentAlignment(FlexComponent.Alignment.CENTER, folderIcon, emptyTitle, emptyText, createButton);
@@ -304,11 +320,31 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
      */
     private void createProject(Project project) {
         try {
+            // First create the project
             Project newProject = projectService.createProject(
                 project.getName(), 
                 project.getDescription(), 
                 currentUser
             );
+            
+            // Update the project with isPublic setting
+            projectService.updateProjectDetails(
+                newProject.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getIsPublic()
+            );
+            
+            // Add papers to the project if any are selected
+            Set<Paper> selectedPapers = project.getPapers();
+            if (selectedPapers != null && !selectedPapers.isEmpty()) {
+                for (Paper paper : selectedPapers) {
+                    projectService.addPaperToProject(newProject.getId(), paper);
+                }
+                
+                LoggingUtil.info(LOG, "createProject", "Added %d papers to project '%s'", 
+                    selectedPapers.size(), project.getName());
+            }
             
             LoggingUtil.info(LOG, "createProject", "Created project '%s' with ID: %s", 
                 project.getName(), newProject.getId());
@@ -458,5 +494,53 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
         
         // Use UI to navigate to upload paper view
         UI.getCurrent().navigate(UIConstants.ROUTE_UPLOAD_PAPER);
+    }
+    
+    /**
+     * Toggles a project's public/private status.
+     * 
+     * @param project The project to toggle visibility for
+     */
+    private void toggleProjectPublicStatus(Project project) {
+        LoggingUtil.debug(LOG, "toggleProjectPublicStatus", "Toggling public status for project: %s", project.getId());
+        
+        boolean newStatus = !project.getIsPublic();
+        
+        try {
+            Optional<Project> updatedProject = projectService.updateProjectDetails(
+                project.getId(), 
+                project.getName(), 
+                project.getDescription(), 
+                newStatus
+            );
+            
+            if (updatedProject.isEmpty()) {
+                throw new Exception("Project not found");
+            }
+            
+            String statusText = newStatus ? "public" : "private";
+            LoggingUtil.info(LOG, "toggleProjectPublicStatus", 
+                "Changed project %s to %s", project.getId(), statusText);
+            
+            Notification notification = new Notification(
+                "Project is now " + statusText,
+                3000, 
+                Notification.Position.BOTTOM_START
+            );
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            notification.open();
+            
+            updateList();
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "toggleProjectPublicStatus", "Failed to update project: %s", e.getMessage());
+            
+            Notification notification = new Notification(
+                "Failed to update project: " + e.getMessage(), 
+                3000, 
+                Notification.Position.MIDDLE
+            );
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            notification.open();
+        }
     }
 }

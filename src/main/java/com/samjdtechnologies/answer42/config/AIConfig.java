@@ -44,6 +44,9 @@ public class AIConfig {
     @Value("${spring.ai.openai.api-key:test-key}")
     private String openaiApiKey;
     
+    @Value("${spring.ai.perplexity.base-url}")
+    private String perplexityBaseUrl;
+
     @Value("${spring.ai.perplexity.api-key:test-key}")
     private String perplexityApiKey;
 
@@ -315,7 +318,7 @@ public class AIConfig {
         
         return OpenAiApi.builder()
             .apiKey(apiKey)
-            .baseUrl("https://api.perplexity.ai")
+            .baseUrl(perplexityBaseUrl)
             .build();
     }
     

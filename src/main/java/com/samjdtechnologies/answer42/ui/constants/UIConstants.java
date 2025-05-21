@@ -41,7 +41,6 @@ public class UIConstants {
     public static final String CSS_NAV_SECTION_HEADER = "nav-section-header";
     public static final String CSS_NAV_DIVIDER = "nav-divider";
     public static final String CSS_TOOLBAR_RIGHT_ITEMS = "toolbar-right-items";
-    public static final String CSS_USER_AVATAR = "user-avatar";
     public static final String CSS_MENU_ITEM_LAYOUT = "menu-item-layout";
     public static final String CSS_SEARCH_FIELD = "search-field";
     public static final String CSS_SEARCH_ICON = "search-icon";
@@ -225,10 +224,14 @@ public class UIConstants {
     public static final String CSS_ASSISTANT_MESSAGE = "assistant-message";
     public static final String CSS_MESSAGE_AVATAR = "message-avatar";
     public static final String CSS_AI_AVATAR = "ai-avatar";
+    public static final String CSS_USER_AVATAR = "user-avatar";
     public static final String CSS_MESSAGE_BUBBLE = "message-bubble";
     public static final String CSS_MESSAGE_INPUT_CONTAINER = "message-input-container";
     public static final String CSS_MESSAGE_INPUT = "message-input";
     public static final String CSS_CODE_BLOCK = "code-block";
+    public static final String CSS_THINKING_SPINNER = "thinking-spinner";
+    public static final String CSS_THINKING_TEXT = "thinking-text";
+    public static final String CSS_THINKING_LAYOUT = "thinking-layout";
     public static final String CSS_ANALYSIS_CONTAINER = "analysis-container";
     public static final String CSS_ANALYSIS_TITLE = "analysis-title";
     public static final String CSS_ANALYSIS_INFO = "analysis-info";

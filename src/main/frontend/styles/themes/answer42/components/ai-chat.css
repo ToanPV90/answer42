@@ -60,6 +60,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  height: auto;
   overflow: hidden;
   border-radius: var(--lumo-border-radius-l);
   background-color: var(--lumo-base-color);
@@ -147,9 +148,12 @@
 }
 
 .analysis-buttons {
-  display: flex;
   flex-wrap: wrap;
   gap: var(--lumo-space-s);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
 }
 
 .analysis-button {
@@ -220,4 +224,33 @@
 /* Icon styles */
 .icon-color {
   color: var(--icon-color, var(--lumo-primary-color));
+}
+
+/* Thinking message and spinner styles */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.thinking-spinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top: 3px solid var(--lumo-primary-color);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.thinking-text {
+  vertical-align: middle;
+  color: var(--lumo-secondary-text-color);
+}
+
+.thinking-layout {
+  padding: var(--lumo-space-xs);
+  display: flex;
+  align-items: center;
 }

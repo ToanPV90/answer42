@@ -18,9 +18,11 @@ import com.samjdtechnologies.answer42.service.ChatService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -129,6 +131,7 @@ public class AIChatViewHelper {
         
         if (isUser) {
             avatar.setName("You");
+            avatar.setImage("frontend/images/icons/user_avatar_icon.svg");
         } else {
             avatar.setName("AI");
             avatar.addClassName(UIConstants.CSS_AI_AVATAR);
@@ -240,19 +243,6 @@ public class AIChatViewHelper {
         searchField.setClearButtonVisible(true);
         searchField.setValueChangeMode(ValueChangeMode.EAGER);
         
-        // Papers grid
-        Grid<Paper> papersGrid = new Grid<>();
-        papersGrid.addClassName(UIConstants.CSS_PAPERS_GRID);
-        papersGrid.setSelectionMode(Grid.SelectionMode.MULTI);
-        papersGrid.setItems(papers);
-        
-        // Pre-select already selected papers
-        for (Paper paper : papers) {
-            if (selectedPaperIds.contains(paper.getId())) {
-                papersGrid.select(paper);
-            }
-        }
-        
         // Create validation message for selection count
         Span validationMessage = new Span();
         validationMessage.getStyle()
@@ -260,6 +250,20 @@ public class AIChatViewHelper {
                 .set("font-size", "var(--lumo-font-size-s)")
                 .set("margin-top", "var(--lumo-space-s)")
                 .set("visibility", "hidden"); // Hidden by default
+        
+        // List of currently selected papers
+        List<Paper> selectedPapers = new ArrayList<>();
+        
+        // Create a new custom grid without using the default selection mechanism
+        Grid<Paper> customGrid = new Grid<>();
+        customGrid.addClassName(UIConstants.CSS_PAPERS_GRID);
+        
+        // Pre-select papers based on selectedPaperIds
+        for (Paper paper : papers) {
+            if (selectedPaperIds.contains(paper.getId())) {
+                selectedPapers.add(paper);
+            }
+        }
         
         // Button layout
         HorizontalLayout buttonLayout = new HorizontalLayout();
@@ -270,10 +274,11 @@ public class AIChatViewHelper {
         
         Button doneButton = new Button("Done");
         doneButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        doneButton.setEnabled(false); // Disabled until a valid selection is made
         
         // Validation function
-        Runnable validateSelection = () -> {
-            int selectionCount = papersGrid.getSelectedItems().size();
+        final Runnable validateSelection = () -> {
+            int selectionCount = selectedPapers.size();
             boolean isValid = false;
             
             switch (mode) {
@@ -310,14 +315,50 @@ public class AIChatViewHelper {
             doneButton.setEnabled(isValid);
         };
         
-        // Run validation on initial state
-        doneButton.setEnabled(false);
+        // Configure columns - title and author on the left, checkbox on the right
+        customGrid.addColumn(new ComponentRenderer<>(paper -> {
+            VerticalLayout paperInfo = new VerticalLayout();
+            paperInfo.setPadding(false);
+            paperInfo.setSpacing(false);
+            
+            H5 title = new H5(paper.getTitle());
+            title.addClassName(UIConstants.CSS_PAPER_TITLE);
+            
+            String authors = paper.getAuthors() != null && !paper.getAuthors().isEmpty() 
+                  ? String.join(", ", paper.getAuthors())
+                  : "Unknown Author";
+            
+            Span authorSpan = new Span(authors);
+            authorSpan.addClassName(UIConstants.CSS_PAPER_AUTHORS);
+            
+            paperInfo.add(title, authorSpan);
+            return paperInfo;
+        })).setHeader("Paper").setAutoWidth(true).setFlexGrow(1);
         
-        // Add selection listener to validate paper count
-        papersGrid.addSelectionListener(e -> validateSelection.run());
+        // Add checkbox column on the right
+        customGrid.addColumn(new ComponentRenderer<>(paper -> {
+            Checkbox checkbox = new Checkbox();
+            checkbox.setValue(selectedPapers.contains(paper));
+            
+            checkbox.addValueChangeListener(event -> {
+                if (event.getValue()) {
+                    if (!selectedPapers.contains(paper)) {
+                        selectedPapers.add(paper);
+                    }
+                } else {
+                    selectedPapers.remove(paper);
+                }
+                
+                validateSelection.run();
+            });
+            
+            return checkbox;
+        })).setHeader("Select").setWidth("120px").setFlexGrow(0)
+            .setTextAlign(com.vaadin.flow.component.grid.ColumnTextAlign.CENTER);
         
-        // Run validation once to set initial state
-        validateSelection.run();
+        // Configure grid with initial items and disable the row click selection
+        customGrid.setItems(papers);
+        
         
         // Filter papers based on search
         searchField.addValueChangeListener(event -> {
@@ -341,43 +382,21 @@ public class AIChatViewHelper {
                     .collect(Collectors.toList());
             }
             
-            papersGrid.setItems(filteredPapers);
+            customGrid.setItems(filteredPapers);
         });
-        
-        // Configure paper selection grid - with selection column at the right
-        // First add paper info column
-        papersGrid.addColumn(new ComponentRenderer<>(paper -> {
-            VerticalLayout paperInfo = new VerticalLayout();
-            paperInfo.setPadding(false);
-            paperInfo.setSpacing(false);
-            
-            H5 title = new H5(paper.getTitle());
-            title.addClassName(UIConstants.CSS_PAPER_TITLE);
-            
-            String authors = paper.getAuthors() != null && !paper.getAuthors().isEmpty() 
-                  ? String.join(", ", paper.getAuthors())
-                  : "Unknown Author";
-            
-            Span authorSpan = new Span(authors);
-            authorSpan.addClassName(UIConstants.CSS_PAPER_AUTHORS);
-            
-            paperInfo.add(title, authorSpan);
-            return paperInfo;
-        })).setHeader("Paper").setAutoWidth(true).setFlexGrow(1);
-        
-        // Configure columns layout for better display
-        papersGrid.getColumns().forEach(col -> col.setAutoWidth(true));
         
         // Configure done button click handler
         doneButton.addClickListener(e -> {
-            List<Paper> selectedPapers = new ArrayList<>(papersGrid.getSelectedItems());
             selectionHandler.onPapersSelected(selectedPapers);
             dialog.close();
         });
         
+        // Run initial validation
+        validateSelection.run();
+        
         buttonLayout.add(cancelButton, doneButton);
         
-        dialogLayout.add(instructionsSpan, searchField, papersGrid, validationMessage, buttonLayout);
+        dialogLayout.add(instructionsSpan, searchField, customGrid, validationMessage, buttonLayout);
         dialog.add(dialogLayout);
         
         return dialog;
@@ -393,37 +412,86 @@ public class AIChatViewHelper {
      */
     public static void triggerAnalysis(String instruction, ChatService chatService, 
                                      ChatSession session, VerticalLayout messagesContainer) {
+        LoggingUtil.info(LOG, "triggerAnalysis", "Starting paper analysis with instruction: %s", instruction);
+        
         if (session == null) {
+            LoggingUtil.warn(LOG, "triggerAnalysis", "Attempted analysis with null session");
             Notification.show("Please select a paper first", 3000, Notification.Position.MIDDLE);
             return;
         }
         
         String analysisPrompt = "Perform a " + instruction.toLowerCase() + " of this paper.";
+        LoggingUtil.debug(LOG, "triggerAnalysis", "Generated analysis prompt: '%s'", analysisPrompt);
+        
+        // Store analysis prompt for async call
+        final String finalPrompt = analysisPrompt;
+        final UUID sessionId = session.getId();
         
         // Add user message to UI
-        messagesContainer.add(createMessageBubble(true, analysisPrompt));
+        Component userMessage = createMessageBubble(true, finalPrompt);
+        messagesContainer.add(userMessage);
+        LoggingUtil.debug(LOG, "triggerAnalysis", "Added user analysis request to UI");
         
-        try {
-            // Send message to AI
-            ChatMessage response = chatService.sendMessage(session.getId(), analysisPrompt);
-            
-            // Add AI response to UI
-            messagesContainer.add(createMessageBubble(false, response.getContent()));
-            
-            // Scroll to bottom
-            messagesContainer.getElement().executeJs(
-                "this.scrollTop = this.scrollHeight"
-            );
-            
-        } catch (Exception e) {
-            LoggingUtil.error(LOG, "triggerAnalysis", "Error triggering analysis: %s", e, e.getMessage());
-            Notification notification = Notification.show(
-                "Error: " + e.getMessage(), 
-                3000, 
-                Notification.Position.MIDDLE
-            );
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        }
+        // Add thinking message with spinner
+        Component thinkingMessage = createThinkingMessage();
+        messagesContainer.add(thinkingMessage);
+        LoggingUtil.info(LOG, "triggerAnalysis", "Added thinking message with spinner");
+        
+        // Scroll to bottom to show the thinking message
+        messagesContainer.getElement().executeJs(
+            "this.scrollTop = this.scrollHeight"
+        );
+        LoggingUtil.debug(LOG, "triggerAnalysis", "Scrolled chat to bottom to show thinking indicator");
+        
+        // Get UI instance
+        UI ui = UI.getCurrent();
+        
+        // Start a new thread directly
+        new Thread(() -> {
+            try {
+                // Send message to AI
+                LoggingUtil.info(LOG, "triggerAnalysis", "Sending analysis request to AI service...");
+                ChatMessage response = chatService.sendMessage(sessionId, finalPrompt);
+                LoggingUtil.info(LOG, "triggerAnalysis", "Received AI analysis response, length: %d chars", 
+                        response.getContent().length());
+                
+                // Update UI in the UI thread
+                ui.access(() -> {
+                    try {
+                        // Remove thinking message
+                        messagesContainer.remove(thinkingMessage);
+                        LoggingUtil.debug(LOG, "triggerAnalysis", "Removed thinking message from UI");
+                        
+                        // Add AI response to UI
+                        Component aiMessageComponent = createMessageBubble(false, response.getContent());
+                        messagesContainer.add(aiMessageComponent);
+                        LoggingUtil.debug(LOG, "triggerAnalysis", "Added AI analysis response to UI");
+                        
+                        // Scroll to bottom again to show the response
+                        messagesContainer.getElement().executeJs(
+                            "this.scrollTop = this.scrollHeight"
+                        );
+                        LoggingUtil.debug(LOG, "triggerAnalysis", "Scrolled chat to bottom to show analysis response");
+                    } catch (Exception ex) {
+                        LoggingUtil.error(LOG, "triggerAnalysis", "Error updating UI after analysis: %s", ex, ex.getMessage());
+                    }
+                });
+            } catch (Exception e) {
+                ui.access(() -> {
+                    // Remove thinking message in case of error
+                    messagesContainer.remove(thinkingMessage);
+                    LoggingUtil.debug(LOG, "triggerAnalysis", "Removed thinking message due to error");
+                    
+                    LoggingUtil.error(LOG, "triggerAnalysis", "Error triggering analysis: %s", e, e.getMessage());
+                    Notification notification = Notification.show(
+                        "Error: " + e.getMessage(), 
+                        3000, 
+                        Notification.Position.MIDDLE
+                    );
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                });
+            }
+        }).start();
     }
     
     /**
@@ -476,5 +544,46 @@ public class AIChatViewHelper {
          * @param selectedPapers The list of papers that were selected
          */
         void onPapersSelected(List<Paper> selectedPapers);
+    }
+    
+    /**
+     * Creates a "Thinking..." message with an animated spinner to indicate the AI is processing.
+     * 
+     * @return The component representing the thinking state
+     */
+    public static Component createThinkingMessage() {
+        HorizontalLayout container = new HorizontalLayout();
+        container.addClassName(UIConstants.CSS_MESSAGE_CONTAINER);
+        container.addClassName(UIConstants.CSS_ASSISTANT_MESSAGE);
+        
+        Avatar avatar = new Avatar();
+        avatar.addClassName(UIConstants.CSS_MESSAGE_AVATAR);
+        avatar.setName("AI");
+        avatar.addClassName(UIConstants.CSS_AI_AVATAR);
+        avatar.setImage("frontend/images/icons/ai_chatbot_avatar_blue.svg");
+        
+        Div bubble = new Div();
+        bubble.addClassName(UIConstants.CSS_MESSAGE_BUBBLE);
+        
+        // Create spinner
+        Div spinner = new Div();
+        spinner.addClassName(UIConstants.CSS_THINKING_SPINNER);
+        
+        // Create thinking text
+        Span thinkingText = new Span("Thinking...");
+        thinkingText.addClassName(UIConstants.CSS_THINKING_TEXT);
+        
+        // Create the layout for spinner and text
+        HorizontalLayout thinkingLayout = new HorizontalLayout(spinner, thinkingText);
+        thinkingLayout.addClassName(UIConstants.CSS_THINKING_LAYOUT);
+        thinkingLayout.setSpacing(true);
+        thinkingLayout.setPadding(false);
+        thinkingLayout.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
+        
+        bubble.add(thinkingLayout);
+        
+        container.add(avatar, bubble);
+        
+        return container;
     }
 }

@@ -13,10 +13,10 @@
     <!-- Checks that files end with a new line -->
     <module name="NewlineAtEndOfFile"/>
 
-    <!-- Checks for file length (max 500 lines) -->
+    <!-- Checks for file length (max 600 lines) -->
     <!-- <module name="FileLength">
-        <property name="max" value="500"/>
-    </module> -->
+        <property name="max" value="600"/>
+    </module>  -->
 
     <!-- Checks for line length (max 120 chars) -->
     <!-- <module name="LineLength">
@@ -104,11 +104,11 @@
         </module> -->
 
         <!-- Avoid using deprecated methods -->
-        <!-- <module name="RegexpSinglelineJava">
+        <module name="RegexpSinglelineJava">
             <property name="format" value="@Deprecated|@java.lang.Deprecated"/>
             <property name="message" value="Using deprecated methods is not allowed."/>
             <property name="ignoreComments" value="true"/>
-        </module> -->
+        </module>
 
         <!-- Architecture enforcement: view classes must extend Div and implement BeforeEnterObserver -->
         <!-- <module name="RegexpSinglelineJava">

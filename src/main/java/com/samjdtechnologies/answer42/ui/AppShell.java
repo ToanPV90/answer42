@@ -4,6 +4,7 @@ import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Meta;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.page.Viewport;
 import com.vaadin.flow.server.AppShellSettings;
 import com.vaadin.flow.server.PWA;
@@ -48,6 +49,7 @@ import com.vaadin.flow.server.PWA;
 @Meta(name = "apple-mobile-web-app-title", content = "Answer42")
 @Meta(name = "msapplication-TileColor", content="#6366f1")
 @Viewport("width=device-width, initial-scale=1.0")
+@Push
 public class AppShell implements AppShellConfigurator {
     
     /**

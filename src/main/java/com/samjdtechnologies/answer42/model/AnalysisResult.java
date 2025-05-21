@@ -15,6 +15,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -23,8 +24,8 @@ import jakarta.persistence.Table;
  * This stores the results of analyses like Deep Summary, Methodology Analysis, etc.
  */
 @Entity
-@Table(name = "chat_analysis_results", schema = "answer42")
-public class ChatAnalysisResult {
+@Table(name = "analysis_results", schema = "answer42")
+public class AnalysisResult {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,7 +34,16 @@ public class ChatAnalysisResult {
     @ManyToOne
     private Paper paper;
     
+    @ManyToOne
+    @JoinColumn(name = "task_id", nullable = false)
+    private AnalysisTask task;
+    
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    
     @Enumerated(EnumType.STRING)
+    @Column(name = "analysis_type")
     private AnalysisType analysisType;
     
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
@@ -51,7 +61,7 @@ public class ChatAnalysisResult {
     /**
      * Default constructor for JPA.
      */
-    public ChatAnalysisResult() {
+    public AnalysisResult() {
         // Required by JPA
     }
     
@@ -59,11 +69,15 @@ public class ChatAnalysisResult {
      * Constructor for creating a new analysis result.
      * 
      * @param paper the paper being analyzed
+     * @param task the analysis task that generated this result
+     * @param user the user who requested the analysis
      * @param analysisType the type of analysis
      * @param content the content of the analysis
      */
-    public ChatAnalysisResult(Paper paper, AnalysisType analysisType, String content) {
+    public AnalysisResult(Paper paper, AnalysisTask task, User user, AnalysisType analysisType, String content) {
         this.paper = paper;
+        this.task = task;
+        this.user = user;
         this.analysisType = analysisType;
         this.content = content;
         this.createdAt = LocalDateTime.now();
@@ -96,6 +110,34 @@ public class ChatAnalysisResult {
      */
     public void setPaper(Paper paper) {
         this.paper = paper;
+    }
+    
+    /**
+     * @return the task
+     */
+    public AnalysisTask getTask() {
+        return task;
+    }
+    
+    /**
+     * @param task the task to set
+     */
+    public void setTask(AnalysisTask task) {
+        this.task = task;
+    }
+    
+    /**
+     * @return the user
+     */
+    public User getUser() {
+        return user;
+    }
+    
+    /**
+     * @param user the user to set
+     */
+    public void setUser(User user) {
+        this.user = user;
     }
     
     /**
@@ -177,7 +219,7 @@ public class ChatAnalysisResult {
     
     @Override
     public String toString() {
-        return "ChatAnalysisResult [id=" + id + ", paper=" + (paper != null ? paper.getId() : "null") + 
+        return "AnalysisResult [id=" + id + ", paper=" + (paper != null ? paper.getId() : "null") + 
                ", analysisType=" + analysisType + ", createdAt=" + createdAt + 
                ", lastAccessedAt=" + lastAccessedAt + ", isArchived=" + isArchived + "]";
     }

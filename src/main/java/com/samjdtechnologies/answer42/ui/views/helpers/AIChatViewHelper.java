@@ -8,17 +8,16 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.samjdtechnologies.answer42.model.ChatMessage;
 import com.samjdtechnologies.answer42.model.ChatSession;
 import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.User;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.ChatMode;
 import com.samjdtechnologies.answer42.service.ChatService;
+import com.samjdtechnologies.answer42.service.PaperAnalysisService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -403,95 +402,23 @@ public class AIChatViewHelper {
     }
     
     /**
-     * Trigger a chat message to analyze a paper with a specific instruction.
+     * Trigger a paper analysis and add the results to the chat.
+     * This is now a delegate method that calls the PaperAnalysisProcessor.
      * 
-     * @param instruction The analysis instruction
-     * @param chatService The chat service to use
+     * @param instruction The analysis instruction (e.g., "Deep Summary")
+     * @param chatService The chat service for adding messages
+     * @param paperAnalysisService The service for generating analyses
      * @param session The current chat session
-     * @param messagesContainer The container to add messages to
+     * @param messagesContainer The UI container to add messages to
      */
-    public static void triggerAnalysis(String instruction, ChatService chatService, 
-                                     ChatSession session, VerticalLayout messagesContainer) {
-        LoggingUtil.info(LOG, "triggerAnalysis", "Starting paper analysis with instruction: %s", instruction);
-        
-        if (session == null) {
-            LoggingUtil.warn(LOG, "triggerAnalysis", "Attempted analysis with null session");
-            Notification.show("Please select a paper first", 3000, Notification.Position.MIDDLE);
-            return;
-        }
-        
-        String analysisPrompt = "Perform a " + instruction.toLowerCase() + " of this paper.";
-        LoggingUtil.debug(LOG, "triggerAnalysis", "Generated analysis prompt: '%s'", analysisPrompt);
-        
-        // Store analysis prompt for async call
-        final String finalPrompt = analysisPrompt;
-        final UUID sessionId = session.getId();
-        
-        // Add user message to UI
-        Component userMessage = createMessageBubble(true, finalPrompt);
-        messagesContainer.add(userMessage);
-        LoggingUtil.debug(LOG, "triggerAnalysis", "Added user analysis request to UI");
-        
-        // Add thinking message with spinner
-        Component thinkingMessage = createThinkingMessage();
-        messagesContainer.add(thinkingMessage);
-        LoggingUtil.info(LOG, "triggerAnalysis", "Added thinking message with spinner");
-        
-        // Scroll to bottom to show the thinking message
-        messagesContainer.getElement().executeJs(
-            "this.scrollTop = this.scrollHeight"
-        );
-        LoggingUtil.debug(LOG, "triggerAnalysis", "Scrolled chat to bottom to show thinking indicator");
-        
-        // Get UI instance
-        UI ui = UI.getCurrent();
-        
-        // Start a new thread directly
-        new Thread(() -> {
-            try {
-                // Send message to AI
-                LoggingUtil.info(LOG, "triggerAnalysis", "Sending analysis request to AI service...");
-                ChatMessage response = chatService.sendMessage(sessionId, finalPrompt);
-                LoggingUtil.info(LOG, "triggerAnalysis", "Received AI analysis response, length: %d chars", 
-                        response.getContent().length());
-                
-                // Update UI in the UI thread
-                ui.access(() -> {
-                    try {
-                        // Remove thinking message
-                        messagesContainer.remove(thinkingMessage);
-                        LoggingUtil.debug(LOG, "triggerAnalysis", "Removed thinking message from UI");
-                        
-                        // Add AI response to UI
-                        Component aiMessageComponent = createMessageBubble(false, response.getContent());
-                        messagesContainer.add(aiMessageComponent);
-                        LoggingUtil.debug(LOG, "triggerAnalysis", "Added AI analysis response to UI");
-                        
-                        // Scroll to bottom again to show the response
-                        messagesContainer.getElement().executeJs(
-                            "this.scrollTop = this.scrollHeight"
-                        );
-                        LoggingUtil.debug(LOG, "triggerAnalysis", "Scrolled chat to bottom to show analysis response");
-                    } catch (Exception ex) {
-                        LoggingUtil.error(LOG, "triggerAnalysis", "Error updating UI after analysis: %s", ex, ex.getMessage());
-                    }
-                });
-            } catch (Exception e) {
-                ui.access(() -> {
-                    // Remove thinking message in case of error
-                    messagesContainer.remove(thinkingMessage);
-                    LoggingUtil.debug(LOG, "triggerAnalysis", "Removed thinking message due to error");
-                    
-                    LoggingUtil.error(LOG, "triggerAnalysis", "Error triggering analysis: %s", e, e.getMessage());
-                    Notification notification = Notification.show(
-                        "Error: " + e.getMessage(), 
-                        3000, 
-                        Notification.Position.MIDDLE
-                    );
-                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                });
-            }
-        }).start();
+    public static void triggerAnalysis(String instruction, 
+                                     ChatService chatService,
+                                     PaperAnalysisService paperAnalysisService,
+                                     ChatSession session, 
+                                     VerticalLayout messagesContainer) {
+        // Delegate to the PaperAnalysisProcessor to handle paper analysis
+        PaperAnalysisProcessor.triggerAnalysis(instruction, chatService, paperAnalysisService, 
+                                             session, messagesContainer);
     }
     
     /**
@@ -585,5 +512,5 @@ public class AIChatViewHelper {
         container.add(avatar, bubble);
         
         return container;
-    }
+    }  
 }

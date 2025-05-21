@@ -196,8 +196,11 @@ public class AIChatUIHelper {
         // Run the AI service call in a background thread using Vaadin's preferred approach
         new Thread(() -> {
             try {
-                // Send message to AI (this might take several seconds)
-                ChatMessage response = chatService.sendMessage(sessionId, finalMessage);
+                // First, save the user message
+                chatService.sendMessage(sessionId, finalMessage);
+                
+                // Then get the AI response - this is what was missing!
+                ChatMessage response = chatService.sendUserMessageAndGetResponse(sessionId, finalMessage);
                 LoggingUtil.info(LOG, "sendMessageWithUIFeedback", "Received response from AI service");
                 
                 // Update UI in the UI thread using Vaadin's access method
@@ -303,8 +306,11 @@ public class AIChatUIHelper {
         // Run the AI service call in a background thread
         new Thread(() -> {
             try {
-                // Send analysis request to AI
-                ChatMessage response = chatService.sendMessage(sessionId, analysisPrompt);
+                // First, save the user message
+                chatService.sendMessage(sessionId, analysisPrompt);
+                
+                // Then get the AI response - this is what was missing!
+                ChatMessage response = chatService.sendUserMessageAndGetResponse(sessionId, analysisPrompt);
                 LoggingUtil.info(LOG, "processAnalysisWithUIFeedback", "Received analysis response from AI service");
                 
                 // Update UI in the UI thread

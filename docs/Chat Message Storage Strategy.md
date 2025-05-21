@@ -4,8 +4,6 @@
 
 database schema analysis
 
-
-
 ### New Approach: Normalized Message Storage
 
 Our new strategy uses a dedicated `chat_messages` table with proper relational links to `chat_sessions`.
@@ -188,8 +186,6 @@ When users interact with analyses in a chat, the system:
 3. **Loads Additional Details**: Can fetch full analysis details from `analysis_results` when needed
 
 4. **Tracks References**: Citations and references from the paper are accessible via the `citations` table
-
-
 
 ## Usage Guidelines
 
@@ -503,8 +499,6 @@ For cross-reference chat visualization:
 - Continue using the context field for visualization state (simpler for small states)
 
 - Implement usage of the `visualization_states` table for more complex visualizations
-
-
 
 ## Features Enabled
 

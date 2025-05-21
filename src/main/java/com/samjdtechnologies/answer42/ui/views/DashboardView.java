@@ -27,8 +27,6 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.router.AfterNavigationEvent;
-import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -41,7 +39,7 @@ import com.vaadin.flow.router.Route;
 @Route(value = UIConstants.ROUTE_MAIN, layout = MainLayout.class)
 @PageTitle("Answer42 - Dashboard")
 @Secured("ROLE_USER")
-public class DashboardView extends Div implements AfterNavigationObserver, BeforeEnterObserver {
+public class DashboardView extends Div implements BeforeEnterObserver {
 
     private static final Logger LOG = LoggerFactory.getLogger(DashboardView.class);
     
@@ -516,11 +514,6 @@ public class DashboardView extends Div implements AfterNavigationObserver, Befor
         confirmDialog.open();
     }
     
-    @Override
-    public void afterNavigation(AfterNavigationEvent event) {
-        // This method is called after navigation to this view is complete.
-        // Could be used to load data or perform other initialization tasks.
-    }
     
     @Override
     public void beforeEnter(BeforeEnterEvent event) {

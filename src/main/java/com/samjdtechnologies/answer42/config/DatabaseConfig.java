@@ -126,7 +126,7 @@ public class DatabaseConfig {
         Properties jpaProperties = new Properties();
         jpaProperties.put("hibernate.default_schema", hibernateDefaultSchema);
         jpaProperties.put("hibernate.hbm2ddl.auto", hibernateDdlAuto);
-        jpaProperties.put("hibernate.format_sql", "true");
+        jpaProperties.put("hibernate.format_sql", "false");
         jpaProperties.put("hibernate.jdbc.lob.non_contextual_creation", "true");
         jpaProperties.put("hibernate.jdbc.time_zone", "UTC");
         

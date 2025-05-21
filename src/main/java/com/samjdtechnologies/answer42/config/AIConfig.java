@@ -37,6 +37,12 @@ public class AIConfig {
 
     @Value("${spring.ai.anthropic.chat.options.model}")
     private String anthropicModel;
+    
+    @Value("${spring.ai.anthropic.chat.options.max-tokens:4000}")
+    private int anthropicMaxTokens;
+    
+    @Value("${spring.ai.anthropic.chat.options.temperature:0.7}")
+    private double anthropicTemperature;
 
     @Value("${spring.ai.openai.base-url}")
     private String openaiBaseUrl;
@@ -44,11 +50,23 @@ public class AIConfig {
     @Value("${spring.ai.openai.api-key:test-key}")
     private String openaiApiKey;
     
+    @Value("${spring.ai.openai.chat.options.max-tokens:4000}")
+    private int openaiMaxTokens;
+    
+    @Value("${spring.ai.openai.chat.options.temperature:0.7}")
+    private double openaiTemperature;
+    
     @Value("${spring.ai.perplexity.base-url}")
     private String perplexityBaseUrl;
 
     @Value("${spring.ai.perplexity.api-key:test-key}")
     private String perplexityApiKey;
+    
+    @Value("${spring.ai.perplexity.chat.options.max-tokens:4000}")
+    private int perplexityMaxTokens;
+    
+    @Value("${spring.ai.perplexity.chat.options.temperature:0.7}")
+    private double perplexityTemperature;
 
     @Value("${spring.ai.openai.chat.completions-path}")
     private String openaiCompletionsPath;
@@ -260,6 +278,8 @@ public class AIConfig {
     public AnthropicChatModel anthropicChatModel(AnthropicApi anthropicApi) {
         AnthropicChatOptions options = AnthropicChatOptions.builder()
                 .model(anthropicModel)
+                .maxTokens(anthropicMaxTokens)
+                .temperature(anthropicTemperature)
                 .build();
         
         return new AnthropicChatModel(
@@ -332,6 +352,8 @@ public class AIConfig {
     public OpenAiChatModel perplexityChatModel(OpenAiApi perplexityApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .model("llama-3.1-sonar-small-128k-online")  // Use Perplexity's model
+                .maxTokens(perplexityMaxTokens)
+                .temperature(perplexityTemperature)
                 .build();
         
         return new OpenAiChatModel(
@@ -363,6 +385,8 @@ public class AIConfig {
     public OpenAiChatModel openAiChatModel(OpenAiApi openAiApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .model(openaiModel)
+                .maxTokens(openaiMaxTokens)
+                .temperature(openaiTemperature)
                 .build();
         
         return new OpenAiChatModel(

@@ -15,6 +15,9 @@
 @import url('./components/settings.css');
 @import url('./components/upload-paper.css');
 @import url('./components/bulk-upload.css');
+@import url('./components/projects.css');
+@import url('./components/ai-chat.css');
+
 
 /* Component-specific style overrides for Vaadin components */
 
@@ -65,6 +68,10 @@ vaadin-button.error {
 
 /* Welcome section - using UIConstants.CSS_WELCOME_SECTION */
 .page-welcome-section {
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius-m);
+  box-shadow: var(--lumo-box-shadow-xs);
+  padding: var(--lumo-space-m);
   margin-bottom: var(--lumo-space-m);
 }
 

@@ -209,6 +209,36 @@ public class UIConstants {
     public static final String CSS_PAYPAL_INFO = "paypal-info";
     public static final String CSS_SUBSCRIPTION_NEXT_STEPS = "subscription-next-steps";
     
+    // AI Chat view related
+    public static final String CSS_AI_CHAT_VIEW = "ai-chat-view";
+    public static final String CSS_CHAT_HEADER = "chat-header";
+    public static final String CSS_CHAT_TABS = "chat-tabs";
+    public static final String CSS_PAPER_SELECTION_AREA = "paper-selection-area";
+    public static final String CSS_PAPER_SELECTION_HEADER = "paper-selection-header";
+    public static final String CSS_SELECTED_PAPERS_CONTAINER = "selected-papers-container";
+    public static final String CSS_PAPER_PILL = "paper-pill";
+    public static final String CSS_REMOVE_BUTTON = "remove-button";
+    public static final String CSS_CHAT_CONTAINER = "chat-container";
+    public static final String CSS_MESSAGES_CONTAINER = "messages-container";
+    public static final String CSS_MESSAGE_CONTAINER = "message-container";
+    public static final String CSS_USER_MESSAGE = "user-message";
+    public static final String CSS_ASSISTANT_MESSAGE = "assistant-message";
+    public static final String CSS_MESSAGE_AVATAR = "message-avatar";
+    public static final String CSS_AI_AVATAR = "ai-avatar";
+    public static final String CSS_MESSAGE_BUBBLE = "message-bubble";
+    public static final String CSS_MESSAGE_INPUT_CONTAINER = "message-input-container";
+    public static final String CSS_MESSAGE_INPUT = "message-input";
+    public static final String CSS_CODE_BLOCK = "code-block";
+    public static final String CSS_ANALYSIS_CONTAINER = "analysis-container";
+    public static final String CSS_ANALYSIS_TITLE = "analysis-title";
+    public static final String CSS_ANALYSIS_INFO = "analysis-info";
+    public static final String CSS_ANALYSIS_BUTTONS = "analysis-buttons";
+    public static final String CSS_ANALYSIS_BUTTON = "analysis-button";
+    public static final String CSS_ICON_COLOR = "icon-color";
+    public static final String CSS_PAPER_SELECTION_DIALOG = "paper-selection-dialog";
+    public static final String CSS_DIALOG_TITLE = "dialog-title";
+    public static final String CSS_PAPER_AUTHORS = "paper-authors";
+    
     // Credits view related
     public static final String CSS_CREDITS_VIEW = "credits-view";
     public static final String CSS_CREDIT_BALANCE_SECTION = "credit-balance-section";

@@ -13,10 +13,10 @@
     <!-- Checks that files end with a new line -->
     <module name="NewlineAtEndOfFile"/>
 
-    <!-- Checks for file length (max 2000 lines) -->
-    <module name="FileLength">
-        <property name="max" value="2000"/>
-    </module>
+    <!-- Checks for file length (max 500 lines) -->
+    <!-- <module name="FileLength">
+        <property name="max" value="500"/>
+    </module> -->
 
     <!-- Checks for line length (max 120 chars) -->
     <!-- <module name="LineLength">

@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
 
-import com.samjdtechnologies.answer42.model.ChatMessage;
 import com.samjdtechnologies.answer42.model.ChatSession;
 import com.samjdtechnologies.answer42.model.Paper;
 import com.samjdtechnologies.answer42.model.User;
@@ -18,6 +17,7 @@ import com.samjdtechnologies.answer42.service.ChatService;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
+import com.samjdtechnologies.answer42.ui.views.helpers.AIChatUIHelper;
 import com.samjdtechnologies.answer42.ui.views.helpers.AIChatViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
@@ -32,8 +32,6 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -93,7 +91,7 @@ public class AIChatView extends Div implements BeforeEnterObserver {
         this.paperService = paperService;
         
         addClassName(UIConstants.CSS_AI_CHAT_VIEW);
-        setSizeFull();
+        getStyle().setHeight("auto");
         
         // Initialization is done in beforeEnter to ensure we have the user
     }
@@ -248,7 +246,7 @@ public class AIChatView extends Div implements BeforeEnterObserver {
         messagesContainer.removeAll();
         
         // Add welcome message for the selected mode
-        String welcomeMessage = getWelcomeMessageForMode(currentMode);
+        String welcomeMessage = AIChatUIHelper.getWelcomeMessageForMode(currentMode);
         addAssistantMessage(welcomeMessage);
         
         // Update UI for this mode
@@ -274,7 +272,7 @@ public class AIChatView extends Div implements BeforeEnterObserver {
         paperSelectionArea.setSpacing(false);
         
         // Mode-specific selection helper text
-        Span selectionHelper = getSelectionHelperText();
+        Span selectionHelper = AIChatUIHelper.getSelectionHelperText(currentMode);
         
         // Show selected papers with the selection helper text
         paperSelectionArea.add(selectionHelper, selectedPapersContainer);
@@ -347,6 +345,7 @@ public class AIChatView extends Div implements BeforeEnterObserver {
         VerticalLayout chatContainer = new VerticalLayout();
         chatContainer.addClassName(UIConstants.CSS_CHAT_CONTAINER);
         chatContainer.setSizeFull();
+        chatContainer.getStyle().set("min-height", "500px");
         chatContainer.setPadding(false);
         chatContainer.setSpacing(false);
         
@@ -575,46 +574,51 @@ public class AIChatView extends Div implements BeforeEnterObserver {
     private void sendMessage() {
         String message = messageInput.getValue().trim();
         if (message.isEmpty() || activeSession == null) {
+            LoggingUtil.debug(LOG, "sendMessage", "Empty message or no active session, not sending");
             return;
         }
-        
-        // Add user message to UI
-        Component userMessageComponent = AIChatViewHelper.createMessageBubble(true, message);
-        messagesContainer.add(userMessageComponent);
-        
-        // Clear input
-        messageInput.clear();
-        messageInput.focus();
-        
-        try {
-            // Send message to AI
-            ChatMessage response = chatService.sendMessage(activeSession.getId(), message);
-            
-            // Add AI response to UI
-            Component aiMessageComponent = AIChatViewHelper.createMessageBubble(false, response.getContent());
-            messagesContainer.add(aiMessageComponent);
-            
-            // Scroll to bottom
-            messagesContainer.getElement().executeJs(
-                "this.scrollTop = this.scrollHeight"
-            );
-            
-        } catch (Exception e) {
-            LoggingUtil.error(LOG, "sendMessage", "Error sending message: %s", e, e.getMessage());
-            Notification notification = Notification.show(
-                "Error: " + e.getMessage(), 
-                3000, 
-                Notification.Position.MIDDLE
-            );
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        }
+
+        // Use the AIChatUIHelper to handle the message sending with UI feedback
+        AIChatUIHelper.sendMessageWithUIFeedback(
+                chatService,
+                activeSession.getId(),
+                message,
+                messagesContainer,
+                messageInput,
+                sendButton);
     }
     
     /**
      * Trigger an analysis action.
      */
     private void triggerAnalysis(String analysisType) {
-        AIChatViewHelper.triggerAnalysis(analysisType, chatService, activeSession, messagesContainer);
+        LoggingUtil.info(LOG, "triggerAnalysis", "Starting analysis: %s", analysisType);
+        
+        // Get all analysis buttons to disable them during processing
+        List<Button> analysisButtons = new ArrayList<>();
+        analysisContainer.getChildren()
+            .filter(component -> component instanceof HorizontalLayout)
+            .forEach(layout -> {
+                ((HorizontalLayout) layout).getChildren()
+                    .filter(component -> component instanceof Button)
+                    .forEach(button -> analysisButtons.add((Button) button));
+            });
+        
+        LoggingUtil.debug(LOG, "triggerAnalysis", "Found %d analysis buttons to disable", analysisButtons.size());
+        
+        // Disable all analysis buttons
+        analysisButtons.forEach(button -> button.setEnabled(false));
+        LoggingUtil.info(LOG, "triggerAnalysis", "Disabled all analysis buttons");
+        
+        try {
+            // Trigger the analysis with the helper method
+            LoggingUtil.info(LOG, "triggerAnalysis", "Calling AIChatViewHelper.triggerAnalysis with type: %s", analysisType);
+            AIChatViewHelper.triggerAnalysis(analysisType, chatService, activeSession, messagesContainer);
+        } finally {
+            // Re-enable all analysis buttons
+            analysisButtons.forEach(button -> button.setEnabled(true));
+            LoggingUtil.info(LOG, "triggerAnalysis", "Re-enabled all analysis buttons");
+        }
     }
     
     /**
@@ -623,56 +627,6 @@ public class AIChatView extends Div implements BeforeEnterObserver {
     private void addAssistantMessage(String message) {
         Component messageComponent = AIChatViewHelper.createMessageBubble(false, message);
         messagesContainer.add(messageComponent);
-    }
-    
-    /**
-     * Get the welcome message for a specific chat mode.
-     */
-    private String getWelcomeMessageForMode(ChatMode mode) {
-        switch (mode) {
-            case CHAT:
-                return "Select a paper from the top to start chatting about it with Claude AI.";
-                
-            case CROSS_REFERENCE:
-                return "Select multiple papers to compare and find connections between them using GPT-4.";
-                
-            case RESEARCH_EXPLORER:
-                return "Explore research topics and discover new papers with Perplexity AI.";
-                
-            default:
-                return "Select a paper to begin.";
-        }
-    }
-    
-    /**
-     * Get the helper text for the current mode.
-     */
-    private Span getSelectionHelperText() {
-        String text;
-        
-        switch (currentMode) {
-            case CHAT:
-                text = "Select exactly 1 paper for Paper Chat mode";
-                break;
-                
-            case CROSS_REFERENCE:
-                text = "Select 2-5 papers to compare";
-                break;
-                
-            case RESEARCH_EXPLORER:
-                text = "Select papers for contextual research (optional)";
-                break;
-                
-            default:
-                text = "Select papers to begin";
-        }
-        
-        Span span = new Span(text);
-        span.getStyle()
-                .set("font-size", "var(--lumo-font-size-s)")
-                .set("color", "var(--lumo-secondary-text-color)");
-        
-        return span;
     }
     
     @Override

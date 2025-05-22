@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.security.JwtTokenUtil;
 import com.samjdtechnologies.answer42.service.UserService;
 

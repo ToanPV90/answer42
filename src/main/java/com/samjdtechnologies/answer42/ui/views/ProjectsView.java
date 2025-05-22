@@ -9,14 +9,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.annotation.Secured;
 
-import com.samjdtechnologies.answer42.model.Paper;
-import com.samjdtechnologies.answer42.model.Project;
-import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.daos.Project;
+import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.ProjectService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.views.helpers.ProjectsHelper;
+import com.samjdtechnologies.answer42.ui.views.helpers.ProjectsViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -158,7 +158,7 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
         // Create project button
         createProjectButton = new Button("Create Project", new Icon(VaadinIcon.PLUS));
         createProjectButton.addClassName(UIConstants.CSS_CREATE_PROJECT_BUTTON);
-        createProjectButton.addClickListener(e -> ProjectsHelper.showCreateProjectDialog(
+        createProjectButton.addClickListener(e -> ProjectsViewHelper.showCreateProjectDialog(
             this::createProject, 
             paperService, 
             currentUser
@@ -182,7 +182,7 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
     private Component createContent() {
         // Configure the grid using the helper class
         ComponentRenderer<Component, Project> actionsRenderer = 
-            new ComponentRenderer<>(project -> ProjectsHelper.createActions(
+            new ComponentRenderer<>(project -> ProjectsViewHelper.createActions(
                 project, 
                 this::viewProject, 
                 this::editProject, 
@@ -190,18 +190,18 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
             ));
         
         ComponentRenderer<Component, Project> detailsRenderer = 
-            new ComponentRenderer<>(project -> ProjectsHelper.createProjectDetails(
+            new ComponentRenderer<>(project -> ProjectsViewHelper.createProjectDetails(
                 project, 
                 this::addPaperToProject
             ));
         
         ComponentRenderer<Component, Project> isPublicRenderer =
-            new ComponentRenderer<>(project -> ProjectsHelper.createIsPublicComponent(
+            new ComponentRenderer<>(project -> ProjectsViewHelper.createIsPublicComponent(
                 project,
                 this::toggleProjectPublicStatus
             ));
         
-        ProjectsHelper.configureGrid(grid, actionsRenderer, detailsRenderer, isPublicRenderer);
+        ProjectsViewHelper.configureGrid(grid, actionsRenderer, detailsRenderer, isPublicRenderer);
 
         // Configure pagination
         HorizontalLayout pagination = new HorizontalLayout(prevButton, pageInfo, nextButton);
@@ -238,7 +238,7 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
         }
         
         // Fetch the projects page
-        Page<Project> projectsPage = ProjectsHelper.fetchProjectsList(
+        Page<Project> projectsPage = ProjectsViewHelper.fetchProjectsList(
             currentUser, 
             searchTerm, 
             page, 
@@ -254,7 +254,7 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
         
         // Update pagination info and buttons
         int totalPages = projectsPage.getTotalPages();
-        ProjectsHelper.updatePagination(page, totalPages, pageInfo, prevButton, nextButton);
+        ProjectsViewHelper.updatePagination(page, totalPages, pageInfo, prevButton, nextButton);
         
         // Show empty state if no projects and on first page
         if (projects.isEmpty() && page == 0) {
@@ -287,7 +287,7 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
         if (searchTerm.isEmpty()) {
             emptyText = new Paragraph("Create your first research project to organize and analyze your papers.");
             Button createButton = new Button("Create Project", new Icon(VaadinIcon.PLUS));
-            createButton.addClickListener(e -> ProjectsHelper.showCreateProjectDialog(
+            createButton.addClickListener(e -> ProjectsViewHelper.showCreateProjectDialog(
                 this::createProject,
                 paperService,
                 currentUser
@@ -390,7 +390,7 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
     private void editProject(Project project) {
         LoggingUtil.debug(LOG, "editProject", "Editing project: %s", project.getId());
         
-        ProjectsHelper.showEditProjectDialog(project, this::saveProjectChanges);
+        ProjectsViewHelper.showEditProjectDialog(project, this::saveProjectChanges);
     }
     
     /**
@@ -443,7 +443,7 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
     private void deleteProject(Project project) {
         LoggingUtil.debug(LOG, "deleteProject", "Deleting project: %s", project.getId());
         
-        ProjectsHelper.showDeleteConfirmDialog(project, p -> {
+        ProjectsViewHelper.showDeleteConfirmDialog(project, p -> {
             try {
                 projectService.deleteProject(p.getId());
                 

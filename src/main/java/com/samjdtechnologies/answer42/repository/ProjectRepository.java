@@ -11,8 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.samjdtechnologies.answer42.model.Project;
-import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.model.daos.Project;
+import com.samjdtechnologies.answer42.model.daos.User;
 
 /**
  * Repository interface for Project entity.

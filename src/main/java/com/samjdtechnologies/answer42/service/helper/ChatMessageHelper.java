@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.samjdtechnologies.answer42.model.AnalysisResult;
-import com.samjdtechnologies.answer42.model.ChatMessage;
-import com.samjdtechnologies.answer42.model.ChatSession;
-import com.samjdtechnologies.answer42.model.Paper;
+import com.samjdtechnologies.answer42.model.daos.AnalysisResult;
+import com.samjdtechnologies.answer42.model.daos.ChatMessage;
+import com.samjdtechnologies.answer42.model.daos.ChatSession;
+import com.samjdtechnologies.answer42.model.daos.Paper;
 import com.samjdtechnologies.answer42.repository.ChatMessageRepository;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.util.LoggingUtil;

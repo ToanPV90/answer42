@@ -3,8 +3,8 @@ package com.samjdtechnologies.answer42.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
-import com.samjdtechnologies.answer42.ui.views.helpers.AIChatMessageProcessor;
-import com.samjdtechnologies.answer42.ui.views.helpers.PaperAnalysisProcessor;
+import com.samjdtechnologies.answer42.processors.AIChatMessageProcessor;
+import com.samjdtechnologies.answer42.processors.AnthropicPaperAnalysisProcessor;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.spring.annotation.SpringComponent;
@@ -22,7 +22,7 @@ public class VaadinSessionConfig implements VaadinServiceInitListener {
     private AIChatMessageProcessor aIChatMessageProcessor;
     
     @Autowired
-    private PaperAnalysisProcessor paperAnalysisProcessor;
+    private AnthropicPaperAnalysisProcessor paperAnalysisProcessor;
     
     /**
      * This method is called when Vaadin service is initialized.
@@ -33,7 +33,7 @@ public class VaadinSessionConfig implements VaadinServiceInitListener {
         event.getSource().addSessionInitListener(sessionInit -> {
             // Register [] in the Vaadin session
             sessionInit.getSession().setAttribute(AIChatMessageProcessor.class, aIChatMessageProcessor);
-            sessionInit.getSession().setAttribute(PaperAnalysisProcessor.class, paperAnalysisProcessor);
+            sessionInit.getSession().setAttribute(AnthropicPaperAnalysisProcessor.class, paperAnalysisProcessor);
         });
     }
 }

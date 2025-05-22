@@ -10,15 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.annotation.Secured;
 
-import com.samjdtechnologies.answer42.model.Project;
-import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.model.FileEntry;
+import com.samjdtechnologies.answer42.model.daos.Project;
+import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.enums.FileStatus;
+import com.samjdtechnologies.answer42.processors.PaperBulkUploadProcessor;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.ProjectService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.views.helpers.BulkUploadHelper;
-import com.samjdtechnologies.answer42.ui.views.helpers.FileEntry;
-import com.samjdtechnologies.answer42.ui.views.helpers.FileStatus;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -60,6 +60,7 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
     
     private final PaperService paperService;
     private final ProjectService projectService;
+    private final PaperBulkUploadProcessor paperBulkUploadProcessor;
     
     private User currentUser;
     private List<MemoryBuffer> fileBuffers = new ArrayList<>();
@@ -82,10 +83,13 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
      * 
      * @param paperService the service for paper-related operations including upload and metadata management
      * @param projectService the service for project-related operations and paper-project associations
+     * @param paperBulkUploadProcessor the processor for handling bulk paper uploads and processing
      */
-    public BulkUploadView(PaperService paperService, ProjectService projectService) {
+    public BulkUploadView(PaperService paperService, ProjectService projectService, 
+                         PaperBulkUploadProcessor paperBulkUploadProcessor) {
         this.paperService = paperService;
         this.projectService = projectService;
+        this.paperBulkUploadProcessor = paperBulkUploadProcessor;
         
         addClassName(UIConstants.CSS_BULK_UPLOAD_VIEW);
         getStyle().setHeight("auto");
@@ -289,7 +293,7 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
     
     private void updateFileList() {
         // Update file entries map
-        fileEntries = BulkUploadHelper.createFileEntriesMap(fileBuffers);
+        fileEntries = paperBulkUploadProcessor.createFileEntriesMap(fileBuffers);
         
         // Clear and rebuild the file list container
         fileListContainer.removeAll();
@@ -355,7 +359,7 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
         LoggingUtil.info(LOG, "processBulkUpload", "Starting bulk upload process with %d files", fileBuffers.size());
         
         // Parse authors
-        List<String> authors = BulkUploadHelper.parseAuthors(authorsField.getValue());
+        List<String> authors = paperBulkUploadProcessor.parseAuthors(authorsField.getValue());
         
         // Get selected project
         Project selectedProject = projectSelect.getValue();
@@ -373,7 +377,7 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
         setProcessingMode(true);
         
         // Process the files
-        BulkUploadHelper.processBulkUpload(
+        paperBulkUploadProcessor.processBulkUpload(
             fileBuffers,
             fileEntries,
             authors,

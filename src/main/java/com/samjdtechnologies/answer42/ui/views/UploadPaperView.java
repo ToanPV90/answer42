@@ -9,15 +9,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.samjdtechnologies.answer42.model.Paper;
-import com.samjdtechnologies.answer42.model.Project;
-import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.daos.Project;
+import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.ProjectService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.views.helpers.AuthorEntry;
-import com.samjdtechnologies.answer42.ui.views.helpers.PapersHelper;
+import com.samjdtechnologies.answer42.ui.views.components.AuthorContact;
+import com.samjdtechnologies.answer42.ui.views.helpers.PapersViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -72,7 +72,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
     private Select<Project> projectSelect;
     private Checkbox publicCheckbox;
     private Button uploadButton;
-    private List<AuthorEntry> authorEntries = new ArrayList<>();
+    private List<AuthorContact> authorEntries = new ArrayList<>();
     
     private VerticalLayout authorsContainer;
 
@@ -278,7 +278,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
     }
     
     private void addAuthorEntry() {
-        AuthorEntry authorEntry = new AuthorEntry(authorsContainer, this::validateForm);
+        AuthorContact authorEntry = new AuthorContact(authorsContainer, this::validateForm);
         authorEntries.add(authorEntry);
         authorsContainer.add(authorEntry);
     }
@@ -323,7 +323,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
             // Get the list of authors from the entries
             List<String> authorsList = new ArrayList<>();
             
-            for (AuthorEntry entry : authorEntries) {
+            for (AuthorContact entry : authorEntries) {
                 if (!entry.getNameField().isEmpty()) {
                     String authorName = entry.getNameField().getValue();
                     String affiliation = entry.getAffiliationField().getValue();
@@ -360,7 +360,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
             LoggingUtil.debug(LOG, "uploadPaper", "Preparing to upload file with %d authors", authorsArray.length);
             
             // Create MultipartFile from buffer
-            MultipartFile file = PapersHelper.createMultipartFileFromBuffer(buffer);
+            MultipartFile file = PapersViewHelper.createMultipartFileFromBuffer(buffer);
             
             // Upload the paper
             Paper paper = paperService.uploadPaper(

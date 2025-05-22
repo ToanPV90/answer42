@@ -481,9 +481,9 @@ public class ProjectsView extends Div implements BeforeEnterObserver {
         LoggingUtil.debug(LOG, "addPaperToProject", "Adding papers to project: %s", project.getId());
         
         // Get user's papers that are not already in the project
-        var availablePapers = paperService.getPapersNotInProject(currentUser, project);
+        var papers = paperService.getPapersNotInProject(currentUser, project);
         
-        if (availablePapers.isEmpty()) {
+        if (papers.isEmpty()) {
             Notification.show(
                 "You don't have any papers that aren't already in this project. Upload a new paper first.", 
                 3000, 

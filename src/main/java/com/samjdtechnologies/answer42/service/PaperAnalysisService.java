@@ -177,28 +177,42 @@ public class PaperAnalysisService {
                     " of the paper. Use an academic tone, be thorough but concise, and focus on providing " +
                     "valuable insights. Support your points with evidence from the paper when possible.";
             
-            // Get response from AI using the AIInteractionHelper
-            // This ensures any Claude-specific markers are cleaned from the response
-            String analysisContent = aiInteractionHelper.getAIResponse(
-                    AIProvider.ANTHROPIC,
-                    List.of(
-                        new SystemMessage(systemPrompt),
-                        new UserMessage(analysisPrompt)
-                    )
-            );
-            
-            // Get the user from the task
-            User user = task.getUser();
-            
-            // Create and save the analysis result
-            AnalysisResult result = new AnalysisResult(paper, task, user, analysisType, analysisContent);
-            result = resultRepository.save(result);
-            
-            // Mark task as completed
-            task.markAsCompleted(result);
-            task = taskRepository.save(task);
-            
-            LoggingUtil.info(LOG, "processTask", "Completed task ID: %s, result ID: %s", taskId, result.getId());
+            String analysisContent;
+            try {
+                // Get response from AI using the AIInteractionHelper
+                // This ensures any Claude-specific markers are cleaned from the response
+                analysisContent = aiInteractionHelper.getAIResponse(
+                        AIProvider.ANTHROPIC,
+                        List.of(
+                            new SystemMessage(systemPrompt),
+                            new UserMessage(analysisPrompt)
+                        )
+                );
+                
+                // Get the user from the task
+                User user = task.getUser();
+                
+                // Create and save the analysis result ONLY if we get a successful response
+                AnalysisResult result = new AnalysisResult(paper, task, user, analysisType, analysisContent);
+                result = resultRepository.save(result);
+                
+                // Mark task as completed
+                task.markAsCompleted(result);
+                task = taskRepository.save(task);
+                
+                LoggingUtil.info(LOG, "processTask", "Completed task ID: %s, result ID: %s", taskId, result.getId());
+            } catch (AIInteractionHelper.AITimeoutException e) {
+                // Don't create a result for timeout errors - just mark the task as failed with a user-friendly message
+                String errorMessage = "Anthropic API is currently busy. Please try again later.";
+                
+                LoggingUtil.warn(LOG, "processTask", 
+                        "API timeout when processing task %s: %s", taskId, e.getMessage());
+                
+                task.markAsFailed(errorMessage);
+                task = taskRepository.save(task);
+                
+                throw new RuntimeException(errorMessage, e);
+            }
             
             return task;
         } catch (Exception e) {
@@ -287,7 +301,7 @@ public class PaperAnalysisService {
     private String generatePromptForAnalysisType(Paper paper, AnalysisType analysisType) {
         StringBuilder prompt = new StringBuilder();
         String paperContent = paper.getTextContent() != null ? paper.getTextContent() : 
-                             (paper.getAbstract() != null ? paper.getAbstract() : "");
+                             (paper.getPaperAbstract() != null ? paper.getPaperAbstract() : "");
         
         prompt.append("Paper Title: ").append(paper.getTitle()).append("\n\n");
         

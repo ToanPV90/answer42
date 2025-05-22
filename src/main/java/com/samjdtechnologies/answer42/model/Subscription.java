@@ -10,12 +10,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Subscription represents a user's subscription to a specific plan.
  */
 @Entity
 @Table(name = "subscriptions", schema = "answer42")
+@Data
+@NoArgsConstructor
 public class Subscription {
     
     @Id
@@ -35,7 +39,7 @@ public class Subscription {
     @JoinColumn(name = "plan_id", insertable = false, updatable = false)
     private SubscriptionPlan plan;
     
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private String status;
     
     @Column(name = "current_period_start")
@@ -57,11 +61,6 @@ public class Subscription {
     private LocalDateTime updatedAt;
     
     // Constructors
-    /**
-     * Default constructor for Subscription.
-     */
-    public Subscription() {
-    }
     
     /**
      * Creates a subscription with the specified details.
@@ -87,107 +86,28 @@ public class Subscription {
         this.updatedAt = LocalDateTime.now();
     }
     
-    // Getters and Setters
-    public UUID getId() {
-        return id;
-    }
-    
-    public void setId(UUID id) {
-        this.id = id;
-    }
-    
-    public UUID getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
-    
-    public User getUser() {
-        return user;
-    }
-    
-    public void setUser(User user) {
+    /**
+     * Updates the user for this subscription and synchronizes the userId.
+     * 
+     * @param user the user who owns this subscription
+     */
+    public void updateUser(User user) {
         this.user = user;
         if (user != null) {
             this.userId = user.getId();
         }
     }
     
-    public String getPlanId() {
-        return planId;
-    }
-    
-    public void setPlanId(String planId) {
-        this.planId = planId;
-    }
-    
-    public SubscriptionPlan getPlan() {
-        return plan;
-    }
-    
-    public void setPlan(SubscriptionPlan plan) {
+    /**
+     * Updates the plan for this subscription and synchronizes the planId.
+     * 
+     * @param plan the subscription plan
+     */
+    public void updatePlan(SubscriptionPlan plan) {
         this.plan = plan;
         if (plan != null) {
             this.planId = plan.getId();
         }
-    }
-    
-    public String getStatus() {
-        return status;
-    }
-    
-    public void setStatus(String status) {
-        this.status = status;
-    }
-    
-    public LocalDateTime getCurrentPeriodStart() {
-        return currentPeriodStart;
-    }
-    
-    public void setCurrentPeriodStart(LocalDateTime currentPeriodStart) {
-        this.currentPeriodStart = currentPeriodStart;
-    }
-    
-    public LocalDateTime getCurrentPeriodEnd() {
-        return currentPeriodEnd;
-    }
-    
-    public void setCurrentPeriodEnd(LocalDateTime currentPeriodEnd) {
-        this.currentPeriodEnd = currentPeriodEnd;
-    }
-    
-    public String getPaymentProvider() {
-        return paymentProvider;
-    }
-    
-    public void setPaymentProvider(String paymentProvider) {
-        this.paymentProvider = paymentProvider;
-    }
-    
-    public String getPaymentProviderId() {
-        return paymentProviderId;
-    }
-    
-    public void setPaymentProviderId(String paymentProviderId) {
-        this.paymentProviderId = paymentProviderId;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
     
     // Helper methods

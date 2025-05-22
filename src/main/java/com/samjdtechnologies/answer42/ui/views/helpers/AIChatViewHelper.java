@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.samjdtechnologies.answer42.model.ChatSession;
 import com.samjdtechnologies.answer42.model.Paper;
@@ -17,7 +18,6 @@ import com.samjdtechnologies.answer42.service.ChatService;
 import com.samjdtechnologies.answer42.service.PaperAnalysisService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -34,6 +34,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -42,15 +43,27 @@ import com.vaadin.flow.data.value.ValueChangeMode;
  * Helper class for AIChatView to keep the view class under 300 lines.
  * Contains methods for creating UI components and handling chat interactions.
  */
+@Component
 public class AIChatViewHelper {
     private static final Logger LOG = LoggerFactory.getLogger(AIChatViewHelper.class);
+    
+    private final PaperAnalysisProcessor paperAnalysisProcessor;
+    
+    /**
+     * Creates a new AIChatViewHelper with dependency on PaperAnalysisProcessor.
+     * 
+     * @param paperAnalysisProcessor The processor for paper analysis
+     */
+    public AIChatViewHelper(PaperAnalysisProcessor paperAnalysisProcessor) {
+        this.paperAnalysisProcessor = paperAnalysisProcessor;
+    }
 
     /**
      * Create an icon for the paper chat tab using SVG file.
      * 
      * @return The icon component
      */
-    public static Component createPaperChatIcon() {
+    public static com.vaadin.flow.component.Component createPaperChatIcon() {
         // Use Vaadin's Image component to display the SVG file
         com.vaadin.flow.component.html.Image image = new com.vaadin.flow.component.html.Image(
                 "frontend/images/icons/paper_chat_icon.svg", "Anthropic Claude icon");
@@ -65,7 +78,7 @@ public class AIChatViewHelper {
      * 
      * @return The icon component
      */
-    public static Component createOpenAIIcon() {
+    public static com.vaadin.flow.component.Component createOpenAIIcon() {
         // Use Vaadin's Image component to display the SVG file
         com.vaadin.flow.component.html.Image image = new com.vaadin.flow.component.html.Image(
                 "frontend/images/icons/openai_icon.svg", "OpenAI icon");
@@ -80,7 +93,7 @@ public class AIChatViewHelper {
      * 
      * @return The icon component
      */
-    public static Component createPerplexityIcon() {
+    public static com.vaadin.flow.component.Component createPerplexityIcon() {
         // Use Vaadin's Image component to display the SVG file
         com.vaadin.flow.component.html.Image image = new com.vaadin.flow.component.html.Image(
                 "frontend/images/icons/perplexity_icon.svg", "Perplexity icon");
@@ -120,7 +133,7 @@ public class AIChatViewHelper {
      * @param message The message content
      * @return The message component
      */
-    public static Component createMessageBubble(boolean isUser, String message) {
+    public static com.vaadin.flow.component.Component createMessageBubble(boolean isUser, String message) {
         HorizontalLayout container = new HorizontalLayout();
         container.addClassName(UIConstants.CSS_MESSAGE_CONTAINER);
         container.addClassNames(isUser ? UIConstants.CSS_USER_MESSAGE : UIConstants.CSS_ASSISTANT_MESSAGE);
@@ -205,6 +218,7 @@ public class AIChatViewHelper {
         closeButton.getElement().getStyle().set("right", "0");
         closeButton.getElement().getStyle().set("top", "0");
         closeButton.getElement().getStyle().set("margin", "var(--lumo-space-m)");
+        closeButton.getElement().getStyle().set("cursor", "pointer");
         closeButton.addClickListener(e -> dialog.close());
         dialog.getHeader().add(closeButton);
         
@@ -403,7 +417,7 @@ public class AIChatViewHelper {
     
     /**
      * Trigger a paper analysis and add the results to the chat.
-     * This is now a delegate method that calls the PaperAnalysisProcessor.
+     * This is a delegate method that calls the PaperAnalysisProcessor.
      * 
      * @param instruction The analysis instruction (e.g., "Deep Summary")
      * @param chatService The chat service for adding messages
@@ -411,13 +425,13 @@ public class AIChatViewHelper {
      * @param session The current chat session
      * @param messagesContainer The UI container to add messages to
      */
-    public static void triggerAnalysis(String instruction, 
-                                     ChatService chatService,
-                                     PaperAnalysisService paperAnalysisService,
-                                     ChatSession session, 
-                                     VerticalLayout messagesContainer) {
+    public void triggerAnalysis(String instruction, 
+                               ChatService chatService,
+                               PaperAnalysisService paperAnalysisService,
+                               ChatSession session, 
+                               VerticalLayout messagesContainer) {
         // Delegate to the PaperAnalysisProcessor to handle paper analysis
-        PaperAnalysisProcessor.triggerAnalysis(instruction, chatService, paperAnalysisService, 
+        paperAnalysisProcessor.triggerAnalysis(instruction, chatService, paperAnalysisService, 
                                              session, messagesContainer);
     }
     
@@ -478,7 +492,7 @@ public class AIChatViewHelper {
      * 
      * @return The component representing the thinking state
      */
-    public static Component createThinkingMessage() {
+    public static com.vaadin.flow.component.Component createThinkingMessage() {
         HorizontalLayout container = new HorizontalLayout();
         container.addClassName(UIConstants.CSS_MESSAGE_CONTAINER);
         container.addClassName(UIConstants.CSS_ASSISTANT_MESSAGE);
@@ -512,5 +526,50 @@ public class AIChatViewHelper {
         container.add(avatar, bubble);
         
         return container;
-    }  
+    }
+    
+    /**
+     * Creates a processing message with a progress bar to indicate the AI is analyzing the paper.
+     * 
+     * @param label The label to display above the progress bar
+     * @return The component representing the processing state with progress bar
+     */
+    public static com.vaadin.flow.component.Component createProgressMessage(String label) {
+        HorizontalLayout container = new HorizontalLayout();
+        container.addClassName(UIConstants.CSS_MESSAGE_CONTAINER);
+        container.addClassName(UIConstants.CSS_ASSISTANT_MESSAGE);
+        
+        Avatar avatar = new Avatar();
+        avatar.addClassName(UIConstants.CSS_MESSAGE_AVATAR);
+        avatar.setName("AI");
+        avatar.addClassName(UIConstants.CSS_AI_AVATAR);
+        avatar.setImage("frontend/images/icons/ai_chatbot_avatar_blue.svg");
+        
+        Div bubble = new Div();
+        bubble.addClassName(UIConstants.CSS_MESSAGE_BUBBLE);
+        bubble.setWidth("100%");
+        
+        // Create a label for the progress
+        Span progressLabel = new Span(label);
+        progressLabel.getStyle()
+                .set("display", "block")
+                .set("margin-bottom", "var(--lumo-space-xs)");
+        
+        // Create a progress bar
+        ProgressBar progressBar = new com.vaadin.flow.component.progressbar.ProgressBar();
+        progressBar.setIndeterminate(false);
+        progressBar.setValue(0.0);
+        progressBar.setMin(0.0);
+        progressBar.setMax(1.0);
+        progressBar.setWidth("100%");
+        progressBar.getElement().setAttribute("id", "analysis-progress-bar");
+        
+        // Add components to bubble
+        bubble.add(progressLabel, progressBar);
+        
+        container.add(avatar, bubble);
+        container.setWidthFull();
+        
+        return container;
+    }
 }

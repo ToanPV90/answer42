@@ -76,6 +76,7 @@ src/main/frontend/generated/
 src/main/bundles/dev.bundle
 src/main/frontend/generated/flow/generated-flow-imports.js
 src/main/frontend/generated/flow/generated-flow-webcomponent-imports.js
+claude-work/
 
 # Environment variables
 .env

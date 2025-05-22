@@ -13,12 +13,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * CreditTransaction represents a transaction involving user credits.
  */
 @Entity
 @Table(name = "credit_transactions", schema = "answer42")
+@Data
+@NoArgsConstructor
 public class CreditTransaction {
     
     public enum TransactionType {
@@ -46,41 +50,36 @@ public class CreditTransaction {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private UUID userId;
     
     @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_type", nullable = false)
+    @Column(name = "transaction_type")
     private TransactionType transactionType;
     
-    @Column(nullable = false)
+    @Column(name = "amount")
     private Integer amount;
     
-    @Column(name = "balance_after", nullable = false)
+    @Column(name = "balance_after")
     private Integer balanceAfter;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "operation_type")
     private OperationType operationType;
     
-    @Column(nullable = false)
+    @Column(name = "description")
     private String description;
     
     @Column(name = "reference_id")
     private String referenceId;
     
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
     
-    /**
-     * Default constructor for CreditTransaction.
-     * Required by JPA.
-     */
-    public CreditTransaction() {
-    }
     
     /**
      * Constructor with all fields for creating a new credit transaction.
@@ -104,79 +103,5 @@ public class CreditTransaction {
         this.operationType = operationType;
         this.description = description;
         this.referenceId = referenceId;
-    }
-
-    
-    // Getters and Setters
-    public UUID getId() {
-        return id;
-    }
-    
-    public void setId(UUID id) {
-        this.id = id;
-    }
-    
-    public UUID getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
-    
-    public TransactionType getTransactionType() {
-        return transactionType;
-    }
-    
-    public void setTransactionType(TransactionType transactionType) {
-        this.transactionType = transactionType;
-    }
-    
-    public Integer getAmount() {
-        return amount;
-    }
-    
-    public void setAmount(Integer amount) {
-        this.amount = amount;
-    }
-    
-    public Integer getBalanceAfter() {
-        return balanceAfter;
-    }
-    
-    public void setBalanceAfter(Integer balanceAfter) {
-        this.balanceAfter = balanceAfter;
-    }
-    
-    public OperationType getOperationType() {
-        return operationType;
-    }
-    
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
-    }
-    
-    public String getDescription() {
-        return description;
-    }
-    
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    
-    public String getReferenceId() {
-        return referenceId;
-    }
-    
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

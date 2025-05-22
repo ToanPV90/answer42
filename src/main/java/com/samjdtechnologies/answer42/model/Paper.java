@@ -1,8 +1,9 @@
 package com.samjdtechnologies.answer42.model;
 
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -18,8 +19,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.NoArgsConstructor;
 
 /**
  * Entity representing a research paper in the system.
@@ -27,45 +28,49 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "papers", schema = "answer42")
+@NoArgsConstructor
 public class Paper {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "title")
     private String title;
 
-    // Changed from String[] to List<String>
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb", nullable = false)
+    @Column(name = "authors", columnDefinition = "jsonb")
     private List<String> authors;
 
+    @Column(name = "journal")
     private String journal;
 
+    @Column(name = "year")
     private Integer year;
 
-    @Column(name = "file_path", nullable = false)
+    @Column(name = "file_path")
     private String filePath;
 
     @Column(name = "text_content")
     private String textContent;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(name = "metadata", columnDefinition = "jsonb")
     private JsonNode metadata;
 
+    @Column(name = "status")
     private String status = "PENDING";
 
     @Column(name = "created_at")
-    private ZonedDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")
-    private ZonedDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
     @Column(name = "file_size")
     private Long fileSize;
@@ -76,8 +81,10 @@ public class Paper {
     @Column(name = "is_public")
     private Boolean isPublic = false;
 
-    private String abstract_;
+    @Column(name = "paper_abstract")
+    private String paperAbstract;
 
+    @Column(name = "doi")
     private String doi;
 
     @Column(name = "publication_date")
@@ -91,9 +98,8 @@ public class Paper {
     @Column(name = "methodology_details", columnDefinition = "jsonb")
     private JsonNode methodologyDetails;
 
-    // Changed from String[] to List<String>
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(name = "topics", columnDefinition = "jsonb")
     private List<String> topics;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -110,7 +116,7 @@ public class Paper {
     private String summaryDetailed;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(name = "glossart", columnDefinition = "jsonb")
     private JsonNode glossary;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -118,7 +124,7 @@ public class Paper {
     private JsonNode mainConcepts;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(name = "citations", columnDefinition = "jsonb")
     private JsonNode citations;
 
     @Column(name = "references_count")
@@ -141,7 +147,7 @@ public class Paper {
     private Double crossrefScore = 0.0;
 
     @Column(name = "crossref_last_verified")
-    private ZonedDateTime crossrefLastVerified;
+    private LocalDateTime crossrefLastVerified;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "crossref_metadata", columnDefinition = "jsonb")
@@ -167,7 +173,7 @@ public class Paper {
     private Double semanticScholarScore = 0.0;
 
     @Column(name = "semantic_scholar_last_verified")
-    private ZonedDateTime semanticScholarLastVerified;
+    private LocalDateTime semanticScholarLastVerified;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "semantic_scholar_metadata", columnDefinition = "jsonb")
@@ -177,16 +183,8 @@ public class Paper {
     private String arxivId;
 
     @Column(name = "processing_status")
-    private String processingStatus = "pending";
+    private String processingStatus = "PENDING";
 
-    /**
-     * Default constructor for Paper.
-     * Initializes creation and update timestamps to the current time.
-     */
-    public Paper() {
-        this.createdAt = ZonedDateTime.now();
-        this.updatedAt = ZonedDateTime.now();
-    }
 
     /**
      * Constructor with required fields for creating a new paper.
@@ -204,8 +202,7 @@ public class Paper {
         this.user = user;
     }
 
-
-    // Getters and setters - updated for List<String>
+    // Getters and Setters
 
     public UUID getId() {
         return id;
@@ -287,19 +284,19 @@ public class Paper {
         this.status = status;
     }
 
-    public ZonedDateTime getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(ZonedDateTime createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public ZonedDateTime getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -327,12 +324,12 @@ public class Paper {
         this.isPublic = isPublic;
     }
 
-    public String getAbstract() {
-        return abstract_;
+    public String getPaperAbstract() {
+        return paperAbstract;
     }
 
-    public void setAbstract(String abstract_) {
-        this.abstract_ = abstract_;
+    public void setPaperAbstract(String paperAbstract) {
+        this.paperAbstract = paperAbstract;
     }
 
     public String getDoi() {
@@ -479,11 +476,11 @@ public class Paper {
         this.crossrefScore = crossrefScore;
     }
 
-    public ZonedDateTime getCrossrefLastVerified() {
+    public LocalDateTime getCrossrefLastVerified() {
         return crossrefLastVerified;
     }
 
-    public void setCrossrefLastVerified(ZonedDateTime crossrefLastVerified) {
+    public void setCrossrefLastVerified(LocalDateTime crossrefLastVerified) {
         this.crossrefLastVerified = crossrefLastVerified;
     }
 
@@ -543,11 +540,11 @@ public class Paper {
         this.semanticScholarScore = semanticScholarScore;
     }
 
-    public ZonedDateTime getSemanticScholarLastVerified() {
+    public LocalDateTime getSemanticScholarLastVerified() {
         return semanticScholarLastVerified;
     }
 
-    public void setSemanticScholarLastVerified(ZonedDateTime semanticScholarLastVerified) {
+    public void setSemanticScholarLastVerified(LocalDateTime semanticScholarLastVerified) {
         this.semanticScholarLastVerified = semanticScholarLastVerified;
     }
 
@@ -575,18 +572,29 @@ public class Paper {
         this.processingStatus = processingStatus;
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = ZonedDateTime.now();
-    }
-
     @Override
     public String toString() {
         return "Paper{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
+                ", authors=" + authors +
+                ", journal='" + journal + '\'' +
+                ", year=" + year +
                 ", status='" + status + '\'' +
-                ", processingStatus='" + processingStatus + '\'' +
+                ", createdAt=" + createdAt +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Paper paper = (Paper) o;
+        return Objects.equals(id, paper.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

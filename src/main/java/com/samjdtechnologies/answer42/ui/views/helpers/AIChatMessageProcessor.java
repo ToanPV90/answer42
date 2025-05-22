@@ -1,16 +1,17 @@
 package com.samjdtechnologies.answer42.ui.views.helpers;
 
 import java.util.UUID;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.samjdtechnologies.answer42.model.ChatMessage;
 import com.samjdtechnologies.answer42.service.ChatService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
@@ -27,9 +28,22 @@ import com.vaadin.flow.component.textfield.TextField;
 /**
  * Helper class specifically for AI Chat UI feedback elements and thread handling.
  * Handles the "Thinking..." spinner, message bubbles, and asynchronous processing.
+ * Uses Spring's thread management for background processing.
  */
-public class AIChatUIHelper {
-    private static final Logger LOG = LoggerFactory.getLogger(AIChatUIHelper.class);
+@Component
+public class AIChatMessageProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(AIChatMessageProcessor.class);
+    
+    private final Executor taskExecutor;
+    
+    /**
+     * Creates a new AIChatChatMessage with Spring's task executor.
+     * 
+     * @param taskExecutor The thread pool task executor from Spring's configuration
+     */
+    public AIChatMessageProcessor(Executor taskExecutor) {
+        this.taskExecutor = taskExecutor;
+    }
 
     /**
      * Create a message bubble for the chat UI.
@@ -38,7 +52,7 @@ public class AIChatUIHelper {
      * @param message The message content
      * @return The message component
      */
-    public static Component createMessageBubble(boolean isUser, String message) {
+    public static com.vaadin.flow.component.Component createMessageBubble(boolean isUser, String message) {
         HorizontalLayout container = new HorizontalLayout();
         container.addClassName(UIConstants.CSS_MESSAGE_CONTAINER);
         container.addClassNames(isUser ? UIConstants.CSS_USER_MESSAGE : UIConstants.CSS_ASSISTANT_MESSAGE);
@@ -105,7 +119,7 @@ public class AIChatUIHelper {
      * 
      * @return The component representing the thinking state
      */
-    public static Component createThinkingMessage() {
+    public static com.vaadin.flow.component.Component createThinkingMessage() {
         HorizontalLayout container = new HorizontalLayout();
         container.addClassName(UIConstants.CSS_MESSAGE_CONTAINER);
         container.addClassName(UIConstants.CSS_ASSISTANT_MESSAGE);
@@ -152,7 +166,7 @@ public class AIChatUIHelper {
      * @param messageInput The input field for messages
      * @param sendButton The button to send messages
      */
-    public static void sendMessageWithUIFeedback(
+    public void sendMessageWithUIFeedback(
             ChatService chatService,
             UUID sessionId,
             String message,
@@ -169,18 +183,24 @@ public class AIChatUIHelper {
         LoggingUtil.debug(LOG, "sendMessageWithUIFeedback", "Disabled send button");
         
         // Add user message to UI
-        Component userMessageComponent = createMessageBubble(true, message);
+        com.vaadin.flow.component.Component userMessageComponent = createMessageBubble(true, message);
         messagesContainer.add(userMessageComponent);
         LoggingUtil.debug(LOG, "sendMessageWithUIFeedback", "Added user message bubble to UI");
         
         // Add thinking message with spinner
-        Component thinkingMessage = createThinkingMessage();
+        com.vaadin.flow.component.Component thinkingMessage = createThinkingMessage();
         messagesContainer.add(thinkingMessage);
         LoggingUtil.info(LOG, "sendMessageWithUIFeedback", "Added thinking message with spinner to UI");
         
-        // Scroll to bottom to show the thinking message
-        messagesContainer.getElement().executeJs(
-            "this.scrollTop = this.scrollHeight"
+        // Scroll to bottom to show the thinking message using a consistent approach
+        UI.getCurrent().getPage().executeJs(
+            "setTimeout(function() {" +
+            "  const container = document.querySelector('.messages-container');" +
+            "  if (container) {" +
+            "    container.scrollTop = container.scrollHeight;" +
+            "    console.log('Scrolled to bottom for thinking message, height:', container.scrollHeight);" +
+            "  }" +
+            "}, 100);"
         );
         LoggingUtil.debug(LOG, "sendMessageWithUIFeedback", "Scrolled chat to bottom");
         
@@ -193,13 +213,13 @@ public class AIChatUIHelper {
         // Store the final value for use in the lambda
         final String finalMessage = message;
         
-        // Run the AI service call in a background thread using Vaadin's preferred approach
-        new Thread(() -> {
+        // Run the AI service call in a background thread using Spring's task executor
+        taskExecutor.execute(() -> {
             try {
                 // First, save the user message
                 chatService.sendMessage(sessionId, finalMessage);
                 
-                // Then get the AI response - this is what was missing!
+                // Then get the AI response
                 ChatMessage response = chatService.sendUserMessageAndGetResponse(sessionId, finalMessage);
                 LoggingUtil.info(LOG, "sendMessageWithUIFeedback", "Received response from AI service");
                 
@@ -211,13 +231,19 @@ public class AIChatUIHelper {
                         LoggingUtil.info(LOG, "sendMessageWithUIFeedback", "Removed thinking message");
                         
                         // Add AI response to UI
-                        Component aiMessageComponent = createMessageBubble(false, response.getContent());
+                        com.vaadin.flow.component.Component aiMessageComponent = createMessageBubble(false, response.getContent());
                         messagesContainer.add(aiMessageComponent);
                         LoggingUtil.debug(LOG, "sendMessageWithUIFeedback", "Added AI response bubble to UI");
                         
-                        // Scroll to bottom again to show the response
-                        messagesContainer.getElement().executeJs(
-                            "this.scrollTop = this.scrollHeight"
+                        // Scroll to bottom again to show the response using a consistent approach
+                        UI.getCurrent().getPage().executeJs(
+                            "setTimeout(function() {" +
+                            "  const container = document.querySelector('.messages-container');" +
+                            "  if (container) {" +
+                            "    container.scrollTop = container.scrollHeight;" +
+                            "    console.log('Scrolled to bottom for AI response, height:', container.scrollHeight);" +
+                            "  }" +
+                            "}, 100);"
                         );
                         LoggingUtil.debug(LOG, "sendMessageWithUIFeedback", "Scrolled chat to bottom again");
                     } finally {
@@ -257,7 +283,7 @@ public class AIChatUIHelper {
                     }
                 });
             }
-        }).start();
+        });
     }
     
     /**
@@ -269,12 +295,12 @@ public class AIChatUIHelper {
      * @param messagesContainer The container where messages are shown
      * @param onAnalysisComplete Callback to run after analysis completion
      */
-    public static void processAnalysisWithUIFeedback(
+    public void processAnalysisWithUIFeedback(
             ChatService chatService,
             String analysisType,
             UUID sessionId,
             VerticalLayout messagesContainer,
-            Consumer<Component> onAnalysisComplete) {
+            Consumer<com.vaadin.flow.component.Component> onAnalysisComplete) {
         
         LoggingUtil.info(LOG, "processAnalysisWithUIFeedback", "Starting analysis: %s", analysisType);
         
@@ -282,18 +308,24 @@ public class AIChatUIHelper {
         String analysisPrompt = "Perform a " + analysisType.toLowerCase() + " of this paper.";
         
         // Add user message with analysis prompt
-        Component userMessageComponent = createMessageBubble(true, analysisPrompt);
+        com.vaadin.flow.component.Component userMessageComponent = createMessageBubble(true, analysisPrompt);
         messagesContainer.add(userMessageComponent);
         LoggingUtil.debug(LOG, "processAnalysisWithUIFeedback", "Added user analysis request to UI");
         
         // Add thinking message with spinner
-        Component thinkingMessage = createThinkingMessage();
+        com.vaadin.flow.component.Component thinkingMessage = createThinkingMessage();
         messagesContainer.add(thinkingMessage);
         LoggingUtil.info(LOG, "processAnalysisWithUIFeedback", "Added thinking message with spinner to UI");
         
-        // Scroll to bottom to show the thinking message
-        messagesContainer.getElement().executeJs(
-            "this.scrollTop = this.scrollHeight"
+        // Scroll to bottom to show the thinking message using a consistent approach
+        UI.getCurrent().getPage().executeJs(
+            "setTimeout(function() {" +
+            "  const container = document.querySelector('.messages-container');" +
+            "  if (container) {" +
+            "    container.scrollTop = container.scrollHeight;" +
+            "    console.log('Scrolled to bottom for analysis thinking, height:', container.scrollHeight);" +
+            "  }" +
+            "}, 100);"
         );
         LoggingUtil.debug(LOG, "processAnalysisWithUIFeedback", "Scrolled chat to bottom");
         
@@ -303,13 +335,13 @@ public class AIChatUIHelper {
         // Use Vaadin's background execution utility
         ui.setPollInterval(1000); // Enable polling to update UI during long operations
         
-        // Run the AI service call in a background thread
-        new Thread(() -> {
+        // Run the AI service call in a background thread using Spring's task executor
+        taskExecutor.execute(() -> {
             try {
                 // First, save the user message
                 chatService.sendMessage(sessionId, analysisPrompt);
                 
-                // Then get the AI response - this is what was missing!
+                // Then get the AI response
                 ChatMessage response = chatService.sendUserMessageAndGetResponse(sessionId, analysisPrompt);
                 LoggingUtil.info(LOG, "processAnalysisWithUIFeedback", "Received analysis response from AI service");
                 
@@ -321,13 +353,19 @@ public class AIChatUIHelper {
                         LoggingUtil.info(LOG, "processAnalysisWithUIFeedback", "Removed thinking message");
                         
                         // Add AI response to UI
-                        Component aiMessageComponent = createMessageBubble(false, response.getContent());
+                        com.vaadin.flow.component.Component aiMessageComponent = createMessageBubble(false, response.getContent());
                         messagesContainer.add(aiMessageComponent);
                         LoggingUtil.debug(LOG, "processAnalysisWithUIFeedback", "Added AI analysis response to UI");
                         
-                        // Scroll to bottom again to show the response
-                        messagesContainer.getElement().executeJs(
-                            "this.scrollTop = this.scrollHeight"
+                        // Scroll to bottom again to show the response using a consistent approach
+                        UI.getCurrent().getPage().executeJs(
+                            "setTimeout(function() {" +
+                            "  const container = document.querySelector('.messages-container');" +
+                            "  if (container) {" +
+                            "    container.scrollTop = container.scrollHeight;" +
+                            "    console.log('Scrolled to bottom for analysis response, height:', container.scrollHeight);" +
+                            "  }" +
+                            "}, 100);"
                         );
                         LoggingUtil.debug(LOG, "processAnalysisWithUIFeedback", "Scrolled chat to bottom again");
                         
@@ -361,7 +399,7 @@ public class AIChatUIHelper {
                     }
                 });
             }
-        }).start();
+        });
     }
     
     /**

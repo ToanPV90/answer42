@@ -103,7 +103,7 @@ public interface PaperRepository extends JpaRepository<Paper, UUID> {
      */
     @Query("SELECT p FROM Paper p WHERE " +
            "p.title LIKE %:searchTerm% OR " +
-           "p.abstract_ LIKE %:searchTerm% OR " +
+           "p.paperAbstract LIKE %:searchTerm% OR " +
            "p.textContent LIKE %:searchTerm%")
     Page<Paper> searchPapers(@Param("searchTerm") String searchTerm, Pageable pageable);
 
@@ -117,7 +117,7 @@ public interface PaperRepository extends JpaRepository<Paper, UUID> {
      */
     @Query("SELECT p FROM Paper p WHERE p.user = :user AND (" +
            "p.title LIKE %:searchTerm% OR " +
-           "p.abstract_ LIKE %:searchTerm% OR " +
+           "p.paperAbstract LIKE %:searchTerm% OR " +
            "p.textContent LIKE %:searchTerm%)")
     Page<Paper> searchPapersByUser(@Param("user") User user, 
                                   @Param("searchTerm") String searchTerm, 

@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.samjdtechnologies.answer42.model.AnalysisResult;
 import com.samjdtechnologies.answer42.model.ChatSession;
@@ -16,18 +18,33 @@ import com.samjdtechnologies.answer42.model.enums.AnalysisType;
 import com.samjdtechnologies.answer42.service.ChatService;
 import com.samjdtechnologies.answer42.service.PaperAnalysisService;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 
 /**
  * Processor class for handling paper analysis requests.
  * Manages the workflow of requesting, displaying, and saving analysis results.
+ * Uses Spring's thread management for background processing.
  */
+@Component
 public class PaperAnalysisProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(PaperAnalysisProcessor.class);
+    
+    private final Executor taskExecutor;
+
+    /**
+     * Creates a new PaperAnalysisProcessor with Spring's task executor.
+     * 
+     * @param taskExecutor The thread pool task executor from Spring's configuration
+     */
+    public PaperAnalysisProcessor(Executor taskExecutor) {
+        this.taskExecutor = taskExecutor;
+    }
 
     /**
      * Trigger a paper analysis and add the results to the chat.
@@ -39,11 +56,11 @@ public class PaperAnalysisProcessor {
      * @param session The current chat session
      * @param messagesContainer The UI container to add messages to
      */
-    public static void triggerAnalysis(String instruction, 
-                                     ChatService chatService,
-                                     PaperAnalysisService paperAnalysisService,
-                                     ChatSession session, 
-                                     VerticalLayout messagesContainer) {
+    public void triggerAnalysis(String instruction, 
+                               ChatService chatService,
+                               PaperAnalysisService paperAnalysisService,
+                               ChatSession session, 
+                               VerticalLayout messagesContainer) {
         LoggingUtil.info(LOG, "triggerAnalysis", "Starting paper analysis with instruction: %s", instruction);
         
         if (session == null) {
@@ -102,20 +119,30 @@ public class PaperAnalysisProcessor {
         
         // Add user message to UI showing the analysis request
         String analysisPrompt = "Perform a " + instruction.toLowerCase() + " of this paper.";
-        Component userMessage = AIChatViewHelper.createMessageBubble(true, analysisPrompt);
+        com.vaadin.flow.component.Component userMessage = AIChatViewHelper.createMessageBubble(true, analysisPrompt);
         messagesContainer.add(userMessage);
         LoggingUtil.debug(LOG, "triggerAnalysis", "Added user analysis request to UI");
         
-        // Add thinking message with spinner
-        Component thinkingMessage = AIChatViewHelper.createThinkingMessage();
-        messagesContainer.add(thinkingMessage);
-        LoggingUtil.info(LOG, "triggerAnalysis", "Added thinking message with spinner");
+        // Add progress message with progress bar
+        com.vaadin.flow.component.Component progressMessage = AIChatViewHelper.createProgressMessage("Analyzing paper...");
+        messagesContainer.add(progressMessage);
+        LoggingUtil.info(LOG, "triggerAnalysis", "Added progress message with progress bar");
         
-        // Scroll to bottom to show the thinking message
-        messagesContainer.getElement().executeJs(
-            "this.scrollTop = this.scrollHeight"
+        // Get the progress bar component for updating
+        ProgressBar progressBar = (ProgressBar) ((Div) ((HorizontalLayout) progressMessage).getComponentAt(1)).getComponentAt(1);
+        progressBar.setValue(0.1); // Initial progress value
+        
+        // Scroll to bottom to show the progress bar using the improved approach
+        UI.getCurrent().getPage().executeJs(
+            "setTimeout(function() {" +
+            "  const container = document.querySelector('.messages-container');" +
+            "  if (container) {" +
+            "    container.scrollTop = container.scrollHeight;" +
+            "    console.log('Scrolled to bottom for progress bar, height:', container.scrollHeight);" +
+            "  }" +
+            "}, 100);"
         );
-        LoggingUtil.debug(LOG, "triggerAnalysis", "Scrolled chat to bottom to show thinking indicator");
+        LoggingUtil.debug(LOG, "triggerAnalysis", "Used improved scroll method for progress indicator");
         
         // Get UI instance for updating from background thread
         UI ui = UI.getCurrent();
@@ -123,16 +150,57 @@ public class PaperAnalysisProcessor {
         // Store final values for async thread
         final UUID finalPaperId = paperId;
         final AnalysisType finalAnalysisType = analysisType;
+        final com.vaadin.flow.component.Component finalProgressMessage = progressMessage;
+        final ProgressBar finalProgressBar = progressBar;
         
-        // Start analysis in a background thread
-        new Thread(() -> {
+        // Start analysis in a background thread using Spring's task executor instead of manual thread creation
+        taskExecutor.execute(() -> {
             try {
+                // Simulate progress updates
+                ui.access(() -> {
+                    finalProgressBar.setValue(0.2);
+                    LoggingUtil.debug(LOG, "triggerAnalysis", "Updated progress to 20%");
+                });
+                
+                // Short delay to show progress
+                try {
+                    Thread.sleep(800);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+                
                 // Generate or retrieve analysis via PaperAnalysisService
                 LoggingUtil.info(LOG, "triggerAnalysis", "Generating analysis for paper %s with type %s", 
                         finalPaperId, finalAnalysisType);
                 
+                // Update progress to 40%
+                ui.access(() -> {
+                    finalProgressBar.setValue(0.4);
+                    LoggingUtil.debug(LOG, "triggerAnalysis", "Updated progress to 40%");
+                });
+                
+                // Start generating the analysis
                 AnalysisResult analysis = 
                         paperAnalysisService.getOrGenerateAnalysis(finalPaperId, finalAnalysisType, currentUser);
+                
+                // Update progress to 80%
+                ui.access(() -> {
+                    finalProgressBar.setValue(0.8);
+                    LoggingUtil.debug(LOG, "triggerAnalysis", "Updated progress to 80%");
+                });
+                
+                // Short delay to show progress
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+                
+                // Final progress update
+                ui.access(() -> {
+                    finalProgressBar.setValue(1.0);
+                    LoggingUtil.debug(LOG, "triggerAnalysis", "Updated progress to 100%");
+                });
                 
                 LoggingUtil.info(LOG, "triggerAnalysis", "Analysis completed: ID %s, size %d chars", 
                         analysis.getId(), analysis.getContent().length());
@@ -140,15 +208,15 @@ public class PaperAnalysisProcessor {
                 // Update UI in the UI thread - use runnable inside access() to ensure UI is updated immediately
                 ui.access(() -> {
                     try {
-                        // First access - remove thinking message and add the analysis message
-                        messagesContainer.remove(thinkingMessage);
-                        LoggingUtil.debug(LOG, "triggerAnalysis", "Removed thinking message from UI");
+                        // First access - remove progress message and add the analysis message
+                        messagesContainer.remove(finalProgressMessage);
+                        LoggingUtil.debug(LOG, "triggerAnalysis", "Removed progress message from UI");
                         
                         // Use push to ensure UI updates immediately
                         ui.push();
                         
                         // Add analysis intro message in a second access call to ensure proper rendering
-                        Component introMessage = AIChatViewHelper.createMessageBubble(false, 
+                        com.vaadin.flow.component.Component introMessage = AIChatViewHelper.createMessageBubble(false, 
                                 "I've completed the " + instruction + " of this paper:");
                         messagesContainer.add(introMessage);
                         
@@ -156,7 +224,7 @@ public class PaperAnalysisProcessor {
                         ui.push();
                         
                         // Add analysis content message in a third access call
-                        Component analysisMessage = AIChatViewHelper.createMessageBubble(false, analysis.getContent());
+                        com.vaadin.flow.component.Component analysisMessage = AIChatViewHelper.createMessageBubble(false, analysis.getContent());
                         messagesContainer.add(analysisMessage);
                         LoggingUtil.debug(LOG, "triggerAnalysis", "Added analysis messages to UI");
                         
@@ -233,30 +301,71 @@ public class PaperAnalysisProcessor {
                             LoggingUtil.error(LOG, "triggerAnalysis", "Error saving analysis messages: %s", ex, ex.getMessage());
                         }
                         
-                        // Scroll to bottom to show the response
-                        messagesContainer.getElement().executeJs(
-                            "this.scrollTop = this.scrollHeight"
+                        // Ensure scrolling works by using a more reliable approach with a slight delay
+                        // This ensures the DOM has fully updated before scrolling
+                        UI.getCurrent().getPage().executeJs(
+                            "setTimeout(function() {" +
+                            "  const container = document.querySelector('.messages-container');" +
+                            "  if (container) {" +
+                            "    container.scrollTop = container.scrollHeight;" +
+                            "    console.log('Scrolled to bottom, height:', container.scrollHeight);" +
+                            "  }" +
+                            "}, 100);"
                         );
-                        LoggingUtil.debug(LOG, "triggerAnalysis", "Scrolled chat to bottom to show analysis response");
+                        LoggingUtil.debug(LOG, "triggerAnalysis", "Using improved scroll method to show analysis response");
                     } catch (Exception ex) {
                         LoggingUtil.error(LOG, "triggerAnalysis", "Error updating UI after analysis: %s", ex, ex.getMessage());
                     }
                 });
             } catch (Exception e) {
                 ui.access(() -> {
-                    // Remove thinking message in case of error
-                    messagesContainer.remove(thinkingMessage);
-                    LoggingUtil.debug(LOG, "triggerAnalysis", "Removed thinking message due to error");
+                    // Remove progress message in case of error
+                    messagesContainer.remove(finalProgressMessage);
+                    LoggingUtil.debug(LOG, "triggerAnalysis", "Removed progress message due to error");
                     
-                    LoggingUtil.error(LOG, "triggerAnalysis", "Error generating analysis: %s", e, e.getMessage());
-                    Notification notification = Notification.show(
-                        "Error generating analysis: " + e.getMessage(), 
-                        3000, 
-                        Notification.Position.MIDDLE
+                    boolean isTimeout = (e instanceof RuntimeException) && 
+                                       e.getMessage() != null && 
+                                       e.getMessage().contains("Anthropic API is currently busy");
+                    
+                    if (isTimeout) {
+                        // Handle timeout with user-friendly message
+                        LoggingUtil.warn(LOG, "triggerAnalysis", "API timeout during analysis: %s", e.getMessage());
+                        
+                        // Add timeout message to chat
+                        com.vaadin.flow.component.Component timeoutMessage = AIChatViewHelper.createMessageBubble(false, 
+                            "I'm sorry, but Anthropic AI is currently busy. Please try your analysis request again in a few moments.");
+                        messagesContainer.add(timeoutMessage);
+                        
+                        // Also show notification
+                        Notification notification = Notification.show(
+                            "Anthropic API is currently busy. Please try again later.", 
+                            5000, 
+                            Notification.Position.MIDDLE
+                        );
+                        notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    } else {
+                        // Handle other errors
+                        LoggingUtil.error(LOG, "triggerAnalysis", "Error generating analysis: %s", e, e.getMessage());
+                        Notification notification = Notification.show(
+                            "Error generating analysis: " + e.getMessage(), 
+                            3000, 
+                            Notification.Position.MIDDLE
+                        );
+                        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                    
+                    // Also ensure scroll works in error case
+                    UI.getCurrent().getPage().executeJs(
+                        "setTimeout(function() {" +
+                        "  const container = document.querySelector('.messages-container');" +
+                        "  if (container) {" +
+                        "    container.scrollTop = container.scrollHeight;" +
+                        "    console.log('Scrolled to bottom after error, height:', container.scrollHeight);" +
+                        "  }" +
+                        "}, 100);"
                     );
-                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 });
             }
-        }).start();
+        });
     }
 }

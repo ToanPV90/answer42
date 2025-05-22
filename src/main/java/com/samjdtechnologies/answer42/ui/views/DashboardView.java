@@ -311,7 +311,7 @@ public class DashboardView extends Div implements BeforeEnterObserver {
                     // Extract content for display - fall back to abstract if text content not available
                     String displayContent = paper.getTextContent();
                     if (displayContent == null || displayContent.isEmpty()) {
-                        displayContent = paper.getAbstract();
+                        displayContent = paper.getPaperAbstract();
                         if (displayContent == null || displayContent.isEmpty()) {
                             displayContent = "No content available for this paper.";
                         }

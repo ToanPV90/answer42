@@ -82,8 +82,8 @@ public class AIInteractionHelper {
                     prompt.append("by ").append(String.join(", ", paper.getAuthors())).append(". ");
                 }
                 
-                if (paper.getAbstract() != null && !paper.getAbstract().isEmpty()) {
-                    prompt.append("\nAbstract: ").append(paper.getAbstract());
+                if (paper.getPaperAbstract() != null && !paper.getPaperAbstract().isEmpty()) {
+                    prompt.append("\nAbstract: ").append(paper.getPaperAbstract());
                 }
                 
                 prompt.append("\n\n");
@@ -108,11 +108,40 @@ public class AIInteractionHelper {
     }
     
     /**
+     * Exception indicating that the AI provider is currently unavailable or timing out.
+     */
+    public static class AITimeoutException extends RuntimeException {
+        private final AIProvider provider;
+        
+        /**
+         * Constructor for creating an AITimeoutException with provider information.
+         * 
+         * @param provider the AI provider that timed out
+         * @param message the error message
+         * @param cause the underlying cause of the timeout
+         */
+        public AITimeoutException(AIProvider provider, String message, Throwable cause) {
+            super(message, cause);
+            this.provider = provider;
+        }
+        
+        /**
+         * Get the AI provider that caused the timeout.
+         * 
+         * @return the AI provider that timed out
+         */
+        public AIProvider getProvider() {
+            return provider;
+        }
+    }
+    
+    /**
      * Get a response from the appropriate AI provider.
      * 
      * @param provider the AI provider to use
      * @param messages the message history
      * @return the AI response
+     * @throws AITimeoutException if the AI provider times out or is unavailable
      */
     public String getAIResponse(AIProvider provider, List<Message> messages) {
         LoggingUtil.info(LOG, "getAIResponse", "Getting response from %s with %d messages", 
@@ -148,9 +177,45 @@ public class AIInteractionHelper {
             
             return response;
         } catch (Exception e) {
-            LoggingUtil.error(LOG, "getAIResponse", "Error getting AI response: %s", e, e.getMessage());
-            return "I'm sorry, I encountered an error while processing your request: " + e.getMessage();
+            String errorMsg = e.getMessage();
+            
+            // Check if this is a timeout or connection error
+            boolean isTimeout = isTimeoutError(e);
+            
+            if (isTimeout) {
+                // Log as warning (not error) for timeouts
+                LoggingUtil.warn(LOG, "getAIResponse", "%s API timeout or connection error: %s", provider, errorMsg);
+                
+                // Throw a specific exception that can be caught by callers
+                throw new AITimeoutException(provider, 
+                        provider + " API is currently busy. Please try again later.", e);
+            } else {
+                // For other errors, continue with current behavior
+                LoggingUtil.error(LOG, "getAIResponse", "Error getting AI response from %s: %s", provider, errorMsg, e);
+                return "I'm sorry, I encountered an error while processing your request: " + errorMsg;
+            }
         }
+    }
+    
+    /**
+     * Check if an exception is related to timeout or connection issues.
+     * 
+     * @param e the exception to check
+     * @return true if this is a timeout or connection error
+     */
+    private boolean isTimeoutError(Exception e) {
+        String errorMsg = e.getMessage();
+        if (errorMsg == null) {
+            return false;
+        }
+        
+        // Check common timeout and connection error patterns
+        return errorMsg.contains("ReadTimeoutException") ||
+               errorMsg.contains("I/O error on POST request") ||
+               errorMsg.contains("Connection timed out") ||
+               errorMsg.contains("connect timed out") ||
+               errorMsg.contains("failed to connect") ||
+               errorMsg.contains("Connection refused");
     }
     
     /**

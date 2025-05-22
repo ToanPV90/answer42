@@ -126,7 +126,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
 
         Button uploadButton = new Button("Upload Paper", new Icon(VaadinIcon.UPLOAD));
         uploadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        uploadButton.addClickListener(e -> UI.getCurrent().navigate(UIConstants.ROUTE_UPLOAD_PAPER));
+        uploadButton.addClickListener(e -> showUploadDialog());
         
         Button bulkUploadButton = new Button("Bulk Upload", new Icon(VaadinIcon.FILE_TREE));
         bulkUploadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -213,6 +213,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
         downloadButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
         // Delete button
+        final Paper paperForDelete = paper; // Make effectively final for lambda
         Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
         deleteButton.addClickListener(e -> {
@@ -225,7 +226,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
             dialog.setConfirmButtonTheme("error primary");
             
             dialog.addConfirmListener(event -> {
-                paperService.deletePaper(paper.getId());
+                paperService.deletePaper(paperForDelete.getId());
                 updateList();
                 Notification.show("Paper deleted", 3000, Notification.Position.BOTTOM_START);
             });
@@ -262,7 +263,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
             pageInfo, 
             prevButton, 
             nextButton, 
-            paperService, 
+            paperService,
             adjustedPage -> {
                 // Update the page if it changed
                 this.page = adjustedPage;
@@ -373,6 +374,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
     }
 
     private void showPaperDetails(Paper paper) {
+        
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Paper Details");
         
@@ -411,9 +413,9 @@ public class PapersView extends Div implements BeforeEnterObserver {
         Paragraph processingStatus = new Paragraph("Processing Status: " + paper.getProcessingStatus());
         
         // Abstract
-        if (paper.getAbstract() != null && !paper.getAbstract().isEmpty()) {
+        if (paper.getPaperAbstract() != null && !paper.getPaperAbstract().isEmpty()) {
             H3 abstractHeader = new H3("Abstract");
-            Paragraph abstractContent = new Paragraph(paper.getAbstract());
+            Paragraph abstractContent = new Paragraph(paper.getPaperAbstract());
             dialogLayout.add(abstractHeader, abstractContent);
         }
         
@@ -427,6 +429,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
     }
 
     private void showEditDialog(Paper paper) {
+        
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Edit Paper Metadata");
         
@@ -464,7 +467,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
         
         // Abstract field
         TextField abstractField = new TextField("Abstract");
-        abstractField.setValue(paper.getAbstract() != null ? paper.getAbstract() : "");
+        abstractField.setValue(paper.getPaperAbstract() != null ? paper.getPaperAbstract() : "");
         abstractField.setWidthFull();
         
         Button saveButton = new Button("Save");

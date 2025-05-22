@@ -12,44 +12,43 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * CreditBalance represents a user's current credit balance and usage statistics.
  */
 @Entity
 @Table(name = "credit_balances", schema = "answer42")
+@Data
+@NoArgsConstructor
 public class CreditBalance {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private UUID userId;
     
-    @Column(nullable = false)
+    @Column(name = "balance")
     private Integer balance;
     
-    @Column(name = "used_this_period", nullable = false)
+    @Column(name = "used_this_period")
     private Integer usedThisPeriod;
     
-    @Column(name = "next_reset_date", nullable = false)
+    @Column(name = "next_reset_date")
     private LocalDateTime nextResetDate;
     
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
     
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    /**
-     * Default constructor for CreditBalance.
-     * Required by JPA.
-     */
-    public CreditBalance() {
-    }
     
     /**
      * Constructor with required fields for creating a new credit balance.
@@ -64,63 +63,6 @@ public class CreditBalance {
         this.balance = balance;
         this.usedThisPeriod = usedThisPeriod;
         this.nextResetDate = nextResetDate;
-    }
-    
-    // Getters and Setters
-    public UUID getId() {
-        return id;
-    }
-    
-    public void setId(UUID id) {
-        this.id = id;
-    }
-    
-    public UUID getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
-    
-    public Integer getBalance() {
-        return balance;
-    }
-    
-    public void setBalance(Integer balance) {
-        this.balance = balance;
-    }
-    
-    public Integer getUsedThisPeriod() {
-        return usedThisPeriod;
-    }
-    
-    public void setUsedThisPeriod(Integer usedThisPeriod) {
-        this.usedThisPeriod = usedThisPeriod;
-    }
-    
-    public LocalDateTime getNextResetDate() {
-        return nextResetDate;
-    }
-    
-    public void setNextResetDate(LocalDateTime nextResetDate) {
-        this.nextResetDate = nextResetDate;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
     
     /**

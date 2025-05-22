@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -12,8 +13,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Entity class representing a chat session.
@@ -21,40 +25,39 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "chat_sessions", schema = "answer42")
+@Data
+@NoArgsConstructor
 public class ChatSession {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
     private UUID id;
     
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
     
-    @Column(nullable = false)
+    @Column(name = "mode")
     private String mode;
     
-    @Column(nullable = false)
+    @Column(name = "provider")
     private String provider;
     
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
     
     @Column(name = "last_message_at")
     private LocalDateTime lastMessageAt;
     
-    @Column(nullable = true)
+    @Column(name = "title")
     private String title;
     
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(name = "context", columnDefinition = "jsonb")
     private Map<String, Object> context;
     
-    /**
-     * Default constructor initializing the created timestamp.
-     */
-    public ChatSession() {
-        this.createdAt = LocalDateTime.now();
-    }
     
     /**
      * Convenience constructor for creating a new chat session.
@@ -77,69 +80,4 @@ public class ChatSession {
         this.lastMessageAt = LocalDateTime.now();
     }
 
-    // Getters and setters
-    
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getMode() {
-        return mode;
-    }
-
-    public void setMode(String mode) {
-        this.mode = mode;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getLastMessageAt() {
-        return lastMessageAt;
-    }
-
-    public void setLastMessageAt(LocalDateTime lastMessageAt) {
-        this.lastMessageAt = lastMessageAt;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public Map<String, Object> getContext() {
-        return context;
-    }
-
-    public void setContext(Map<String, Object> context) {
-        this.context = context;
-    }
 }

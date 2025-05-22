@@ -15,9 +15,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.Data;
 
 /**
  * Entity representing an analysis task for a paper.
@@ -25,6 +27,7 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "analysis_tasks", schema = "answer42")
+@Data
 public class AnalysisTask {
     
     /**
@@ -39,12 +42,15 @@ public class AnalysisTask {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
     private UUID id;
     
     @ManyToOne
+    @JoinColumn(name = "paper_id")
     private Paper paper;
     
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
     
     @Enumerated(EnumType.STRING)
@@ -52,27 +58,35 @@ public class AnalysisTask {
     private AnalysisType analysisType;
     
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private Status status;
     
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
     
+    @Column(name = "completed_at")
     private LocalDateTime completedAt;
     
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "text")
+    @Column(name = "error_message", columnDefinition = "text")
     private String errorMessage;
     
     @OneToOne
+    @JoinColumn(name = "task_id")
     private AnalysisResult result;
     
     /**
-     * Default constructor for JPA.
+     * Constructor for creating a new pending analysis task.
+     * 
      */
-    public AnalysisTask() {
-        // Required by JPA
+    public AnalysisTask(){
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
-    
+
     /**
      * Constructor for creating a new pending analysis task.
      * 
@@ -85,7 +99,6 @@ public class AnalysisTask {
         this.user = user;
         this.analysisType = analysisType;
         this.status = Status.PENDING;
-        this.createdAt = LocalDateTime.now();
     }
     
     /**
@@ -115,87 +128,5 @@ public class AnalysisTask {
         this.status = Status.FAILED;
         this.errorMessage = errorMessage;
         this.completedAt = LocalDateTime.now();
-    }
-    
-    // Getters and setters
-    
-    public UUID getId() {
-        return id;
-    }
-    
-    public void setId(UUID id) {
-        this.id = id;
-    }
-    
-    public Paper getPaper() {
-        return paper;
-    }
-    
-    public void setPaper(Paper paper) {
-        this.paper = paper;
-    }
-    
-    public User getUser() {
-        return user;
-    }
-    
-    public void setUser(User user) {
-        this.user = user;
-    }
-    
-    public AnalysisType getAnalysisType() {
-        return analysisType;
-    }
-    
-    public void setAnalysisType(AnalysisType analysisType) {
-        this.analysisType = analysisType;
-    }
-    
-    public Status getStatus() {
-        return status;
-    }
-    
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getCompletedAt() {
-        return completedAt;
-    }
-    
-    public void setCompletedAt(LocalDateTime completedAt) {
-        this.completedAt = completedAt;
-    }
-    
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-    
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-    
-    public AnalysisResult getResult() {
-        return result;
-    }
-    
-    public void setResult(AnalysisResult result) {
-        this.result = result;
-    }
-    
-    @Override
-    public String toString() {
-        return "AnalysisTask [id=" + id + ", paper=" + (paper != null ? paper.getId() : "null") + 
-               ", user=" + (user != null ? user.getId() : "null") + 
-               ", analysisType=" + analysisType + ", status=" + status + 
-               ", createdAt=" + createdAt + ", completedAt=" + completedAt + "]";
     }
 }

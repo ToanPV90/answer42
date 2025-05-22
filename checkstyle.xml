@@ -30,6 +30,65 @@
         <property name="eachLine" value="true"/>
     </module>
 
+    <!-- First, detect files with @EntityScan and skip them -->
+    <module name="RegexpSingleline">
+        <property name="format" value="@EntityScan"/>
+        <property name="message" value=""/>
+        <property name="severity" value="ignore"/>
+    </module>
+    
+    <!-- Then validate @Entity in files without @EntityScan -->
+    <!-- <module name="RegexpMultiline">
+        <property name="format" value="^(?!.*@EntityScan).*@Entity(?!\s*\n\s*@Table\s*\(\s*name\s*=\s*&quot;[^&quot;]+&quot;\s*,\s*schema\s*=\s*&quot;answer42&quot;\s*\)\s*\n\s*@Data\s*\n\s*@NoArgsConstructor)"/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="message" value="@Entity must be followed by @Table(name=&quot;any_table_name&quot;, schema=&quot;answer42&quot;), @Data, and @NoArgsConstructor"/>
+        <property name="severity" value="error"/>
+    </module> -->
+
+    <!-- Check for manual methods in @Data classes -->
+    <module name="RegexpMultiline">
+        <property name="format" value="@Data[\s\S]*?public\s+\w+\s+get[A-Z]\w*\s*\("/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="message" value="Manual getters are not allowed in @Data classes - Lombok generates them automatically"/>
+        <property name="severity" value="error"/>
+    </module>
+
+    <module name="RegexpMultiline">
+        <property name="format" value="@Data[\s\S]*?public\s+void\s+set[A-Z]\w*\s*\("/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="message" value="Manual setters are not allowed in @Data classes - Lombok generates them automatically"/>
+        <property name="severity" value="error"/>
+    </module>
+
+    <module name="RegexpMultiline">
+        <property name="format" value="@Data[\s\S]*?public\s+String\s+toString\s*\("/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="message" value="Manual toString() is not allowed in @Data classes - Lombok generates it automatically"/>
+        <property name="severity" value="error"/>
+    </module>
+
+    <module name="RegexpMultiline">
+        <property name="format" value="@Data[\s\S]*?public\s+boolean\s+equals\s*\("/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="message" value="Manual equals() is not allowed in @Data classes - Lombok generates it automatically"/>
+        <property name="severity" value="error"/>
+    </module>
+
+    <module name="RegexpMultiline">
+        <property name="format" value="@Data[\s\S]*?public\s+int\s+hashCode\s*\("/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="message" value="Manual hashCode() is not allowed in @Data classes - Lombok generates it automatically"/>
+        <property name="severity" value="error"/>
+    </module>
+
+    <!-- Better @JoinTable validation using multi-line -->
+    <module name="RegexpMultiline">
+        <property name="format" value="@JoinTable\s*\(\s*(?![^)]*name\s*=)[^)]*(\n[^)]*)*\)"/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="message" value="@JoinTable annotation must specify name attribute"/>
+        <property name="severity" value="error"/>
+    </module>
+
     <module name="TreeWalker">
         <!-- Import order: java/javax first, then third-party, then project imports -->
         <!-- <module name="ImportOrder">
@@ -116,5 +175,19 @@
             <property name="format" value="class\s+\w+View\s+(?!extends\s+Div\s+implements\s+BeforeEnterObserver)"/>
             <property name="message" value="View classes must extend Div and implement BeforeEnterObserver."/>
         </module> -->
+         <!-- Require name attribute in @Column annotation -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="@Column(?!\s*\([^)]*name\s*=)"/>
+            <property name="message" value="@Column annotation must specify name attribute: @Column(name = &quot;column_name&quot;)"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- Require name attribute in @JoinColumn annotation -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="@JoinColumn(?!\s*\([^)]*name\s*=)"/>
+            <property name="message" value="@JoinColumn annotation must specify name attribute: @JoinColumn(name = &quot;column_name&quot;)"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
     </module>
 </module>

@@ -12,12 +12,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * UserPreferences stores user-specific preference settings.
  */
 @Entity
 @Table(name = "user_settings", schema = "answer42")
+@Data
+@NoArgsConstructor
 public class UserPreferences {
     
     @Id
@@ -56,12 +60,6 @@ public class UserPreferences {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
     
-    // Constructors
-    /**
-     * Default constructor for UserPreferences.
-     */
-    public UserPreferences() {
-    }
     
     /**
      * Creates user preferences for a specific user.
@@ -70,112 +68,5 @@ public class UserPreferences {
      */
     public UserPreferences(UUID userId) {
         this.userId = userId;
-    }
-    
-    // Getters and Setters
-    public UUID getId() {
-        return id;
-    }
-    
-    public void setId(UUID id) {
-        this.id = id;
-    }
-    
-    public UUID getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
-    
-    public String getAcademicField() {
-        return academicField;
-    }
-    
-    public void setAcademicField(String academicField) {
-        this.academicField = academicField;
-    }
-    
-    public boolean isStudyMaterialGenerationEnabled() {
-        return studyMaterialGenerationEnabled;
-    }
-    
-    public void setStudyMaterialGenerationEnabled(boolean studyMaterialGenerationEnabled) {
-        this.studyMaterialGenerationEnabled = studyMaterialGenerationEnabled;
-    }
-    
-    public boolean isEmailNotificationsEnabled() {
-        return emailNotificationsEnabled;
-    }
-    
-    public void setEmailNotificationsEnabled(boolean emailNotificationsEnabled) {
-        this.emailNotificationsEnabled = emailNotificationsEnabled;
-    }
-    
-    public boolean isSystemNotificationsEnabled() {
-        return systemNotificationsEnabled;
-    }
-    
-    public void setSystemNotificationsEnabled(boolean systemNotificationsEnabled) {
-        this.systemNotificationsEnabled = systemNotificationsEnabled;
-    }
-    
-    public String getOpenaiApiKey() {
-        return openaiApiKey;
-    }
-    
-    public void setOpenaiApiKey(String openaiApiKey) {
-        this.openaiApiKey = openaiApiKey;
-    }
-    
-    public String getPerplexityApiKey() {
-        return perplexityApiKey;
-    }
-    
-    public void setPerplexityApiKey(String perplexityApiKey) {
-        this.perplexityApiKey = perplexityApiKey;
-    }
-    
-    public String getAnthropicApiKey() {
-        return anthropicApiKey;
-    }
-    
-    public void setAnthropicApiKey(String anthropicApiKey) {
-        this.anthropicApiKey = anthropicApiKey;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-    
-    /**
-     * Returns a string representation of the user preferences.
-     * 
-     * @return a string containing the user preferences details
-     */
-    @Override
-    public String toString() {
-        return "UserPreferences{" +
-                "id=" + id +
-                ", userId=" + userId +
-                ", academicField='" + academicField + '\'' +
-                ", studyMaterialGenerationEnabled=" + studyMaterialGenerationEnabled +
-                ", emailNotificationsEnabled=" + emailNotificationsEnabled +
-                ", systemNotificationsEnabled=" + systemNotificationsEnabled +
-                ", apiKeysConfigured=" + (openaiApiKey != null || perplexityApiKey != null || anthropicApiKey != null) +
-                '}';
     }
 }

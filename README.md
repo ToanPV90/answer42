@@ -156,6 +156,32 @@ Answer42 implements a comprehensive security system:
 
 ## Database Schema
 
+**Dump the entire schema**
+
+supabase db dump --schema public > schema.sql
+
+**Dump specific schema**
+
+supabase db dump --schema answer42 > answer42_schema.sql
+
+**Dump with data**
+
+supabase db dump --data-only > data.sql
+
+**Dump structure only (no data)**
+
+supabase db dump --schema-only > structure.sql
+
+**Dump specific tables**
+
+supabase db dump --table papers --table users > specific_tables.sql
+
+snake case for database, camelCase for Java.
+
+Entity properties must have their name set to match the database.
+
+ @Column, @JoinColumn, @JoinTable
+
 The application uses PostgreSQL with the following core entities:
 
 1. **User**: User account information
@@ -163,6 +189,20 @@ The application uses PostgreSQL with the following core entities:
 3. **Project**: Research project details
 4. **AIChat**: AI conversation history
 5. **Subscription**: User subscription details
+
+USE LOMBOK FOR YOUR ENTITIES WHERE POSSIBLE!
+
+@Data // Lombok annotation for getters, setters, equals, hashCode, toString
+@NoArgsConstructor // Lombok for no-args constructor
+@AllArgsConstructor // Lombok for all-args constructor
+
+// JPA Default Loading Strategies
+@OneToOne    // EAGER by default
+@ManyToOne   // EAGER by default
+@OneToMany   // LAZY by default
+@ManyToMany  // LAZY by default
+
+@UpdateTimestamp // called on insert and update
 
 ### JSON Fields
 
@@ -175,6 +215,9 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
+@Table(name = "table_name", schema = "answer42")
+@Data                   // Lombok annotation for getters, setters, equals, hashCode, toString
+@NoArgsConstructor      // Lombok for no-args constructor
 public class YourEntity {
 
     @Id
@@ -197,6 +240,8 @@ For array types stored as JSONB, we use List<String> with the same annotations:
 ```java
 @Entity
 @Table(name = "papers", schema = "answer42")
+@Data                   // Lombok annotation for getters, setters, equals, hashCode, toString
+@NoArgsConstructor      // Lombok for no-args constructor
 public class Paper {
 
     // Other fields...
@@ -205,14 +250,6 @@ public class Paper {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private List<String> topics;
-
-    public List<String> getTopics() {
-        return topics;
-    }
-
-    public void setTopics(List<String> topics) {
-        this.topics = topics;
-    }
 
     // Rest of your entity...
 }

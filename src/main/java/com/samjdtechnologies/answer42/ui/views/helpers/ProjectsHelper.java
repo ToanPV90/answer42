@@ -310,6 +310,7 @@ public class ProjectsHelper {
         closeButton.getElement().getStyle().set("right", "0");
         closeButton.getElement().getStyle().set("top", "0");
         closeButton.getElement().getStyle().set("margin", "var(--lumo-space-m)");
+        closeButton.getElement().getStyle().set("cursor", "pointer");
         closeButton.addClickListener(e -> dialog.close());
         dialog.getHeader().add(closeButton);
         
@@ -347,15 +348,60 @@ public class ProjectsHelper {
         papersHeader.getStyle().set("margin-top", "var(--lumo-space-m)");
         papersHeader.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
         
+        // Create paper selection tracking set
+        Set<Paper> selectedGridPapers = new java.util.HashSet<>();
+        
         Grid<Paper> papersGrid = new Grid<>();
-        papersGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         papersGrid.setHeight("200px");
         papersGrid.setWidthFull();
         
-        papersGrid.addColumn(Paper::getTitle).setHeader("Title").setFlexGrow(3);
-        papersGrid.addColumn(paper -> paper.getAuthors() != null ? 
-                String.join(", ", paper.getAuthors()) : "").setHeader("Authors").setFlexGrow(2);
-        papersGrid.addColumn(Paper::getYear).setHeader("Year").setFlexGrow(1);
+        // Configure columns - title, authors, year on the left, checkbox on the right
+        papersGrid.addColumn(new ComponentRenderer<>(paper -> {
+            VerticalLayout paperInfo = new VerticalLayout();
+            paperInfo.setPadding(false);
+            paperInfo.setSpacing(false);
+            
+            H3 title = new H3(paper.getTitle());
+            title.getStyle().set("margin-top", "0");
+            title.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
+            title.getStyle().set("font-size", "var(--lumo-font-size-m)");
+            
+            String authors = paper.getAuthors() != null && !paper.getAuthors().isEmpty() 
+                  ? String.join(", ", paper.getAuthors())
+                  : "Unknown Author";
+            
+            Span authorSpan = new Span(authors);
+            authorSpan.getStyle()
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("font-size", "var(--lumo-font-size-s)");
+            
+            paperInfo.add(title, authorSpan);
+            if (paper.getYear() != null) {
+                Span yearSpan = new Span("Year: " + paper.getYear());
+                yearSpan.getStyle()
+                    .set("color", "var(--lumo-tertiary-text-color)")
+                    .set("font-size", "var(--lumo-font-size-xs)");
+                paperInfo.add(yearSpan);
+            }
+            return paperInfo;
+        })).setHeader("Paper").setAutoWidth(true).setFlexGrow(1);
+        
+        // Add checkbox column on the right
+        papersGrid.addColumn(new ComponentRenderer<>(paper -> {
+            Checkbox checkbox = new Checkbox();
+            checkbox.setValue(selectedGridPapers.contains(paper));
+            
+            checkbox.addValueChangeListener(event -> {
+                if (event.getValue()) {
+                    selectedGridPapers.add(paper);
+                } else {
+                    selectedGridPapers.remove(paper);
+                }
+            });
+            
+            return checkbox;
+        })).setHeader("Select").setWidth("80px").setFlexGrow(0)
+            .setTextAlign(com.vaadin.flow.component.grid.ColumnTextAlign.CENTER);
         
         // Load available papers
         List<Paper> availablePapers = new ArrayList<>();
@@ -385,9 +431,8 @@ public class ProjectsHelper {
                 newProject.setIsPublic(isPublicCheckbox.getValue());
                 
                 // Add selected papers if any
-                Set<Paper> selectedPapers = papersGrid.getSelectedItems();
-                if (!selectedPapers.isEmpty()) {
-                    newProject.setPapers(selectedPapers);
+                if (!selectedGridPapers.isEmpty()) {
+                    newProject.setPapers(selectedGridPapers);
                 }
                 
                 createHandler.accept(newProject);

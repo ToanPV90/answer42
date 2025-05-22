@@ -18,9 +18,8 @@ import com.samjdtechnologies.answer42.service.PaperAnalysisService;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.views.helpers.AIChatUIHelper;
+import com.samjdtechnologies.answer42.ui.views.helpers.AIChatMessageProcessor;
 import com.samjdtechnologies.answer42.ui.views.helpers.AIChatViewHelper;
-import com.samjdtechnologies.answer42.ui.views.helpers.PaperAnalysisProcessor;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
@@ -61,6 +60,8 @@ public class AIChatView extends Div implements BeforeEnterObserver {
     private final ChatService chatService;
     private final PaperService paperService;
     private final PaperAnalysisService paperAnalysisService;
+    private final AIChatViewHelper aiChatViewHelper;
+    private final AIChatMessageProcessor aIChatMessageProcessor;
     
     // UI Components
     private final HorizontalLayout selectedPapersContainer = new HorizontalLayout();
@@ -89,11 +90,19 @@ public class AIChatView extends Div implements BeforeEnterObserver {
      * @param chatService The chat service for AI interactions
      * @param paperService The paper service for accessing papers
      * @param paperAnalysisService The service for generating paper analyses
+     * @param aiChatViewHelper The helper for chat-related UI operations
+     * @param aIChatMessageProcessor The helper for AI chat UI feedback
      */
-    public AIChatView(ChatService chatService, PaperService paperService, PaperAnalysisService paperAnalysisService) {
+    public AIChatView(ChatService chatService, 
+                      PaperService paperService, 
+                      PaperAnalysisService paperAnalysisService,
+                      AIChatViewHelper aiChatViewHelper,
+                      AIChatMessageProcessor aIChatMessageProcessor) {
         this.paperAnalysisService = paperAnalysisService;
         this.chatService = chatService;
         this.paperService = paperService;
+        this.aiChatViewHelper = aiChatViewHelper;
+        this.aIChatMessageProcessor = aIChatMessageProcessor;
         
         addClassName(UIConstants.CSS_AI_CHAT_VIEW);
         getStyle().setHeight("auto");
@@ -251,7 +260,7 @@ public class AIChatView extends Div implements BeforeEnterObserver {
         messagesContainer.removeAll();
         
         // Add welcome message for the selected mode
-        String welcomeMessage = AIChatUIHelper.getWelcomeMessageForMode(currentMode);
+        String welcomeMessage = AIChatMessageProcessor.getWelcomeMessageForMode(currentMode);
         addAssistantMessage(welcomeMessage);
         
         // Update UI for this mode
@@ -277,7 +286,7 @@ public class AIChatView extends Div implements BeforeEnterObserver {
         paperSelectionArea.setSpacing(false);
         
         // Mode-specific selection helper text
-        Span selectionHelper = AIChatUIHelper.getSelectionHelperText(currentMode);
+        Span selectionHelper = AIChatMessageProcessor.getSelectionHelperText(currentMode);
         
         // Show selected papers with the selection helper text
         paperSelectionArea.add(selectionHelper, selectedPapersContainer);
@@ -583,8 +592,8 @@ public class AIChatView extends Div implements BeforeEnterObserver {
             return;
         }
 
-        // Use the AIChatUIHelper to handle the message sending with UI feedback
-        AIChatUIHelper.sendMessageWithUIFeedback(
+        // Use the AIChatMessageProcessor to handle the message sending with UI feedback
+        aIChatMessageProcessor.sendMessageWithUIFeedback(
                 chatService,
                 activeSession.getId(),
                 message,
@@ -616,9 +625,9 @@ public class AIChatView extends Div implements BeforeEnterObserver {
         LoggingUtil.info(LOG, "triggerAnalysis", "Disabled all analysis buttons");
         
         try {
-            // Trigger the analysis with the helper method using PaperAnalysisProcessor
-            LoggingUtil.info(LOG, "triggerAnalysis", "Calling PaperAnalysisProcessor.triggerAnalysis with type: %s", analysisType);
-            PaperAnalysisProcessor.triggerAnalysis(analysisType, chatService, paperAnalysisService, activeSession, messagesContainer);
+            // Trigger the analysis with the helper method using AIChatViewHelper
+            LoggingUtil.info(LOG, "triggerAnalysis", "Calling aiChatViewHelper.triggerAnalysis with type: %s", analysisType);
+            aiChatViewHelper.triggerAnalysis(analysisType, chatService, paperAnalysisService, activeSession, messagesContainer);
         } finally {
             // Re-enable all analysis buttons
             analysisButtons.forEach(button -> button.setEnabled(true));

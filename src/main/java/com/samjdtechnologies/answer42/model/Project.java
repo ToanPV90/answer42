@@ -1,7 +1,8 @@
 package com.samjdtechnologies.answer42.model;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,8 +21,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.NoArgsConstructor;
 
 /**
  * Entity representing a research project in the system.
@@ -29,30 +30,33 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "projects", schema = "answer42")
+@NoArgsConstructor
 public class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "description")
     private String description;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(name = "settings", columnDefinition = "jsonb")
     private JsonNode settings;
 
     @Column(name = "created_at")
-    private ZonedDateTime createdAt;
+    private LocalDateTime createdAt  = LocalDateTime.now();
 
     @Column(name = "updated_at")
-    private ZonedDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Column(name = "is_public")
     private Boolean isPublic = false;
@@ -67,15 +71,6 @@ public class Project {
     private Set<Paper> papers = new HashSet<>();
 
     /**
-     * Default constructor for Project.
-     * Initializes creation and update timestamps to the current time.
-     */
-    public Project() {
-        this.createdAt = ZonedDateTime.now();
-        this.updatedAt = ZonedDateTime.now();
-    }
-
-    /**
      * Constructor with required fields for creating a new project.
      * 
      * @param name The name of the project
@@ -87,7 +82,25 @@ public class Project {
         this.user = user;
     }
 
-    // Getters and setters
+    /**
+     * Adds a paper to this project's collection of papers.
+     *
+     * @param paper The paper to add to the project
+     */
+    public void addPaper(Paper paper) {
+        this.papers.add(paper);
+    }
+
+    /**
+     * Removes a paper from this project's collection of papers.
+     *
+     * @param paper The paper to remove from the project
+     */
+    public void removePaper(Paper paper) {
+        this.papers.remove(paper);
+    }
+
+    // Getters and Setters
 
     public UUID getId() {
         return id;
@@ -129,19 +142,19 @@ public class Project {
         this.settings = settings;
     }
 
-    public ZonedDateTime getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(ZonedDateTime createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public ZonedDateTime getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -161,36 +174,29 @@ public class Project {
         this.papers = papers;
     }
 
-    /**
-     * Adds a paper to this project's collection of papers.
-     *
-     * @param paper The paper to add to the project
-     */
-    public void addPaper(Paper paper) {
-        this.papers.add(paper);
-    }
-
-    /**
-     * Removes a paper from this project's collection of papers.
-     *
-     * @param paper The paper to remove from the project
-     */
-    public void removePaper(Paper paper) {
-        this.papers.remove(paper);
-    }
-
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = ZonedDateTime.now();
-    }
-
     @Override
     public String toString() {
         return "Project{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", isPublic=" + isPublic +
                 ", paperCount=" + (papers != null ? papers.size() : 0) +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Project project = (Project) o;
+        return Objects.equals(id, project.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

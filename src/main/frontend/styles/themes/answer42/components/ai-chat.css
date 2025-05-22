@@ -18,6 +18,7 @@
 .chat-tabs {
   margin-bottom: var(--lumo-space-m);
   border-bottom: 1px solid var(--lumo-contrast-10pct);
+   margin: 0 auto;
 }
 
 .paper-selection-area {

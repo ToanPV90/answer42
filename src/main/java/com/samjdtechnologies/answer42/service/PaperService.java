@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -105,9 +105,9 @@ public class PaperService {
     @Transactional
     public Paper savePaper(Paper paper) {
         if (paper.getCreatedAt() == null) {
-            paper.setCreatedAt(ZonedDateTime.now());
+            paper.setCreatedAt(LocalDateTime.now());
         }
-        paper.setUpdatedAt(ZonedDateTime.now());
+        paper.setUpdatedAt(LocalDateTime.now());
         return paperRepository.save(paper);
     }
     
@@ -231,7 +231,7 @@ public class PaperService {
         metadata.put("originalFilename", originalFilename);
         metadata.put("contentType", file.getContentType());
         metadata.put("size", file.getSize());
-        metadata.put("uploadTimestamp", ZonedDateTime.now().toString());
+        metadata.put("uploadTimestamp", LocalDateTime.now().toString());
         paper.setMetadata(metadata);
         
         return savePaper(paper);
@@ -243,7 +243,7 @@ public class PaperService {
      * @param id The paper ID
      * @param title The new title
      * @param authors The new authors
-     * @param abstract_ The new abstract
+     * @param paperAbstract The new abstract
      * @param journal The new journal
      * @param year The new year
      * @param doi The new DOI
@@ -251,7 +251,7 @@ public class PaperService {
      */
     @Transactional
     public Optional<Paper> updatePaperMetadata(UUID id, String title, String[] authors, 
-                                             String abstract_, String journal, Integer year, String doi) {
+                                             String paperAbstract, String journal, Integer year, String doi) {
         Optional<Paper> paperOpt = paperRepository.findById(id);
         
         if (paperOpt.isPresent()) {
@@ -259,12 +259,12 @@ public class PaperService {
             
             if (title != null) paper.setTitle(title);
             if (authors != null) paper.setAuthors(Arrays.asList(authors)); // Convert String[] to List<String>
-            if (abstract_ != null) paper.setAbstract(abstract_);
+            if (paperAbstract != null) paper.setPaperAbstract(paperAbstract);
             if (journal != null) paper.setJournal(journal);
             if (year != null) paper.setYear(year);
             if (doi != null) paper.setDoi(doi);
             
-            paper.setUpdatedAt(ZonedDateTime.now());
+            paper.setUpdatedAt(LocalDateTime.now());
             return Optional.of(paperRepository.save(paper));
         }
         
@@ -289,7 +289,7 @@ public class PaperService {
             if (status != null) paper.setStatus(status);
             if (processingStatus != null) paper.setProcessingStatus(processingStatus);
             
-            paper.setUpdatedAt(ZonedDateTime.now());
+            paper.setUpdatedAt(LocalDateTime.now());
             return Optional.of(paperRepository.save(paper));
         }
         
@@ -310,7 +310,7 @@ public class PaperService {
         if (paperOpt.isPresent()) {
             Paper paper = paperOpt.get();
             paper.setTextContent(textContent);
-            paper.setUpdatedAt(ZonedDateTime.now());
+            paper.setUpdatedAt(LocalDateTime.now());
             return Optional.of(paperRepository.save(paper));
         }
         
@@ -331,7 +331,7 @@ public class PaperService {
         if (paperOpt.isPresent()) {
             Paper paper = paperOpt.get();
             paper.setIsPublic(isPublic);
-            paper.setUpdatedAt(ZonedDateTime.now());
+            paper.setUpdatedAt(LocalDateTime.now());
             return Optional.of(paperRepository.save(paper));
         }
         

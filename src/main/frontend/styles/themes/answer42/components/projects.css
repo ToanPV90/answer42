@@ -108,6 +108,7 @@
 .project-dialog {
   width: 500px;
   max-width: 100%;
+  min-width: 600px;
 }
 
 /* Empty state styling */

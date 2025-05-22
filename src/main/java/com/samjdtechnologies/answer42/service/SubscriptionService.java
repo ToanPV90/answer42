@@ -241,7 +241,7 @@ public class SubscriptionService {
             "Getting yearly discount percentage for plan ID: %s", planId);
         
         return getPlanById(planId)
-            .map(SubscriptionPlan::getYearlyDiscount)
+            .map(SubscriptionPlan::calculateYearlyDiscount)
             .orElse(BigDecimal.ZERO);
     }
     

@@ -15,6 +15,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Entity representing a user in the system.
@@ -22,18 +25,21 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "users", schema = "answer42")
+@Data
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     
-    @Column(unique = true, nullable = false)
+    @Column(name = "username", unique = true, nullable = false)
     private String username;
     
-    @Column(nullable = false)
+    @Column(name = "password")
     private String password;
     
-    @Column(unique = true)
+    @Email
+    @Column(name = "email", unique = true)
     private String email;
     
     private boolean enabled = true;
@@ -53,12 +59,6 @@ public class User {
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
 
-    /**
-     * Default constructor for User.
-     * Required by JPA.
-     */
-    public User() {
-    }
 
     /**
      * Constructor with required fields for creating a new user.
@@ -73,69 +73,6 @@ public class User {
         this.email = email;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-    
-    public LocalDateTime getLastLogin() {
-        return lastLogin;
-    }
-    
-    public void setLastLogin(LocalDateTime lastLogin) {
-        this.lastLogin = lastLogin;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Set<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<String> roles) {
-        this.roles = roles;
-    }
 
     /**
      * Adds a role to this user's set of roles.
@@ -146,15 +83,5 @@ public class User {
         this.roles.add(role);
     }
     
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", enabled=" + enabled +
-                ", roles=" + roles +
-                '}';
-    }
 
 }

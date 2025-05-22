@@ -373,7 +373,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
             LoggingUtil.info(LOG, "uploadPaper", "Paper uploaded with ID: %s, updating metadata", paper.getId());
             
             // Update additional fields
-            paper.setAbstract(abstractField.getValue());
+            paper.setPaperAbstract(abstractField.getValue());
             paper.setJournal(journalField.getValue());
             paper.setPublicationDate(publicationDateField.getValue());
             paper.setDoi(doiField.getValue());
@@ -391,7 +391,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
                 paper.getId(),
                 paper.getTitle(),
                 authorsArray,
-                paper.getAbstract(),
+                paper.getPaperAbstract(),
                 paper.getJournal(),
                 paper.getYear(),
                 paper.getDoi()

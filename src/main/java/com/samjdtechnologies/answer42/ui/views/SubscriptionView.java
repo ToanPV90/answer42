@@ -7,12 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
 
-import com.samjdtechnologies.answer42.model.SubscriptionPlan;
-import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.model.daos.SubscriptionPlan;
+import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.service.SubscriptionService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.views.helpers.SubscriptionProcessor;
+import com.samjdtechnologies.answer42.ui.views.helpers.SubscriptionViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -360,7 +360,7 @@ public class SubscriptionView extends VerticalLayout implements BeforeEnterObser
             currentUser.getUsername(), plan.getName());
             
         // Create a subscription processor
-        SubscriptionProcessor processor = new SubscriptionProcessor(subscriptionService, currentUser);
+        SubscriptionViewHelper processor = new SubscriptionViewHelper(subscriptionService, currentUser);
         
         // Show the payment dialog
         processor.showPaymentDialog(plan, isYearly, subscription -> {

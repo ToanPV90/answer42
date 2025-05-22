@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
 
-import com.samjdtechnologies.answer42.model.User;
-import com.samjdtechnologies.answer42.model.UserPreferences;
+import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.daos.UserPreferences;
 import com.samjdtechnologies.answer42.service.UserPreferencesService;
 import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;

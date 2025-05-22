@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.samjdtechnologies.answer42.model.ChatSession;
-import com.samjdtechnologies.answer42.model.Paper;
-import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.model.daos.ChatSession;
+import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.ChatMode;
 import com.samjdtechnologies.answer42.repository.ChatSessionRepository;

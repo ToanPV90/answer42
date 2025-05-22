@@ -5,12 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.samjdtechnologies.answer42.model.Paper;
-import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.views.helpers.PapersHelper;
+import com.samjdtechnologies.answer42.ui.views.helpers.PapersViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -179,7 +179,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
     private void configureGrid() {
         // Use helper class to configure the grid
         ComponentRenderer<Component, Paper> actionsRenderer = new ComponentRenderer<>(this::createActions);
-        PapersHelper.configureGrid(grid, actionsRenderer, this::showPaperDetails);
+        PapersViewHelper.configureGrid(grid, actionsRenderer, this::showPaperDetails);
         
         // Add the CSS class for styling
         grid.addClassName(UIConstants.CSS_PAPERS_GRID);
@@ -253,7 +253,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
             searchTerm, statusValue, page);
             
         // Use helper method to update the list, pagination, and grid
-        PapersHelper.updateList(
+        PapersViewHelper.updateList(
             currentUser, 
             searchTerm, 
             statusValue, 
@@ -336,7 +336,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
                 String[] authors = authorsField.getValue().split("\\s*,\\s*");
                 
                 // Use helper to create MultipartFile from buffer
-                MultipartFile file = PapersHelper.createMultipartFileFromBuffer(buffer);
+                MultipartFile file = PapersViewHelper.createMultipartFileFromBuffer(buffer);
                 
                 // Upload the paper
                 Paper paper = paperService.uploadPaper(
@@ -370,7 +370,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
     
     // Delegating validation to the helper class
     private void validateUploadForm(TextField titleField, TextField authorsField, boolean fileUploaded, Button submitButton) {
-        PapersHelper.validateUploadForm(titleField, authorsField, fileUploaded, submitButton);
+        PapersViewHelper.validateUploadForm(titleField, authorsField, fileUploaded, submitButton);
     }
 
     private void showPaperDetails(Paper paper) {
@@ -520,7 +520,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
 
     private void downloadPaper(Paper paper) {
         // Delegate to helper method to handle download functionality
-        getUI().ifPresent(ui -> PapersHelper.downloadPaper(paper, ui, this));
+        getUI().ifPresent(ui -> PapersViewHelper.downloadPaper(paper, ui, this));
     }
     
     @Override

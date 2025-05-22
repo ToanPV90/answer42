@@ -10,12 +10,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.samjdtechnologies.answer42.model.CreditBalance;
-import com.samjdtechnologies.answer42.model.CreditTransaction;
-import com.samjdtechnologies.answer42.model.CreditTransaction.OperationType;
-import com.samjdtechnologies.answer42.model.CreditTransaction.TransactionType;
-import com.samjdtechnologies.answer42.model.Subscription;
-import com.samjdtechnologies.answer42.model.SubscriptionPlan;
+import com.samjdtechnologies.answer42.model.daos.CreditBalance;
+import com.samjdtechnologies.answer42.model.daos.CreditTransaction;
+import com.samjdtechnologies.answer42.model.daos.CreditTransaction.OperationType;
+import com.samjdtechnologies.answer42.model.daos.CreditTransaction.TransactionType;
+import com.samjdtechnologies.answer42.model.daos.Subscription;
+import com.samjdtechnologies.answer42.model.daos.SubscriptionPlan;
 import com.samjdtechnologies.answer42.repository.CreditBalanceRepository;
 import com.samjdtechnologies.answer42.repository.CreditTransactionRepository;
 import com.samjdtechnologies.answer42.util.LoggingUtil;

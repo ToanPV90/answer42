@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.samjdtechnologies.answer42.model.Paper;
-import com.samjdtechnologies.answer42.model.Project;
-import com.samjdtechnologies.answer42.model.User;
+import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.daos.Project;
+import com.samjdtechnologies.answer42.model.daos.User;
 
 /**
  * Utility class for Hibernate operations, particularly handling lazy loading issues.

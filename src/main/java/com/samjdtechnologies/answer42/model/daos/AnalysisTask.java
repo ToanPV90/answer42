@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.daos;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -62,13 +62,10 @@ public class AnalysisTask {
     private Status status;
     
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
-    
-    @Column(name = "completed_at")
-    private LocalDateTime completedAt;
+    private ZonedDateTime updatedAt = ZonedDateTime.now();
     
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "error_message", columnDefinition = "text")
@@ -83,8 +80,8 @@ public class AnalysisTask {
      * 
      */
     public AnalysisTask(){
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = ZonedDateTime.now();
+        this.updatedAt = ZonedDateTime.now();
     }
 
     /**
@@ -116,7 +113,7 @@ public class AnalysisTask {
     public void markAsCompleted(AnalysisResult result) {
         this.status = Status.COMPLETED;
         this.result = result;
-        this.completedAt = LocalDateTime.now();
+        this.updatedAt = ZonedDateTime.now();
     }
     
     /**
@@ -127,6 +124,6 @@ public class AnalysisTask {
     public void markAsFailed(String errorMessage) {
         this.status = Status.FAILED;
         this.errorMessage = errorMessage;
-        this.completedAt = LocalDateTime.now();
+        this.updatedAt = ZonedDateTime.now();
     }
 }

@@ -14,18 +14,18 @@ graph TD
     ChatService --> SessionManager[Session Manager]
     ChatService --> MessageProcessor[Message Processor]
     ChatService --> AIConfig[AIConfig]
-    
+
     AIConfig --> Claude[Anthropic Claude]
     AIConfig --> OpenAI[OpenAI GPT-4]
     AIConfig --> Perplexity[Perplexity API]
-    
+
     MessageProcessor --> ContextBuilder[Context Builder]
     MessageProcessor --> PromptGenerator[Prompt Generator]
     MessageProcessor --> ResponseParser[Response Parser]
-    
+
     SessionManager --> Database[(Database)]
     MessageProcessor --> Database
-    
+
     ChatService --> AnalysisService[Analysis Service]
     ChatService --> CreditService[Credit Service]
     ChatService --> PaperService[Paper Service]
@@ -46,35 +46,36 @@ public class ChatSession {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    
+
     @Column(name = "user_id")
     private UUID userId;
-    
+
     @Column(name = "mode", nullable = false)
     private String mode = "general";
-    
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> context = new HashMap<>();
-    
+
     @Column(name = "created_at")
     private ZonedDateTime createdAt;
-    
+
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
-    
+
     @Column(name = "last_message_at")
     private ZonedDateTime lastMessageAt;
-    
+
     @Column(name = "provider", nullable = false)
     private String provider;
-    
+
     @Column(name = "title")
     private String title;
 }
 ```
 
 The session includes:
+
 - A unique identifier
 - The user who owns the session
 - The chat mode (paper, cross-reference, research explorer)
@@ -96,45 +97,46 @@ public class ChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    
+
     @Column(name = "session_id", nullable = false)
     private UUID sessionId;
-    
+
     @Column(name = "role", nullable = false)
     private String role;
-    
+
     @Column(name = "content", nullable = false, columnDefinition = "text")
     private String content;
-    
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private List<Map<String, Object>> citations = new ArrayList<>();
-    
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> metadata = new HashMap<>();
-    
+
     @Column(name = "created_at")
     private ZonedDateTime createdAt;
-    
+
     @Column(name = "sequence_number", nullable = false)
     private Integer sequenceNumber = 0;
-    
+
     @Column(name = "message_type", nullable = false)
     private String messageType = "message";
-    
+
     @Column(name = "is_edited", nullable = false)
     private Boolean isEdited = false;
-    
+
     @Column(name = "token_count")
     private Integer tokenCount;
-    
+
     @Column(name = "last_edited_at")
     private ZonedDateTime lastEditedAt;
 }
 ```
 
 The message includes:
+
 - A unique identifier
 - The session it belongs to
 - The role (user, assistant, system)
@@ -156,10 +158,10 @@ public enum ChatMode {
     CROSS_REFERENCE_CHAT("cross_reference_chat", "Cross-Reference Chat"),
     RESEARCH_EXPLORER_CHAT("research_explorer_chat", "Research Explorer"),
     GENERAL_CHAT("general_chat", "General Chat");
-    
+
     private final String id;
     private final String displayName;
-    
+
     // Constructor and getters
 }
 ```
@@ -212,25 +214,25 @@ public class AIConfig {
 
     @Value("${spring.ai.anthropic.chat.options.model}")
     private String anthropicModel;
-    
+
     @Value("${spring.ai.openai.api-key:test-key}")
     private String openaiApiKey;
-    
+
     @Value("${spring.ai.openai.chat.options.model}")
     private String openaiModel;
-    
+
     @Value("${spring.ai.perplexity.api-key:test-key}")
     private String perplexityApiKey;
-    
+
     private final UserPreferencesService userPreferencesService;
-    
+
     // User-specific API keys (cached after login)
     private String currentOpenaiApiKey;
     private String currentAnthropicApiKey;
     private String currentPerplexityApiKey;
-    
+
     // Constructor and key management methods
-    
+
     /**
      * Updates API keys based on user preferences when a user logs in.
      * 
@@ -242,10 +244,10 @@ public class AIConfig {
             resetToSystemDefaults();
             return;
         }
-        
+
         try {
             UserPreferences prefs = userPreferencesService.getByUserId(user.getId());
-            
+
             if (prefs != null) {
                 // Update keys if user has custom ones
                 if (prefs.getOpenaiApiKey() != null && !prefs.getOpenaiApiKey().trim().isEmpty()) {
@@ -253,14 +255,14 @@ public class AIConfig {
                 } else {
                     this.currentOpenaiApiKey = openaiApiKey;
                 }
-                
+
                 // Similar logic for Anthropic and Perplexity keys
             }
         } catch (Exception e) {
             resetToSystemDefaults();
         }
     }
-    
+
     // Chat model beans
     @Bean
     @Primary
@@ -270,7 +272,7 @@ public class AIConfig {
                 .maxTokens(anthropicMaxTokens)
                 .temperature(anthropicTemperature)
                 .build();
-        
+
         return new AnthropicChatModel(
                 anthropicApi, 
                 options, 
@@ -278,7 +280,7 @@ public class AIConfig {
                 retryTemplate(), 
                 observationRegistry());
     }
-    
+
     @Bean
     public OpenAiChatModel openAiChatModel(OpenAiApi openAiApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
@@ -286,7 +288,7 @@ public class AIConfig {
                 .maxTokens(openaiMaxTokens)
                 .temperature(openaiTemperature)
                 .build();
-        
+
         return new OpenAiChatModel(
                 openAiApi, 
                 options, 
@@ -294,7 +296,7 @@ public class AIConfig {
                 retryTemplate(), 
                 observationRegistry());
     }
-    
+
     @Bean
     public OpenAiChatModel perplexityChatModel(OpenAiApi perplexityApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
@@ -302,7 +304,7 @@ public class AIConfig {
                 .maxTokens(perplexityMaxTokens)
                 .temperature(perplexityTemperature)
                 .build();
-        
+
         return new OpenAiChatModel(
                 perplexityApi, 
                 options, 
@@ -310,19 +312,19 @@ public class AIConfig {
                 retryTemplate(), 
                 observationRegistry());
     }
-    
+
     // ChatClient beans for each provider
     @Bean
     @Primary
     public ChatClient anthropicChatClient(AnthropicChatModel anthropicChatModel) {
         return ChatClient.builder(anthropicChatModel).build();
     }
-    
+
     @Bean
     public ChatClient openAiChatClient(OpenAiChatModel openAiChatModel) {
         return ChatClient.builder(openAiChatModel).build();
     }
-    
+
     @Bean
     public ChatClient perplexityChatClient(OpenAiChatModel perplexityChatModel) {
         return ChatClient.builder(perplexityChatModel).build();
@@ -338,7 +340,7 @@ The ChatService class manages chat operations:
 @Service
 public class ChatService {
     private static final Logger LOG = LoggerFactory.getLogger(ChatService.class);
-    
+
     private final ChatSessionRepository chatSessionRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatClient anthropicChatClient;
@@ -347,23 +349,23 @@ public class ChatService {
     private final CreditService creditService;
     private final ChatSessionHelper chatSessionHelper;
     private final ChatMessageHelper chatMessageHelper;
-    
+
     // Constructor with dependencies
-    
+
     @Transactional
     public ChatSession createSession(UUID userId, String mode, Map<String, Object> context) {
         // Validate mode
         if (!isValidMode(mode)) {
             throw new InvalidChatModeException("Invalid chat mode: " + mode);
         }
-        
+
         // Check credits
         if (!creditService.hasCreditsForOperation(userId, 
                 OperationType.fromChatMode(mode))) {
             throw new InsufficientCreditsException(
                 "Not enough credits for chat mode: " + mode);
         }
-        
+
         // Create session
         ChatSession session = new ChatSession();
         session.setUserId(userId);
@@ -373,21 +375,21 @@ public class ChatService {
         session.setUpdatedAt(ZonedDateTime.now());
         session.setLastMessageAt(ZonedDateTime.now());
         session.setProvider(getProviderForMode(mode));
-        
+
         // Save and return
         return chatSessionRepository.save(session);
     }
-    
+
     @Transactional
     public ChatMessage addMessage(UUID sessionId, String role, 
             String content, Map<String, Object> metadata) {
         // Validate session
         ChatSession session = chatSessionRepository.findById(sessionId)
             .orElseThrow(() -> new SessionNotFoundException("Session not found: " + sessionId));
-        
+
         // Get next sequence number
         Integer nextSeq = chatMessageHelper.getNextSequenceNumber(sessionId);
-        
+
         // Create message
         ChatMessage message = new ChatMessage();
         message.setSessionId(sessionId);
@@ -396,56 +398,56 @@ public class ChatService {
         message.setMetadata(metadata != null ? metadata : new HashMap<>());
         message.setCreatedAt(ZonedDateTime.now());
         message.setSequenceNumber(nextSeq);
-        
+
         // Calculate token count
         message.setTokenCount(calculateTokenCount(content));
-        
+
         // Save and return
         return chatMessageRepository.save(message);
     }
-    
+
     @Transactional
     public ChatMessage generateAIResponse(UUID sessionId, UUID userId) {
         // Get session
         ChatSession session = chatSessionRepository.findById(sessionId)
             .orElseThrow(() -> new SessionNotFoundException("Session not found: " + sessionId));
-        
+
         // Check user ownership
         if (!session.getUserId().equals(userId)) {
             throw new UnauthorizedAccessException("User does not own this session");
         }
-        
+
         // Check credits
         OperationType operationType = OperationType.fromChatMode(session.getMode());
         if (!creditService.hasCreditsForOperation(userId, operationType)) {
             throw new InsufficientCreditsException(
                 "Not enough credits for AI response in mode: " + session.getMode());
         }
-        
+
         // Get appropriate AI client based on session mode
         ChatClient chatClient = getChatClientForMode(session.getMode());
-        
+
         // Build context from session and messages
         List<ChatMessage> messageHistory = chatMessageRepository
             .findBySessionIdOrderBySequenceNumber(sessionId);
-        
+
         // Create prompt
         Prompt prompt = chatMessageHelper.createPromptFromMessages(
             session, messageHistory, session.getContext());
-        
+
         try {
             // Get AI response
             ChatResponse response = chatClient.call(prompt);
-            
+
             // Process response
             String content = response.getResult().getOutput().getContent();
-            
+
             // Create message
             ChatMessage aiMessage = addMessage(sessionId, "assistant", content, null);
-            
+
             // Update metrics and deduct credits
             creditService.deductCreditsForOperation(userId, operationType);
-            
+
             return aiMessage;
         } catch (Exception e) {
             LoggingUtil.error(LOG, "generateAIResponse", 
@@ -453,7 +455,7 @@ public class ChatService {
             throw new AIResponseGenerationException("Failed to generate AI response", e);
         }
     }
-    
+
     // Get the appropriate chat client based on mode
     private ChatClient getChatClientForMode(String mode) {
         switch (mode) {
@@ -467,7 +469,7 @@ public class ChatService {
                 return anthropicChatClient; // Default to Claude
         }
     }
-    
+
     // Additional methods for managing sessions and messages
 }
 ```
@@ -479,6 +481,7 @@ The system implements a normalized storage strategy for chat messages:
 ### 10.7.1 Session Management
 
 Chat sessions store metadata and context:
+
 - Basic session information (user, mode, timestamps)
 - JSON context object for session-specific data
 - References to papers, analyses, and other related entities
@@ -487,6 +490,7 @@ Chat sessions store metadata and context:
 ### 10.7.2 Message Organization
 
 Messages are stored in their own table with:
+
 - Sequence numbers for ordering
 - Role identification (user/assistant/system)
 - Message types for specialized content
@@ -520,6 +524,7 @@ EXECUTE FUNCTION answer42.update_session_last_message_timestamp();
 The chat system integrates with paper analyses through:
 
 1. **Context Integration**:
+   
    ```json
    {
      "paperIds": ["paper-uuid-1"],
@@ -528,11 +533,13 @@ The chat system integrates with paper analyses through:
    ```
 
 2. **Analysis Messages**:
+   
    - Introduction message with analysis overview
    - Content message with detailed analysis results
    - Both linked to the analysis through metadata
 
 3. **Message Metadata**:
+   
    ```json
    {
      "analysis": {
@@ -555,21 +562,21 @@ public class AIChatView extends Div implements BeforeEnterObserver {
     private final ChatService chatService;
     private final AIChatMessageProcessor messageProcessor;
     private final AIChatViewHelper viewHelper;
-    
+
     private VerticalLayout chatContainer;
     private TextArea messageInput;
     private Button sendButton;
     private UUID currentSessionId;
-    
+
     // Constructor and initialization
-    
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         // Parse parameters and initialize view
-        
+
         // Extract session ID from route parameter
         String sessionIdParam = event.getRouteParameters().get("sessionId").orElse(null);
-        
+
         if (sessionIdParam != null) {
             try {
                 currentSessionId = UUID.fromString(sessionIdParam);
@@ -582,33 +589,33 @@ public class AIChatView extends Div implements BeforeEnterObserver {
             setupNewSessionOptions();
         }
     }
-    
+
     private void setupChatInterface() {
         // Create UI components
         chatContainer = new VerticalLayout();
         chatContainer.addClassName("chat-container");
         chatContainer.setHeightFull();
-        
+
         messageInput = new TextArea("Message");
         messageInput.addClassName("chat-input");
         messageInput.setPlaceholder("Type your message here...");
-        
+
         sendButton = new Button("Send", e -> sendMessage());
         sendButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        
+
         // Layout components
         HorizontalLayout inputLayout = new HorizontalLayout(messageInput, sendButton);
         inputLayout.setWidthFull();
-        
+
         add(chatContainer, inputLayout);
     }
-    
+
     private void loadExistingSession(UUID sessionId) {
         try {
             // Load session and messages
             ChatSession session = chatService.getSession(sessionId);
             List<ChatMessage> messages = chatService.getSessionMessages(sessionId);
-            
+
             // Verify user has access
             if (!session.getUserId().equals(getCurrentUserId())) {
                 UI.getCurrent().navigate(AIChatView.class);
@@ -616,48 +623,48 @@ public class AIChatView extends Div implements BeforeEnterObserver {
                     3000, Position.MIDDLE);
                 return;
             }
-            
+
             // Update UI
             setupChatInterface();
-            
+
             // Render existing messages
             messages.forEach(this::renderMessage);
-            
+
             // Set title
             updateViewTitle(session.getTitle());
-            
+
         } catch (SessionNotFoundException e) {
             UI.getCurrent().navigate(AIChatView.class);
             Notification.show("Chat session not found", 3000, Position.MIDDLE);
         }
     }
-    
+
     private void sendMessage() {
         String content = messageInput.getValue().trim();
         if (content.isEmpty()) {
             return;
         }
-        
+
         try {
             // If no current session, create one
             if (currentSessionId == null) {
                 createNewSession();
             }
-            
+
             // Send user message
             ChatMessage userMessage = chatService.addMessage(
                 currentSessionId, "user", content, null);
-            
+
             // Render user message
             renderMessage(userMessage);
-            
+
             // Clear input
             messageInput.clear();
-            
+
             // Show loading indicator
             Div loadingIndicator = viewHelper.createLoadingIndicator();
             chatContainer.add(loadingIndicator);
-            
+
             // Generate AI response asynchronously
             UI ui = UI.getCurrent();
             CompletableFuture.runAsync(() -> {
@@ -665,15 +672,15 @@ public class AIChatView extends Div implements BeforeEnterObserver {
                     // Generate response
                     ChatMessage aiMessage = chatService.generateAIResponse(
                         currentSessionId, getCurrentUserId());
-                    
+
                     // Update UI
                     ui.access(() -> {
                         // Remove loading indicator
                         chatContainer.remove(loadingIndicator);
-                        
+
                         // Render AI message
                         renderMessage(aiMessage);
-                        
+
                         // Scroll to bottom
                         Page page = ui.getPage();
                         page.executeJs(
@@ -686,7 +693,7 @@ public class AIChatView extends Div implements BeforeEnterObserver {
                     ui.access(() -> {
                         // Remove loading indicator
                         chatContainer.remove(loadingIndicator);
-                        
+
                         // Show error
                         Notification.show(
                             "Error generating response: " + e.getMessage(), 
@@ -695,18 +702,18 @@ public class AIChatView extends Div implements BeforeEnterObserver {
                     });
                 }
             });
-            
+
         } catch (Exception e) {
             Notification.show("Error sending message: " + e.getMessage(), 
                 5000, Position.MIDDLE);
         }
     }
-    
+
     private void renderMessage(ChatMessage message) {
         Component messageComponent = messageProcessor.createMessageComponent(message);
         chatContainer.add(messageComponent);
     }
-    
+
     // Additional methods for UI interaction
 }
 ```
@@ -721,13 +728,13 @@ public enum OperationType {
     CROSS_REFERENCE_CHAT("CROSS_REFERENCE_CHAT", 4, 7),
     RESEARCH_EXPLORER_CHAT("RESEARCH_EXPLORER_CHAT", 4, 6),
     // Other operation types
-    
+
     private final String id;
     private final int basicCost;
     private final int proCost;
-    
+
     // Constructor and getters
-    
+
     public static OperationType fromChatMode(String mode) {
         switch (mode) {
             case "paper_chat": return PAPER_CHAT;
@@ -748,13 +755,13 @@ public class CreditService {
         CreditBalance balance = creditBalanceRepository.findByUserId(userId)
             .orElseThrow(() -> new CreditBalanceNotFoundException(
                 "No credit balance found for user: " + userId));
-        
+
         // Get cost based on user's subscription tier
         int cost = getCostForOperation(userId, operationType);
-        
+
         return balance.getBalance() >= cost;
     }
-    
+
     @Transactional
     public void deductCreditsForOperation(UUID userId, OperationType operationType) {
         // Check credits
@@ -762,21 +769,21 @@ public class CreditService {
             throw new InsufficientCreditsException(
                 "Not enough credits for operation: " + operationType.getId());
         }
-        
+
         // Get cost
         int cost = getCostForOperation(userId, operationType);
-        
+
         // Get current balance
         CreditBalance balance = creditBalanceRepository.findByUserId(userId).get();
-        
+
         // Update balance
         balance.setBalance(balance.getBalance() - cost);
         balance.setUsedThisPeriod(balance.getUsedThisPeriod() + cost);
         balance.setUpdatedAt(ZonedDateTime.now());
-        
+
         // Save balance
         creditBalanceRepository.save(balance);
-        
+
         // Record transaction
         CreditTransaction transaction = new CreditTransaction();
         transaction.setUserId(userId);
@@ -785,7 +792,7 @@ public class CreditService {
         transaction.setBalanceAfter(balance.getBalance());
         transaction.setOperationType(operationType.getId());
         transaction.setDescription("Credit deduction for " + operationType.getId());
-        
+
         creditTransactionRepository.save(transaction);
     }
 }
@@ -803,27 +810,27 @@ Manages chat session operations:
 @Component
 public class ChatSessionHelper {
     private final ChatSessionRepository chatSessionRepository;
-    
+
     public ChatSessionHelper(ChatSessionRepository chatSessionRepository) {
         this.chatSessionRepository = chatSessionRepository;
     }
-    
+
     public void updateSessionContext(UUID sessionId, Map<String, Object> contextUpdates) {
         ChatSession session = chatSessionRepository.findById(sessionId)
             .orElseThrow(() -> new SessionNotFoundException("Session not found: " + sessionId));
-        
+
         Map<String, Object> currentContext = session.getContext();
-        
+
         // Merge updates with current context
         contextUpdates.forEach(currentContext::put);
-        
+
         // Update session
         session.setContext(currentContext);
         session.setUpdatedAt(ZonedDateTime.now());
-        
+
         chatSessionRepository.save(session);
     }
-    
+
     // Other helper methods for session management
 }
 ```
@@ -836,17 +843,17 @@ Manages message operations and AI interactions:
 @Component
 public class ChatMessageHelper {
     private final ChatMessageRepository chatMessageRepository;
-    
+
     public ChatMessageHelper(ChatMessageRepository chatMessageRepository) {
         this.chatMessageRepository = chatMessageRepository;
     }
-    
+
     public Integer getNextSequenceNumber(UUID sessionId) {
         return chatMessageRepository.findMaxSequenceNumberBySessionId(sessionId)
             .map(seq -> seq + 1)
             .orElse(0);
     }
-    
+
     public Prompt createPromptFromMessages(
             ChatSession session, List<ChatMessage> messages, Map<String, Object> context) {
         // Create appropriate prompt based on session mode
@@ -861,22 +868,22 @@ public class ChatMessageHelper {
                 return createGeneralChatPrompt(session, messages, context);
         }
     }
-    
+
     // Methods for creating different prompt types
-    
+
     private Prompt createPaperChatPrompt(
             ChatSession session, List<ChatMessage> messages, Map<String, Object> context) {
         // Extract paper information from context
         String paperId = (String) context.getOrDefault("paperId", "");
-        
+
         // Create system message with paper context
         String systemPrompt = "You are an academic research assistant..." +
             "You are discussing the paper with ID " + paperId + "...";
-        
+
         // Convert messages to prompt format
         List<Message> promptMessages = new ArrayList<>();
         promptMessages.add(new SystemMessage(systemPrompt));
-        
+
         // Add conversation history
         for (ChatMessage message : messages) {
             if ("user".equals(message.getRole())) {
@@ -885,10 +892,10 @@ public class ChatMessageHelper {
                 promptMessages.add(new AssistantMessage(message.getContent()));
             }
         }
-        
+
         return new Prompt(promptMessages);
     }
-    
+
     // Other prompt creation methods
 }
 ```

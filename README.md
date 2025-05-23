@@ -1,197 +1,478 @@
-# Answer42 - Academic Research Assistant
+# Answer42 - AI-Powered Academic Research Platform
 
 ![Answer42 Logo](src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)
 
-Answer42 is an AI-powered platform designed to help researchers, students, and academics manage and analyze scientific papers, making research more efficient and collaborative.
+Answer42 is a sophisticated AI-powered platform for academic researchers, students, and scholars to upload, analyze, and interact with research papers using multiple AI providers. The platform combines advanced paper processing with intelligent chat capabilities to make academic research more efficient and insightful.
 
 ## Table of Contents
 
-- [Architecture Overview](#architecture-overview)
+- [What is Answer42?](#what-is-answer42)
 - [Technology Stack](#technology-stack)
+- [Architecture Overview](#architecture-overview)
 - [Project Structure](#project-structure)
-- [Key Features](#key-features)
-- [Authentication and Security](#authentication-and-security)
-- [Database Schema](#database-schema)
+- [Core Features](#core-features)
 - [AI Integration](#ai-integration)
-- [Theme System](#theme-system)
+- [Database Design](#database-design)
 - [Getting Started](#getting-started)
 - [Development](#development)
-- [Production Build](#production-build)
-- [API Documentation](#api-documentation)
+- [Configuration](#configuration)
 
-## Architecture Overview
+## What is Answer42?
 
-Answer42 follows a modern layered architecture with clear separation of concerns:
+Answer42 is a comprehensive research assistant that helps academics work with scientific papers through:
 
-```
-+------------------+
-|   Presentation   |
-|    (Vaadin UI)   |
-+------------------+
-         |
-+------------------+
-|   Business Logic |
-|    (Services)    |
-+------------------+
-         |
-+------------------+
-|  Data Access     |
-|  (Repositories)  |
-+------------------+
-         |
-+------------------+
-|    Database      |
-|   (PostgreSQL)   |
-+------------------+
-```
-
-### Layers
-
-1. **Presentation Layer**: Vaadin-based UI components, views, and layouts
-2. **Business Logic Layer**: Service classes containing application logic
-3. **Data Access Layer**: Repository interfaces for database operations
-4. **Database Layer**: PostgreSQL database for data persistence
-
-### Architecture Patterns
-
-- **MVC (Model-View-Controller)**: Separation of data, presentation, and control logic
-- **Dependency Injection**: Using Spring's IoC container
-- **Repository Pattern**: For data access abstraction
-- **Service Pattern**: For business logic encapsulation
-- **JWT-based Authentication**: For secure API access
+- **Intelligent Paper Processing**: Upload PDFs and extract full text, metadata, and structured information
+- **Multi-Modal AI Chat**: Three specialized chat modes using different AI providers for various research needs
+- **Comprehensive Analysis**: Generate summaries, extract key findings, identify methodologies, and create glossaries
+- **External Metadata Integration**: Automatic enhancement using Crossref and Semantic Scholar APIs
+- **Project Organization**: Group papers into research projects for better organization
+- **Credit-Based System**: Subscription model with credit management for AI operations
 
 ## Technology Stack
 
 ### Backend
 
-- **Java 21**: Core programming language
-- **Spring Boot 3.4.5**: Application framework
-- **Spring Security**: Authentication and authorization
-- **Spring Data JPA**: Database access
-- **Spring AI**: AI integration
-- **Spring Transaction**: Standard transaction management
-- **JWT (JSON Web Tokens)**: Stateless authentication
-- **PostgreSQL (Supabase)**: Relational database
-- **Hibernate**: ORM with JSONB support
+- **Java 21** - Modern Java with latest features
+- **Spring Boot 3.4.5** - Enterprise application framework
+- **Spring Security** - Authentication and authorization
+- **Spring Data JPA** - Database access with Hibernate
+- **Spring AI** - Unified AI provider integration
+- **PostgreSQL** - Primary database with JSONB support
+- **JWT** - Stateless authentication tokens
+- **Lombok** - Reduced boilerplate code
 
 ### Frontend
 
-- **Vaadin 24.7.3**: Java web framework for building UIs
-- **HTML/CSS/JavaScript**: Web technologies
-- **PWA Support**: Progressive Web App capabilities
+- **Vaadin 24.7.3** - Full-stack Java web framework
+- **Custom CSS Themes** - Responsive design with dark mode support
+- **Progressive Web App** - Offline capabilities and mobile support
+
+### AI Providers
+
+- **Anthropic Claude** - Paper-specific analysis and chat
+- **OpenAI GPT-4** - Cross-reference analysis and general chat
+- **Perplexity** - Research exploration and external knowledge
 
 ### Development Tools
 
-- **Maven**: Dependency management and build automation
-- **Spring Boot DevTools**: Development utilities
-- **JUnit**: Testing framework
-- **Supabase**: Database hosting
+- **Maven** - Build automation and dependency management
+- **Checkstyle, PMD, SpotBugs** - Code quality and static analysis
+- **Spring Boot DevTools** - Development hot-reload
 
-### AI Models
+## Architecture Overview
 
-- **Claude (Anthropic)**: AI assistant capabilities
-- **Perplexity API**: Research and knowledge features
+Answer42 follows a clean layered architecture:
+
+```
+┌─────────────────────┐
+│   Vaadin Views      │  User Interface Layer
+├─────────────────────┤
+│   Controllers       │  REST API Layer  
+├─────────────────────┤
+│   Services          │  Business Logic Layer
+├─────────────────────┤
+│   Repositories      │  Data Access Layer
+├─────────────────────┤
+│   PostgreSQL        │  Database Layer
+└─────────────────────┘
+```
+
+### Key Design Patterns
+
+- **MVC Architecture** - Clear separation of concerns
+- **Repository Pattern** - Data access abstraction
+- **Service Layer** - Business logic encapsulation
+- **Dependency Injection** - Loose coupling via Spring IoC
+- **Component-Based UI** - Reusable Vaadin components
 
 ## Project Structure
 
 ```
-answer42/
-├── src/
-│   ├── main/
-|   |   └── frontend/
-|   |   |    └── styles/
-|   |   |        └── themes/
-│   |   |           └── answer42/           # Custom theme
-|   |   |             ├── theme.json        # Theme configuration
-│   |   |             ├── styles.css        # Global variables
-|   │   |             ├── main.css          # Main styles
-|   │   |             └── components/       # Component-specific styles
-│   │   ├── java/
-│   │   │   └── com/samjdtechnologies/answer42/
-│   │   │       ├── config/              # Configuration classes
-│   │   │       ├── controller/          # REST controllers
-│   │   │       ├── model/               # Data models (entities)
-│   │   │       ├── repository/          # Data access interfaces
-│   │   │       ├── security/            # Security configuration
-│   │   │       ├── service/             # Business logic services
-│   │   │       └── ui/                  # Vaadin UI components
-│   │   │           ├── constants/       # UI constants
-│   │   │           ├── layout/          # Layout components
-│   │   │           ├── service/         # UI-specific services
-│   │   │           └── views/           # View components
-│   │   ├── resources/
-│   │   │   ├── META-INF/resources/      # Static resources
-│   │   │   ├── static/                  # Static web assets
-│   │   │   └── application.properties   # Application configuration
-│   └── test/                            # Test classes
-├── product-requirement-docs/            # Documentation
-├── pom.xml                              # Maven configuration
-├── .env                                 # Environment variables (not committed to version control)
-└── README.md                            # Project documentation
+src/
+├── main/
+│   ├── bundles/                              # Development bundles
+│   │   ├── dev.bundle                        # Development configuration bundle
+│   │   └── README.md                         # Bundle documentation
+│   ├── frontend/                             # Frontend resources
+│   │   ├── generated/                        # Generated Vaadin files
+│   │   │   ├── flow/                         # Vaadin Flow components
+│   │   │   │   ├── Flow.tsx                  # React Flow adapter
+│   │   │   │   ├── ReactAdapter.tsx          # React integration
+│   │   │   │   └── web-components/           # Web component definitions
+│   │   │   ├── jar-resources/                # JAR-packaged resources
+│   │   │   │   ├── images/                   # Application images
+│   │   │   │   │   ├── answer42-logo.svg     # Main logo
+│   │   │   │   │   └── icons/                # UI icons for all providers
+│   │   │   │   │       ├── ai_chatbot_avatar_*.{png,svg}  # AI avatar icons
+│   │   │   │   │       ├── openai_icon_*.{png,svg}        # OpenAI icons
+│   │   │   │   │       ├── perplexity_icon_*.{png,svg}    # Perplexity icons
+│   │   │   │   │       ├── paper_chat_icon_*.{png,svg}    # Paper chat icons
+│   │   │   │   │       └── user_avatar_icon_*.{png,svg}   # User avatar icons
+│   │   │   │   ├── copilot/                  # Vaadin Copilot tools
+│   │   │   │   ├── vaadin-dev-tools/         # Development tools
+│   │   │   │   └── *Connector.js             # Frontend connectors
+│   │   │   ├── index.tsx                     # Main entry point
+│   │   │   ├── routes.tsx                    # Application routing
+│   │   │   └── vaadin.ts                     # Vaadin configuration
+│   │   ├── styles/themes/answer42/           # Custom theme
+│   │   │   ├── main.css                      # Core styles
+│   │   │   ├── styles.css                    # Global variables
+│   │   │   ├── answer42-dark.css             # Dark mode theme
+│   │   │   ├── theme.json                    # Theme configuration
+│   │   │   └── components/                   # Component-specific styles
+│   │   │       ├── ai-chat.css               # Chat interface styles
+│   │   │       ├── auth-forms.css            # Authentication forms
+│   │   │       ├── bulk-upload.css           # Bulk upload interface
+│   │   │       ├── credits.css               # Credit management
+│   │   │       ├── dashboard.css             # Dashboard styles
+│   │   │       ├── main-layout.css           # Main layout
+│   │   │       ├── papers.css                # Paper management
+│   │   │       ├── profile.css               # User profile
+│   │   │       ├── projects.css              # Project management
+│   │   │       ├── settings.css              # Settings interface
+│   │   │       ├── subscription.css          # Subscription management
+│   │   │       └── upload-paper.css          # Paper upload
+│   │   └── index.html                        # HTML entry point
+│   ├── java/com/samjdtechnologies/answer42/
+│   │   ├── Answer42Application.java          # Spring Boot main class
+│   │   ├── ServletInitializer.java           # WAR deployment initializer
+│   │   ├── config/                           # Configuration classes
+│   │   │   ├── AIConfig.java                 # AI provider configurations
+│   │   │   ├── AppConfig.java                # General application config
+│   │   │   ├── DatabaseConfig.java           # Database settings
+│   │   │   ├── EnvironmentConfig.java        # Environment variables
+│   │   │   ├── ErrorConfig.java              # Error handling
+│   │   │   ├── JwtConfig.java                # JWT configuration
+│   │   │   ├── LoggingConfig.java            # Logging setup
+│   │   │   ├── SecurityConfig.java           # Security configuration
+│   │   │   ├── ThreadConfig.java             # Thread pool configuration
+│   │   │   ├── TransactionConfig.java        # Transaction management
+│   │   │   ├── VaadinDevModeConfig.java      # Vaadin development
+│   │   │   ├── VaadinSessionConfig.java      # Vaadin session config
+│   │   │   └── VaadinThreadManagerConfig.java # Vaadin threading
+│   │   ├── controller/                       # REST endpoints
+│   │   │   ├── AuthController.java           # Authentication API
+│   │   │   ├── HeartbeatController.java      # Health checks
+│   │   │   ├── SystemController.java         # System management
+│   │   │   └── TestController.java           # Testing endpoints
+│   │   ├── model/                            # Data models
+│   │   │   ├── FileEntry.java                # File system entries
+│   │   │   ├── daos/                         # JPA entities
+│   │   │   │   ├── AnalysisResult.java       # AI analysis results
+│   │   │   │   ├── AnalysisTask.java         # Background analysis tasks
+│   │   │   │   ├── ChatMessage.java          # Chat conversation messages
+│   │   │   │   ├── ChatSession.java          # AI chat sessions
+│   │   │   │   ├── CreditBalance.java        # User credit balances
+│   │   │   │   ├── CreditTransaction.java    # Credit transactions
+│   │   │   │   ├── Paper.java                # Research papers
+│   │   │   │   ├── Project.java              # Research projects
+│   │   │   │   ├── Subscription.java         # User subscriptions
+│   │   │   │   ├── SubscriptionPlan.java     # Subscription plans
+│   │   │   │   ├── User.java                 # User accounts
+│   │   │   │   └── UserPreferences.java      # User preferences
+│   │   │   └── enums/                        # Enumeration types
+│   │   │       ├── AIProvider.java           # AI service providers
+│   │   │       ├── AnalysisType.java         # Types of analysis
+│   │   │       ├── ChatMode.java             # Chat interaction modes
+│   │   │       └── FileStatus.java           # File processing status
+│   │   ├── processors/                       # Background processing
+│   │   │   ├── AIChatMessageProcessor.java   # Chat message handling
+│   │   │   ├── AnthropicPaperAnalysisProcessor.java # Anthropic analysis
+│   │   │   └── PaperBulkUploadProcessor.java # Bulk paper processing
+│   │   ├── repository/                       # Data access interfaces
+│   │   │   ├── AnalysisResultRepository.java # Analysis results data
+│   │   │   ├── AnalysisTaskRepository.java   # Analysis tasks data
+│   │   │   ├── ChatMessageRepository.java    # Chat messages data
+│   │   │   ├── ChatSessionRepository.java    # Chat sessions data
+│   │   │   ├── CreditBalanceRepository.java  # Credit balances data
+│   │   │   ├── CreditTransactionRepository.java # Credit transactions data
+│   │   │   ├── PaperRepository.java          # Papers data access
+│   │   │   ├── ProjectRepository.java        # Projects data access
+│   │   │   ├── SubscriptionPlanRepository.java # Subscription plans data
+│   │   │   ├── SubscriptionRepository.java   # Subscriptions data
+│   │   │   ├── UserPreferencesRepository.java # User preferences data
+│   │   │   └── UserRepository.java           # Users data access
+│   │   ├── security/                         # Authentication & authorization
+│   │   │   ├── CustomUserDetailsService.java # User authentication
+│   │   │   ├── JwtAuthenticationFilter.java  # JWT filter
+│   │   │   └── JwtTokenUtil.java             # JWT token management
+│   │   ├── service/                          # Business logic
+│   │   │   ├── ChatService.java              # AI chat orchestration
+│   │   │   ├── CreditService.java            # Credit management
+│   │   │   ├── PaperAnalysisService.java     # AI-powered analysis
+│   │   │   ├── PaperService.java             # Paper management
+│   │   │   ├── ProjectService.java           # Project management
+│   │   │   ├── SubscriptionService.java      # Subscription management
+│   │   │   ├── UserPreferencesService.java   # User preferences
+│   │   │   ├── UserService.java              # User management
+│   │   │   └── helper/                       # Service helpers
+│   │   │       ├── AIInteractionHelper.java  # AI interaction utilities
+│   │   │       ├── ChatMessageHelper.java    # Chat message utilities
+│   │   │       └── ChatSessionHelper.java    # Chat session utilities
+│   │   ├── transaction/                      # Transaction management
+│   │   │   └── TransactionMonitor.java       # Transaction monitoring
+│   │   ├── ui/                               # Vaadin user interface
+│   │   │   ├── AppShell.java                 # Application shell
+│   │   │   ├── constants/                    # UI constants
+│   │   │   │   └── UIConstants.java          # UI constant definitions
+│   │   │   ├── layout/                       # Layout components
+│   │   │   │   └── MainLayout.java           # Main application layout
+│   │   │   ├── service/                      # UI services
+│   │   │   │   └── AuthenticationService.java # UI authentication
+│   │   │   ├── theme/                        # Theme components
+│   │   │   │   └── Answer42Theme.java        # Custom theme
+│   │   │   └── views/                        # Application views
+│   │   │       ├── AIChatView.java           # AI chat interface
+│   │   │       ├── BulkUploadView.java       # Bulk paper upload
+│   │   │       ├── CreditsView.java          # Credit management
+│   │   │       ├── DashboardView.java        # Main dashboard
+│   │   │       ├── LoginView.java            # User login
+│   │   │       ├── PapersView.java           # Paper management
+│   │   │       ├── ProfileView.java          # User profile
+│   │   │       ├── ProjectsView.java         # Project management
+│   │   │       ├── RegisterView.java         # User registration
+│   │   │       ├── SettingsView.java         # Application settings
+│   │   │       ├── SubscriptionView.java     # Subscription management
+│   │   │       ├── UploadPaperView.java      # Single paper upload
+│   │   │       ├── components/               # Reusable UI components
+│   │   │       │   ├── AIChatContainer.java  # Chat interface container
+│   │   │       │   ├── AIChatGeneralMesssageBubble.java # General message bubble
+│   │   │       │   ├── AIChatModeTabs.java   # Chat mode selection
+│   │   │       │   ├── AIChatProgressMessageBubble.java # Progress messages
+│   │   │       │   ├── AIChatThinkingMessageBubble.java # Thinking indicator
+│   │   │       │   ├── AIChatWelcomeSection.java # Chat welcome screen
+│   │   │       │   ├── AnthropicPoweredAnalysisSection.java # Anthropic section
+│   │   │       │   ├── AuthorContact.java    # Author contact component
+│   │   │       │   ├── PaperPill.java        # Paper display chip
+│   │   │       │   └── PaperSelectionDialog.java # Paper picker dialog
+│   │   │       └── helpers/                  # View helpers
+│   │   │           ├── AIChatViewHelper.java # AI chat view utilities
+│   │   │           ├── PapersViewHelper.java # Papers view utilities
+│   │   │           ├── ProjectsViewHelper.java # Projects view utilities
+│   │   │           └── SubscriptionViewHelper.java # Subscription utilities
+│   │   └── util/                             # Utility classes
+│   │       ├── HibernateUtil.java            # Hibernate utilities
+│   │       └── LoggingUtil.java              # Logging utilities
+│   └── resources/
+│       ├── application.properties            # Main configuration
+│       ├── META-INF/resources/               # Web assets
+│       │   ├── favicon.ico                   # Application favicon
+│       │   ├── favicon.svg                   # SVG favicon
+│       │   ├── manifest.webmanifest          # PWA manifest
+│       │   ├── frontend/                     # Frontend resources
+│       │   │   ├── images/                   # Static images
+│       │   │   │   ├── answer42-logo.svg     # Application logo
+│       │   │   │   ├── bitcoin-qr-mock.svg   # Bitcoin QR code mock
+│       │   │   │   └── icons/                # Application icons
+│       │   │   ├── jwt-injector.js           # JWT injection script
+│       │   │   ├── sw.js                     # Service worker
+│       │   │   ├── sw-loader.js              # Service worker loader
+│       │   │   ├── sw-register.js            # Service worker registration
+│       │   │   └── styles/                   # Additional styles
+│       │   └── images/                       # Resource images
+│       │       └── answer42-logo.svg         # Logo resource
+│       ├── static/                           # Static web resources
+│       │   ├── favicon.ico                   # Static favicon
+│       │   ├── favicon.svg                   # Static SVG favicon
+│       │   ├── manifest.webmanifest          # Static PWA manifest
+│       │   ├── offline.html                  # Offline page
+│       │   ├── offline-stub.html             # Offline stub
+│       │   └── images/                       # Static images
+│       │       ├── answer42-logo.svg         # Static logo
+│       │       └── logo.svg                  # Generic logo
+│       └── templates/                        # Template files
+└── test/                                     # Unit and integration tests
+    └── java/com/samjdtechnologies/answer42/
+        └── Answer42ApplicationTests.java     # Main application tests
 ```
 
-## Key Features
+## Core Features
 
-- **Paper Management**: Upload, organize, and manage scientific papers
-- **AI Paper Analysis**: Get automatic summaries, key points, and concept explanations
-- **Content Extraction**: Extract full text and identify paper sections with AI
-- **Research Projects**: Organize papers into customizable research projects
-- **Intelligent Chat**: Ask questions about papers and receive accurate responses
-- **Cross-Reference Analysis**: Compare multiple papers to find connections and gaps
-- **Study Tools**: Generate flashcards, practice questions, and concept maps
-- **External Metadata**: Integration with Crossref and Semantic Scholar APIs for enhanced paper information
-- **User Authentication**: Secure login/registration system
-- **Dashboard**: Overview of papers, projects, and activities
-- **Progressive Web App**: Installable application with offline support
+### 📄 Paper Management
 
-## Authentication and Security
+- **PDF Upload & Processing**: Extract text content and metadata from academic papers
+- **Metadata Enhancement**: Automatic enrichment via Crossref and Semantic Scholar APIs
+- **Comprehensive Storage**: Store papers with full text, abstracts, authors, citations, and analysis results
+- **Organization**: Group papers into research projects for better management
+- **Bulk Upload**: Process multiple papers simultaneously
 
-Answer42 implements a comprehensive security system:
+### 🤖 Multi-Modal AI Chat
 
-- **JWT-based Authentication**: Secure, stateless authentication
-- **Spring Security**: Role-based access control
-- **Password Encryption**: Secure password storage
-- **CSRF Protection**: Protection against cross-site request forgery
-- **Session Management**: Secure session handling
+**Three specialized chat modes optimized for different research needs:**
 
-## Database Schema
+1. **Paper Chat (Anthropic Claude)**
+   
+   - Deep analysis of individual papers
+   - Contextual Q&A about paper content
+   - Generate summaries, key findings, and glossaries
+   - One-click analysis buttons for common tasks
+
+2. **Cross-Reference Chat (OpenAI GPT-4)**
+   
+   - Compare multiple papers simultaneously
+   - Identify agreements, contradictions, and research gaps
+   - Relationship analysis between different studies
+   - Methodology and results comparison
+
+3. **Research Explorer (Perplexity)**
+   
+   - External research and fact-checking
+   - Discover related papers and research
+   - Verify claims against current literature
+   - General academic research assistance
+
+### 📊 Intelligent Analysis
+
+- **Automated Summaries**: Brief, standard, and detailed summaries
+- **Key Findings Extraction**: Identify main contributions and results
+- **Methodology Analysis**: Extract and analyze research methods
+- **Concept Glossaries**: Generate definitions for technical terms
+- **Citation Analysis**: Process and structure reference lists
+- **Quality Assessment**: AI-powered quality scoring and feedback
+
+### 👤 User Management
+
+- **Secure Authentication**: JWT-based authentication with Spring Security
+- **User Profiles**: Customizable user preferences and settings
+- **Subscription Management**: Credit-based system with multiple tiers
+- **Progress Tracking**: Monitor paper processing and analysis status
+
+## AI Integration
+
+Answer42 uses **Spring AI** for unified AI provider management with optimized model selection:
+
+### Provider-Specific Optimizations
+
+```java
+// Anthropic Claude - Best for deep paper analysis
+@Value("${spring.ai.anthropic.chat.options.model}")
+private String anthropicModel = "claude-3-7-sonnet-latest";
+
+// OpenAI GPT-4 - Optimal for cross-reference analysis  
+@Value("${spring.ai.openai.chat.options.model}")
+private String openaiModel = "gpt-4o";
+
+// Perplexity - Specialized for research and external knowledge
+@Value("${spring.ai.perplexity.chat.options.model}")
+private String perplexityModel = "llama-3.1-sonar-small-128k-online";
+```
+
+### Chat Session Management
+
+- **Contextual Memory**: Maintain conversation history within sessions
+- **Paper Context Injection**: Automatically include relevant paper content
+- **Multi-Paper Support**: Handle conversations spanning multiple papers
+- **Real-time Processing**: Stream responses for better user experience
+
+## Database Design
+
+### Core Entities
+
+**Users**
+
+- Authentication and profile information
+- Subscription and credit tracking
+- User preferences and settings
+
+**Papers**
+
+- Complete paper metadata and content
+- Processing status and analysis results
+- External API integration data (Crossref, Semantic Scholar)
+- JSONB fields for flexible metadata storage
+
+**Chat Sessions**
+
+- AI conversation history and context
+- Associated papers and analysis results
+- Provider-specific configurations
+
+**Projects**
+
+- Paper organization and grouping
+- Research project metadata
+- Collaboration features
+
+### JSONB Usage
+
+The platform leverages PostgreSQL's JSONB for flexible data storage:
+
+```java
+@JdbcTypeCode(SqlTypes.JSON)
+@Column(name = "metadata", columnDefinition = "jsonb")
+private JsonNode metadata;
+
+@JdbcTypeCode(SqlTypes.JSON)
+@Column(name = "key_findings", columnDefinition = "jsonb")
+private JsonNode keyFindings;
+
+@JdbcTypeCode(SqlTypes.JSON)
+@Column(name = "topics", columnDefinition = "jsonb")
+private List<String> topics;
+```
+
+### Theme System
+
+Answer42 uses a structured theme system based on Vaadin best practices:
+
+1. **Consistent Variables**: CSS custom properties for colors, spacing, shadows, etc.
+2. **Component Modularity**: Styles organized by component type
+3. **Dark Mode Support**: Built-in support for light and dark themes
+4. **Responsive Design**: Mobile-first approach with responsive breakpoints
+5. **Design System Integration**: Leverages Vaadin Lumo design system
+
+The theme is activated by loading each CSS file in the AppShell class:
+
+```java
+@CssImport("./styles/themes/answer42/main.css")
+@CssImport("./styles/themes/answer42/styles.css")
+@CssImport("./styles/themes/answer42/components/auth-forms.css")
+@CssImport("./styles/themes/answer42/components/main-layout.css")
+@CssImport("./styles/themes/answer42/components/dashboard.css")
+@CssImport("./styles/themes/answer42/components/papers.css")
+```
+
+## Database Schema Management
 
 **Dump the entire schema**
 
+```bash
 supabase db dump --schema public > schema.sql
+```
 
 **Dump specific schema**
 
+```bash
 supabase db dump --schema answer42 > answer42_schema.sql
+```
 
 **Dump with data**
 
+```bash
 supabase db dump --data-only > data.sql
+```
 
 **Dump structure only (no data)**
 
+```bash
 supabase db dump --schema-only > structure.sql
+```
 
 **Dump specific tables**
 
+```bash
 supabase db dump --table papers --table users > specific_tables.sql
+```
 
-snake case for database, camelCase for Java.
+### Entity Design Guidelines
 
-Entity properties must have their name set to match the database.
+- **Database**: snake_case naming convention
+- **Java**: camelCase naming convention
+- **Entity properties**: Must map to database column names using `@Column`, `@JoinColumn`, `@JoinTable`
 
- @Column, @JoinColumn, @JoinTable
+**Use Lombok for entities:**
 
-The application uses PostgreSQL with the following core entities:
-
-1. **User**: User account information
-2. **Paper**: Research paper metadata
-3. **Project**: Research project details
-4. **AIChat**: AI conversation history
-5. **Subscription**: User subscription details
-
-USE LOMBOK FOR YOUR ENTITIES WHERE POSSIBLE!
-
+```java
 @Data // Lombok annotation for getters, setters, equals, hashCode, toString
 @NoArgsConstructor // Lombok for no-args constructor
 @AllArgsConstructor // Lombok for all-args constructor
@@ -203,12 +484,11 @@ USE LOMBOK FOR YOUR ENTITIES WHERE POSSIBLE!
 @ManyToMany  // LAZY by default
 
 @UpdateTimestamp // called on insert and update
+```
 
 ### JSON Fields
 
-For complex attributes, we leverage PostgreSQL's JSONB type with Hibernate:
-
-#### Object/Map JSON Fields
+For complex attributes, leverage PostgreSQL's JSONB type with Hibernate:
 
 ```java
 import org.hibernate.annotations.JdbcTypeCode;
@@ -216,8 +496,8 @@ import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "table_name", schema = "answer42")
-@Data                   // Lombok annotation for getters, setters, equals, hashCode, toString
-@NoArgsConstructor      // Lombok for no-args constructor
+@Data
+@NoArgsConstructor
 public class YourEntity {
 
     @Id
@@ -229,499 +509,137 @@ public class YourEntity {
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> attributes;
 
-    // Rest of your entity...
-}
-```
-
-#### List/Array JSON Fields
-
-For array types stored as JSONB, we use List<String> with the same annotations:
-
-```java
-@Entity
-@Table(name = "papers", schema = "answer42")
-@Data                   // Lombok annotation for getters, setters, equals, hashCode, toString
-@NoArgsConstructor      // Lombok for no-args constructor
-public class Paper {
-
-    // Other fields...
-
-    // Changed from String[] to List<String>
+    // For array types stored as JSONB, use List<String>
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private List<String> topics;
-
-    // Rest of your entity...
 }
 ```
-
-This approach provides the flexibility of schema-less data within a relational database context while maintaining type safety and easy serialization/deserialization.
-
-## AI Integration
-
-AI integration is managed through Spring AI, providing a unified interface for different AI providers.
-
-### Agent System
-
-The platform utilizes a multi-agent system to handle various AI operations:
-
-- **Orchestrator Agent**: Routes operations to appropriate specialized agents
-- **Paper Processor**: Extracts and processes text from PDF documents
-- **Research Analyzer**: Analyzes papers for metadata and content
-- **Content Summarizer**: Generates concise summaries of papers
-- **Concept Explainer**: Explains complex concepts within papers
-- **Citation Formatter**: Extracts and formats citations properly
-- **Quality Checker**: Ensures accuracy of AI-generated content
-- **Embedding Generator**: Creates vector embeddings for semantic search
-- **Perplexity Researcher**: Conducts external research when needed
-
-#### Agent Bootstrapping Process
-
-Our system initializes agents through a standardized bootstrapping process:
-
-1. The `initializeAgentSystem()` function in  starts the process
-2. An `AgentFactory` creates a standard set of agents including the orchestrator
-3. Each agent is registered with the `agentManager` singleton
-4. Specialized agents are linked to the orchestrator for task routing
-5. System-wide agents are created at startup, while user-specific agents are created on demand
-
-enum AgentProvider {
-  OPENAI = 'openai',
-  ANTHROPIC = 'anthropic',
-  PERPLEXITY = 'perplexity',
-}
-
-enum AgentType {
-  ORCHESTRATOR = 'orchestrator',
-  PAPER_PROCESSOR = 'paper-processor',
-  RESEARCH_ANALYZER = 'research-analyzer',
-  CONTENT_SUMMARIZER = 'content-summarizer',
-  CONCEPT_EXPLAINER = 'concept-explainer',
-  CITATION_FORMATTER = 'citation-formatter',
-  EMBEDDING_GENERATOR = 'embedding-generator',
-  QUALITY_CHECKER = 'quality-checker',
-  PERPLEXITY_RESEARCHER = 'perplexity-researcher',
-  PERPLEXITY_PAPER_ANALYZER = 'perplexity-paper-analyzer',
-  FLASHCARD_CREATOR = 'flashcard-creator',
-  PRACTICE_QUESTIONS_CREATOR = 'practice-questions-creator',
-  CONCEPT_MAP_CREATOR = 'concept-map-creator',
-  GENERAL = 'general',
-}
-
-export const RECOMMENDED_PROVIDER: Record<AgentType, AgentProvider> = {
-
-  [AgentType.ORCHESTRATOR]: AgentProvider.OPENAI,
-  [AgentType.PAPER_PROCESSOR]: AgentProvider.OPENAI,
-  [AgentType.RESEARCH_ANALYZER]: AgentProvider.OPENAI,
-  [AgentType.CONTENT_SUMMARIZER]: AgentProvider.ANTHROPIC,
-  [AgentType.CONCEPT_EXPLAINER]: AgentProvider.OPENAI,
-  [AgentType.QUALITY_CHECKER]: AgentProvider.ANTHROPIC,
-  [AgentType.CITATION_FORMATTER]: AgentProvider.OPENAI,
-  [AgentType.PERPLEXITY_RESEARCHER]: AgentProvider.PERPLEXITY,
-  [AgentType.PERPLEXITY_PAPER_ANALYZER]: AgentProvider.PERPLEXITY,
-  [AgentType.EMBEDDING_GENERATOR]: AgentProvider.OPENAI,
-  [AgentType.FLASHCARD_CREATOR]: AgentProvider.OPENAI,
-  [AgentType.PRACTICE_QUESTIONS_CREATOR]: AgentProvider.OPENAI,
-  [AgentType.CONCEPT_MAP_CREATOR]: AgentProvider.ANTHROPIC,
-  [AgentType.GENERAL]: AgentProvider.OPENAI,
-
-};
-
-Agent Implementations
-
-Each agent will be implemented as a separate module with standardized interfaces:
-
-```
-// Base Agent interface
-interface AIAgent {
-  process(input: AgentInput): Promise<AgentOutput>;
-  getName(): string;
-  getCapabilities(): string[];
-}
-
-// Orchestrator Agent implementation
-class OrchestratorAgent implements AIAgent {
-  private agents: Map<string, AIAgent>;
-
-  constructor(agents: AIAgent[]) {
-    this.agents = new Map();
-    agents.forEach(agent => {
-      this.agents.set(agent.getName(), agent);
-    });
-  }
-
-  async process(input: AgentInput): Promise<AgentOutput> {
-    // Determine which agents to use based on the task
-    const taskPlan = this.createTaskPlan(input);
-
-    // Execute the plan
-    const results = await this.executePlan(taskPlan, input);
-
-    // Integrate results
-    const integratedResult = this.integrateResults(results);
-
-    // Final quality check
-    const qualityChecker = this.agents.get('QualityChecker');
-    if (qualityChecker) {
-      const qualityInput = {
-        ...input,
-        intermediateResult: integratedResult
-      };
-      const qualityResult = await qualityChecker.process(qualityInput);
-
-      // If quality issues found, address them
-      if (qualityResult.needsRevision) {
-        return this.handleRevision(qualityResult, input);
-      }
-    }
-
-    return integratedResult;
-  }
-
-  // Additional methods...
-}
-```
-
-### 6.3 Agent Communication Protocol
-
-Agents will communicate using a standardized message format:
-
-```
-interface AgentMessage {
-  messageId: string;
-  senderId: string;
-  recipientId: string;
-  messageType: 'REQUEST' | 'RESPONSE' | 'ERROR';
-  content: {
-    task: string;
-    data: any;
-    metadata: {
-      confidence?: number;
-      processingTime?: number;
-      sources?: string[];
-    }
-  };
-  timestamp: number;
-}
-```
-
-This process ensures all agents are properly initialized with appropriate models and configurations.
-
-```mermaid
-flowchart TD
-    A[Bootstrap System Start] --> B[Initialize Agent System]
-    B --> C[Create Agent Service]
-    C --> D[Create Standard Agent Set]
-    D --> E[Orchestrator Agent]
-    D --> F[Paper Processor Agent]
-    D --> G[Research Analyzer Agent]
-    D --> H[Content Summarizer Agent]
-    D --> I[Other Specialized Agents]
-    D --> MD[Metadata Extraction Agents]
-    E --> J[Register with Agent Manager]
-    F --> J
-    G --> J
-    H --> J
-    I --> J
-    MD --> J
-    MD -.-> CR[Crossref Client]
-    MD -.-> SS[Semantic Scholar Client]
-    E -.-> F
-    E -.-> G
-    E -.-> H
-    E -.-> I
-    E -.-> MD
-    J --> K[System Ready]
-
-    classDef primary fill:#3C46FF,color:white;
-    classDef secondary fill:#10A37F,color:white;
-    classDef orchestrator fill:#8c52ff,color:white;
-    classDef metadata fill:#FF6B6B,color:white;
-    classDef external fill:#4CAF50,color:white;
-
-    class A,B,C,D,K primary;
-    class F,G,H,I secondary;
-    class E orchestrator;
-    class MD metadata;
-    class CR,SS external;
-```
-
-#### Orchestrator Pattern
-
-The orchestrator pattern is central to our agent architecture:
-
-1. **Central Coordination**: The orchestrator agent acts as the entry point for all complex AI operations
-2. **Task Routing**: Based on task requirements, the orchestrator delegates to specialized agents
-3. **Workflow Management**: For multi-step operations, the orchestrator maintains state and sequences
-4. **Dependency Resolution**: The orchestrator resolves dependencies between agent operations
-5. **Error Handling**: Centralized error handling and recovery strategies are implemented
-6. **Logging and Monitoring**: Comprehensive logging of all operations with multi-level verbosity
-
-The orchestrator uses a task-based API where each request is converted to a structured task with clear inputs and expected outputs.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant AM as AgentManager
-    participant L as Logger
-    participant O as OrchestratorAgent
-    participant PP as PaperProcessorAgent
-    participant ME as MetadataExtractor
-    participant RA as ResearchAnalyzerAgent
-    participant CS as ContentSummarizerAgent
-
-    C->>AM: executeWorkflow('paper_processing', params)
-    AM->>L: log.info("Starting workflow", params)
-    AM->>O: createTask(workflow, params)
-    activate O
-    Note over O: Analyze task requirements
-    O->>L: log.debug("Task requirements analyzed")
-    O->>PP: createTask(extractText, file)
-    activate PP
-    PP->>L: log.info("Processing file", fileInfo)
-    PP-->>O: return taskResult
-    deactivate PP
-
-    O->>ME: createTask(extractMetadata, paperId)
-    activate ME
-    ME->>L: log.debug("Fetching metadata")
-    Note over ME: Parallel API requests
-    ME-->>O: return metadataResult
-    deactivate ME
-
-    O->>RA: createTask(analyzeContent, text, metadata)
-    activate RA
-    RA->>L: log.info("Analyzing content")
-    RA-->>O: return taskResult
-    deactivate RA
-
-    O->>CS: createTask(summarize, content, metadata)
-    activate CS
-    CS->>L: log.debug("Generating summary")
-    CS-->>O: return taskResult
-    deactivate CS
-
-    O->>O: assembleResults()
-    O->>L: log.info("Workflow completed successfully")
-    O-->>AM: return workflowResults
-    deactivate O
-    L->>L: log.table(performanceMetrics)
-    AM-->>C: return finalResults
-```
-
-### Chat System
-
-Answer42 implements a multi-provider chat system with three specialized interfaces:
-
-```mermaid
-graph TD
-    subgraph Frontend["Frontend Chat Interface"]
-        UI[Chat UI Manager]
-        PaperChat[Paper-Specific Chat]
-        CrossRef[Cross-Reference Chat]
-        ResearchEx[Research Explorer Chat]
-
-        UI --- PaperChat
-        UI --- CrossRef
-        UI --- ResearchEx
-    end
-
-    subgraph Backend["Backend Services"]
-        ChatController[Chat Controller]
-
-        AnthropicSvc[Anthropic Provider]
-        CrossRefSvc[CrossReference Service]
-        ResearchExSvc[ResearchExplorer Service]
-        PerplexitySvc[Perplexity Service]
-
-        ChatController --- AnthropicSvc
-        ChatController --- CrossRefSvc
-        ChatController --- ResearchExSvc
-        ChatController --- PerplexitySvc
-    end
-
-    subgraph AI["AI Providers"]
-        Claude[Claude API]
-        GPT4[ChatGPT API]
-        Perplexity[Perplexity API]
-    end
-
-    PaperChat --> ChatController
-    CrossRef --> ChatController
-    ResearchEx --> ChatController
-
-    AnthropicSvc --> Claude
-    CrossRefSvc --> GPT4
-    ResearchExSvc --> GPT4
-    PerplexitySvc --> Perplexity
-```
-
-#### Paper-Specific Chat (Claude AI)
-
-- Uses Anthropic's Claude models for deep paper understanding
-- Optimized for contextual questions about specific papers
-- Provides source citations for answers with confidence scores
-- Implemented as a direct provider service with paper context
-
-#### Cross-Reference Chat (ChatGPT)
-
-- Powered by OpenAI's GPT-4 models through `CrossReferenceChatService`
-- Specialized for comparing multiple papers to find agreements and contradictions
-- Structures responses with relationship analysis between papers
-- Provides section-by-section comparisons of methods, results, and conclusions
-
-#### Research Explorer Chat (Perplexity/OpenAI Hybrid)
-
-- Frontend features Perplexity's "Deep Research" capabilities
-- Uses `ResearchExplorerChatService` (OpenAI) for structural analysis
-- Uses `PerplexityResearchService` for external research and citations
-- Features three modes: General Search, Verify Claims, and Discover Papers
-- Implements a credit-based quota system based on subscription tier
-
-Each chat interface operates independently from the agent system, providing specialized research assistance based on different AI providers' strengths.
-
-## Theme System
-
-Answer42 uses a structured theme system based on Vaadin best practices:
-
-```
-answer42/
-├── src/
-│   ├── main/
-|   |   └── frontend/
-|   |   |    └── styles/
-|   |   |        └── themes/
-│   |   |           └── answer42/           # Custom theme
-|   |   |             ├── theme.json        # Theme configuration
-│   |   |             ├── styles.css        # Global variables
-|   │   |             ├── main.css          # Main styles
-|   │   |             └── components/       # Component-specific styles
-```
-
-### Key Theme Features
-
-1. **Consistent Variables**: CSS custom properties for colors, spacing, shadows, etc.
-2. **Component Modularity**: Styles organized by component type
-3. **Dark Mode Support**: Built-in support for light and dark themes
-4. **Responsive Design**: Mobile-first approach with responsive breakpoints
-5. **Design System Integration**: Leverages Vaadin Lumo design system
-
-The theme is activated by loading each css inthe AppShell class.
-
-@CssImport("./styles/themes/answer42/main.css")
-
-@CssImport("./styles/themes/answer42/styles.css")
-
-@CssImport("./styles/themes/answer42/components/auth-forms.css")
-
-@CssImport("./styles/themes/answer42/components/main-layout.css")
-
-@CssImport("./styles/themes/answer42/components/dashboard.css")
-
-@CssImport("./styles/themes/answer42/components/papers.css")
 
 ## Getting Started
 
 ### Prerequisites
 
-- Java 21 or later
-- Maven 3.8 or later
-- PostgreSQL 14 or later (or Supabase account)
-- API keys for AI services
+- **Java 21** or later
+- **Maven 3.8** or later  
+- **PostgreSQL 14** or later
+- **AI API Keys** (OpenAI, Anthropic, Perplexity)
 
-### Environment Variables
+### Quick Start
 
-The application requires the following environment variables:
-
-```
-# AI API Keys
-OPENAI_API_KEY=your_openai_api_key
-ANTHROPIC_API_KEY=your_anthropic_api_key
-PERPLEXITY_API_KEY=your_perplexity_api_key
-```
-
-You can set these up in two ways:
-
-1. Create a `.env` file in the project root (never commit this file to version control)
-2. Set the environment variables directly in your system
-
-The application includes an `EnvironmentConfig` class that loads variables from the `.env` file if present.
-
-### Installation
-
-1. Clone the repository:
+1. **Clone the repository**
    
-   ```
+   ```bash
    git clone https://github.com/yourusername/answer42.git
    cd answer42
    ```
 
-2. Set up the environment variables described above
-
-3. Build the application:
+2. **Configure environment variables**
+   Create a `.env` file in the project root:
    
+   ```env
+   OPENAI_API_KEY=your_openai_api_key
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   PERPLEXITY_API_KEY=your_perplexity_api_key
    ```
+
+3. **Set up PostgreSQL**
+   
+   - Create a database named `postgres`
+   - Create schema: `CREATE SCHEMA answer42;`
+   - Update connection details in `application.properties`
+
+4. **Build and run**
+   
+   ```bash
    mvn clean install
-   ```
-
-4. Run the application:
-   
-   ```
    mvn spring-boot:run
    ```
 
-5. Access the application at http://localhost:8080
+5. **Access the application**
+   Open your browser to `http://localhost:8080`
 
 ## Development
 
 ### Running in Development Mode
 
-```
+```bash
 mvn spring-boot:run
 ```
 
-Vaadin development mode is enabled by default, providing hot reloading of UI changes.
+This enables:
 
-### Configuration
+- Vaadin development mode with hot reload
+- Detailed SQL logging  
+- Development-specific configurations
 
-Core application configuration is located in `src/main/resources/application.properties`.
+### Code Quality Tools
 
-Key configuration properties:
+The project includes comprehensive code quality checks:
 
-- Database connection settings
-- Spring transaction management
-- AI provider API keys
-- JWT authentication settings
-- Logging configuration
+```bash
+# Run code style checks
+mvn checkstyle:check
 
-## Production Build
+# Run static analysis
+mvn pmd:check
 
-To build for production:
+# Find potential bugs
+mvn spotbugs:check
 
+# Run all quality checks
+mvn clean verify
 ```
-mvn clean package -production
+
+### Building for Production
+
+```bash
+mvn clean package -Pproduction
 ```
 
-This builds an optimized version with:
+This creates an optimized build with:
 
 - Minified frontend resources
-- Production-ready settings
-- WAR file for deployment
+- Production Vaadin compilation
+- Optimized JAR/WAR packaging
 
-## API Documentation
+## Configuration
 
-The application exposes REST APIs for authentication and data access:
+### Key Configuration Files
 
-- `/api/auth/*`: Authentication endpoints
-- `/api/test`: Test endpoint for connectivity verification
+**application.properties**
 
-Detailed API documentation is available in the codebase comments.
+- Database connection settings
+- AI provider configurations
+- Security and JWT settings
+- Vaadin development options
 
-## License
+**AI Provider Settings**
 
-[License Information]
+```properties
+# Anthropic Configuration
+spring.ai.anthropic.api-key=${ANTHROPIC_API_KEY}
+spring.ai.anthropic.chat.options.model=claude-3-7-sonnet-latest
+spring.ai.anthropic.chat.options.temperature=0.7
 
-## Contributors
+# OpenAI Configuration  
+spring.ai.openai.api-key=${OPENAI_API_KEY}
+spring.ai.openai.chat.options.model=gpt-4o
+spring.ai.openai.chat.options.temperature=0.7
 
-[Contributors Information]
+# Perplexity Configuration
+spring.ai.perplexity.api-key=${PERPLEXITY_API_KEY}
+spring.ai.perplexity.chat.options.model=llama-3.1-sonar-small-128k-online
+```
+
+**Database Configuration**
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:54322/postgres
+spring.jpa.properties.hibernate.default_schema=answer42
+spring.jpa.hibernate.ddl-auto=update
+```
+
+---
+
+**Answer42** - Making academic research more intelligent, one paper at a time. 🚀📚

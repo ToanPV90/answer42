@@ -16,20 +16,20 @@ public class AIConfig {
 
     @Value("${spring.ai.anthropic.chat.options.model}")
     private String anthropicModel;
-    
+
     @Value("${spring.ai.openai.api-key:test-key}")
     private String openaiApiKey;
-    
+
     @Value("${spring.ai.openai.chat.options.model}")
     private String openaiModel;
-    
+
     @Value("${spring.ai.perplexity.api-key:test-key}")
     private String perplexityApiKey;
-    
+
     // More configuration values...
-    
+
     // Bean definitions for AI providers...
-    
+
     @Bean
     @Primary
     public AnthropicChatModel anthropicChatModel(AnthropicApi anthropicApi) {
@@ -38,7 +38,7 @@ public class AIConfig {
                 .maxTokens(anthropicMaxTokens)
                 .temperature(anthropicTemperature)
                 .build();
-        
+
         return new AnthropicChatModel(
                 anthropicApi, 
                 options, 
@@ -46,7 +46,7 @@ public class AIConfig {
                 retryTemplate(), 
                 observationRegistry());
     }
-    
+
     @Bean
     public OpenAiChatModel openAiChatModel(OpenAiApi openAiApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
@@ -54,7 +54,7 @@ public class AIConfig {
                 .maxTokens(openaiMaxTokens)
                 .temperature(openaiTemperature)
                 .build();
-        
+
         return new OpenAiChatModel(
                 openAiApi, 
                 options, 
@@ -62,7 +62,7 @@ public class AIConfig {
                 retryTemplate(), 
                 observationRegistry());
     }
-    
+
     @Bean
     public OpenAiChatModel perplexityChatModel(OpenAiApi perplexityApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
@@ -70,7 +70,7 @@ public class AIConfig {
                 .maxTokens(perplexityMaxTokens)
                 .temperature(perplexityTemperature)
                 .build();
-        
+
         return new OpenAiChatModel(
                 perplexityApi, 
                 options, 
@@ -78,7 +78,7 @@ public class AIConfig {
                 retryTemplate(), 
                 observationRegistry());
     }
-    
+
     // ChatClient beans for each provider...
 }
 ```
@@ -102,9 +102,9 @@ Paper processing tasks run asynchronously using our `ThreadConfig` configuration
 public class ThreadConfig {
     @Value("${spring.task.execution.thread-name-prefix}")
     private String executionThreadNamePrefix;
-    
+
     // More configuration values...
-    
+
     @Bean
     public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -118,7 +118,7 @@ public class ThreadConfig {
         executor.initialize();
         return executor;
     }
-    
+
     @Bean
     public ThreadPoolTaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
@@ -129,7 +129,7 @@ public class ThreadConfig {
         scheduler.setAwaitTerminationSeconds((int) terminationSeconds);
         return scheduler;
     }
-    
+
     // Helper methods...
 }
 ```
@@ -158,7 +158,7 @@ public void processInBackground(Paper paper, UI ui) {
     try {
         // Perform long-running operation
         AnalysisResult result = paperAnalysisService.analyze(paper);
-        
+
         // Update UI safely
         ui.access(() -> {
             statusLabel.setText("Processing completed");
@@ -184,22 +184,22 @@ graph TD
     Upload[Paper Upload] --> Validation[File Validation]
     Validation --> Extraction[Text Extraction]
     Extraction --> Orchestrator[Orchestrator Agent]
-    
+
     Orchestrator --> MetadataAgent[Metadata Extraction Agent]
     Orchestrator --> SummarizerAgent[Content Summarizer Agent]
     Orchestrator --> CitationAgent[Citation Extractor Agent]
     Orchestrator --> ConceptAgent[Concept Extraction Agent]
     Orchestrator --> QualityAgent[Quality Checker Agent]
-    
+
     MetadataAgent --> Orchestrator
     SummarizerAgent --> Orchestrator
     CitationAgent --> Orchestrator
     ConceptAgent --> Orchestrator
     QualityAgent --> Orchestrator
-    
+
     Orchestrator --> Integration[Results Integration]
     Integration --> Database[(Database Storage)]
-    
+
     subgraph "External Services"
         MetadataAgent -- Verification --> CrossRef[CrossRef API]
         MetadataAgent -- Enrichment --> SemanticScholar[Semantic Scholar API]
@@ -211,41 +211,39 @@ graph TD
 
 Each specialized agent is assigned to a specific AI provider based on their strengths:
 
-| Agent Type | AI Provider | Justification |
-|------------|-------------|---------------|
-| Orchestrator | OpenAI | Superior planning and coordination capabilities |
-| Content Summarizer | Anthropic Claude | Excellent at producing concise, accurate summaries |
-| Concept Explainer | OpenAI | Strong ability to simplify complex concepts |
-| Citation Formatter | OpenAI | Precision in structured outputs like citations |
-| Quality Checker | Anthropic Claude | Better at fact-checking and reducing hallucinations |
-| Research Explorer | Perplexity | Specialized for online research capabilities |
+| Agent Type         | AI Provider      | Justification                                       |
+| ------------------ | ---------------- | --------------------------------------------------- |
+| Orchestrator       | OpenAI           | Superior planning and coordination capabilities     |
+| Content Summarizer | Anthropic Claude | Excellent at producing concise, accurate summaries  |
+| Concept Explainer  | OpenAI           | Strong ability to simplify complex concepts         |
+| Citation Formatter | OpenAI           | Precision in structured outputs like citations      |
+| Quality Checker    | Anthropic Claude | Better at fact-checking and reducing hallucinations |
+| Research Explorer  | Perplexity       | Specialized for online research capabilities        |
 
 These assignments are configured through our AI provider factory:
 
 ```java
 // AI Provider Factory pattern
 public class AIProviderFactory {
-    private final AnthropicChatModel anthropicModel;
-    private final OpenAiChatModel openAiModel;
-    private final OpenAiChatModel perplexityModel;
-    
+
+    private final AIConfig aiConfig;
     // Constructor with dependency injection
-    
+
     public ChatClient getProviderForAgentType(AgentType agentType) {
         switch (agentType) {
             case CONTENT_SUMMARIZER:
             case QUALITY_CHECKER:
-                return ChatClient.builder(anthropicModel).build();
-                
+                return aiConfig.anthropicChatClient(aiConfig.anthropicChatModel(aiConfig.anthropicApi()));
+
             case RESEARCH_EXPLORER:
             case PERPLEXITY_RESEARCHER:
-                return ChatClient.builder(perplexityModel).build();
-                
+                return aiConfig.perplexityChatClient(aiConfig.perplexityChatModel(aiConfig.perplexityApi()));
+
             case ORCHESTRATOR:
             case CONCEPT_EXPLAINER:
             case CITATION_FORMATTER:
             default:
-                return ChatClient.builder(openAiModel).build();
+                return aiConfig.openAiChatClient(aiConfig.openAiChatModel(aiConfig.openAiApi()));
         }
     }
 }
@@ -256,51 +254,61 @@ public class AIProviderFactory {
 The paper processing workflow occurs in the following sequence:
 
 1. **Paper Upload & Validation**
+   
    - The user uploads a PDF file
    - The system validates the file format and structure
    - A unique ID is assigned to the paper
 
 2. **Text Extraction**
+   
    - PDF content is extracted and converted to plain text
    - Text structure (sections, paragraphs) is preserved
    - Tables and figures are identified
 
 3. **Orchestrator Initialization**
+   
    - The orchestrator agent creates a processing plan
    - Required agents are identified based on paper characteristics
    - Processing resources are allocated
 
 4. **Parallel Processing**
+   
    - Metadata extraction begins immediately
    - Text is analyzed for structure and content quality
    - Specialized agents are invoked based on dependencies
 
 5. **Metadata Enrichment**
+   
    - Extracted metadata is verified with external sources
    - Additional metadata is added from bibliographic databases
    - Confidence scores are calculated for metadata fields
 
 6. **Content Analysis**
+   
    - Paper sections are identified and categorized
    - Key concepts are extracted and explained
    - Citations are parsed and structured
 
 7. **Summary Generation**
+   
    - Multiple summary levels are generated
    - Key findings are highlighted
    - Research implications are identified
 
 8. **Quality Verification**
+   
    - Generated content is checked for accuracy
    - Potential inaccuracies are flagged or corrected
    - Content is adjusted based on confidence scores
 
 9. **Results Integration**
+   
    - All agent outputs are integrated into a cohesive structure
    - Cross-references between sections are established
    - Final quality check is performed
 
 10. **Database Storage**
+    
     - Processed data is stored in structured database tables
     - Full-text content is indexed for search
     - Relationships between papers are established
@@ -315,25 +323,25 @@ public class PaperAnalysisService {
     private final ChatClient anthropicChatClient;
     private final ChatClient openAiChatClient;
     private final AIProviderFactory aiProviderFactory;
-    
+
     // Constructor with dependency injection
-    
+
     @Async
     public AnalysisResult analyzePaper(Paper paper, AnalysisTask task) {
         // Determine which AI provider to use based on task type
         ChatClient chatClient = aiProviderFactory.getProviderForAgentType(
             AgentType.fromAnalysisType(task.getAnalysisType()));
-        
+
         // Create prompt
         Prompt prompt = createPromptForAnalysisType(paper, task);
-        
+
         // Execute AI call with proper error handling and retry
         try {
             ChatResponse response = chatClient.call(prompt);
-            
+
             // Process and structure the response
             AnalysisResult result = parseResponseToAnalysisResult(response, task);
-            
+
             // Save the result
             return analysisResultRepository.save(result);
         } catch (Exception e) {
@@ -343,7 +351,7 @@ public class PaperAnalysisService {
             throw new PaperAnalysisException("Failed to analyze paper", e);
         }
     }
-    
+
     // Helper methods for prompt creation, response parsing, etc.
 }
 ```
@@ -389,16 +397,16 @@ UI integration for the pipeline leverages Vaadin's push capabilities:
 public class UploadPaperView extends Div implements BeforeEnterObserver {
     private final PaperService paperService;
     private final PaperAnalysisService analysisService;
-    
+
     private ProgressBar progressBar;
     private Span statusLabel;
-    
+
     // Constructor and initialization
-    
+
     private void uploadPaper(InputStream fileContent, String fileName) {
         // Create initial paper record
         Paper paper = paperService.createPaper(fileContent, fileName);
-        
+
         // Start async processing
         UI ui = UI.getCurrent();
         analysisService.processAsync(paper, progress -> {
@@ -406,7 +414,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
             ui.access(() -> {
                 progressBar.setValue(progress / 100.0);
                 statusLabel.setText("Processing: " + progress + "%");
-                
+
                 if (progress == 100) {
                     // Complete processing
                     Notification.show("Paper processed successfully");
@@ -427,9 +435,9 @@ The multi-agent pipeline integrates with the credit system:
 @Service
 public class PaperAnalysisService {
     private final CreditService creditService;
-    
+
     // Other dependencies
-    
+
     @Transactional
     public AnalysisTask createAnalysisTask(UUID paperId, String analysisType, UUID userId) {
         // Check credit availability
@@ -438,17 +446,17 @@ public class PaperAnalysisService {
             throw new InsufficientCreditsException(
                 "Not enough credits to perform " + analysisType);
         }
-        
+
         // Create task
         AnalysisTask task = new AnalysisTask();
         task.setPaperId(paperId);
         task.setUserId(userId);
         task.setAnalysisType(analysisType);
         task.setStatus("PENDING");
-        
+
         // Deduct credits
         creditService.deductCreditsForOperation(userId, operationType);
-        
+
         return analysisTaskRepository.save(task);
     }
 }

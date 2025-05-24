@@ -17,6 +17,7 @@ public class UIConstants {
     public static final String ROUTE_PROFILE = "profile";
     public static final String ROUTE_SUBSCRIPTION = "subscription";
     public static final String ROUTE_SETTINGS = "settings";
+    public static final String ROUTE_RELATED_PAPERS = "related-papers";
     
     // API routes and public endpoints
     public static final String ROUTE_PUBLIC = "public";
@@ -111,6 +112,7 @@ public class UIConstants {
     public static final String CSS_PAPERS_ACTION_BUTTON = "papers-action-button"; 
     public static final String CSS_PAPERS_ACTION_BUTTONS_CONTAINER = "papers-action-buttons-container";
     
+    
     // Projects view related
     public static final String CSS_PROJECTS_VIEW = "projects-view";
     public static final String CSS_PROJECT_CARD = "project-card";
@@ -147,6 +149,11 @@ public class UIConstants {
     public static final String CSS_FILE_LIST = "file-list";
     public static final String CSS_FILE_ITEM = "file-item";
     public static final String CSS_FILE_STATUS = "file-status";
+    public static final String CSS_DISCOVERY_GRID = "discovery-grid";
+    public static final String CSS_DISCOVERY_HEADER = "discovery-header";
+    public static final String CSS_DISCOVERY_CONTROLS = "discovery-controls";
+    public static final String CSS_DISCOVERY_STATS = "discovery-stats";
+    public static final String CSS_DISCOVERY_SECTION = "discovery-section";
     
     // Profile view related
     public static final String CSS_PROFILE_VIEW = "profile-view";

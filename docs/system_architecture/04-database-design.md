@@ -44,12 +44,12 @@ erDiagram
     PAPERS ||--o{ PROJECT_PAPERS : belongs_to
 
     ANALYSIS_TASKS ||--o| ANALYSIS_RESULTS : produces
-    
+
     CHAT_SESSIONS ||--o{ CHAT_MESSAGES : contains
     CHAT_SESSIONS ||--o| VISUALIZATION_STATES : visualizes
-    
+
     SUBSCRIPTIONS ||--o{ INVOICES : generates
-    
+
     TAGS ||--o{ PAPER_TAGS : assigned_to
 ```
 
@@ -58,6 +58,7 @@ erDiagram
 ### 4.4.1 User Management
 
 **users**
+
 ```sql
 CREATE TABLE answer42.users (
     id uuid NOT NULL,
@@ -71,6 +72,7 @@ CREATE TABLE answer42.users (
 ```
 
 **user_settings**
+
 ```sql
 CREATE TABLE answer42.user_settings (
     id uuid NOT NULL,
@@ -88,6 +90,7 @@ CREATE TABLE answer42.user_settings (
 ```
 
 **user_roles**
+
 ```sql
 CREATE TABLE answer42.user_roles (
     user_id uuid NOT NULL,
@@ -98,6 +101,7 @@ CREATE TABLE answer42.user_roles (
 ### 4.4.2 Paper Management
 
 **papers**
+
 ```sql
 CREATE TABLE answer42.papers (
     id uuid NOT NULL,
@@ -150,6 +154,7 @@ CREATE TABLE answer42.papers (
 ```
 
 **paper_content**
+
 ```sql
 CREATE TABLE answer42.paper_content (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -161,6 +166,7 @@ CREATE TABLE answer42.paper_content (
 ```
 
 **paper_sections**
+
 ```sql
 CREATE TABLE answer42.paper_sections (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -176,6 +182,7 @@ CREATE TABLE answer42.paper_sections (
 ### 4.4.3 Project Management
 
 **projects**
+
 ```sql
 CREATE TABLE answer42.projects (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
@@ -190,6 +197,7 @@ CREATE TABLE answer42.projects (
 ```
 
 **project_papers**
+
 ```sql
 CREATE TABLE answer42.project_papers (
     project_id uuid NOT NULL,
@@ -202,6 +210,7 @@ CREATE TABLE answer42.project_papers (
 ### 4.4.4 AI Analysis System
 
 **analysis_tasks**
+
 ```sql
 CREATE TABLE answer42.analysis_tasks (
     id uuid NOT NULL,
@@ -223,6 +232,7 @@ CREATE TABLE answer42.analysis_tasks (
 ```
 
 **analysis_results**
+
 ```sql
 CREATE TABLE answer42.analysis_results (
     id uuid NOT NULL,
@@ -243,6 +253,7 @@ CREATE TABLE answer42.analysis_results (
 ```
 
 **tasks**
+
 ```sql
 CREATE TABLE answer42.tasks (
     id text NOT NULL,
@@ -261,6 +272,7 @@ CREATE TABLE answer42.tasks (
 ### 4.4.5 Chat System
 
 **chat_sessions**
+
 ```sql
 CREATE TABLE answer42.chat_sessions (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
@@ -276,6 +288,7 @@ CREATE TABLE answer42.chat_sessions (
 ```
 
 **chat_messages**
+
 ```sql
 CREATE TABLE answer42.chat_messages (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
@@ -297,6 +310,7 @@ CREATE TABLE answer42.chat_messages (
 ### 4.4.6 Credit and Subscription System
 
 **credit_balances**
+
 ```sql
 CREATE TABLE answer42.credit_balances (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -312,6 +326,7 @@ CREATE TABLE answer42.credit_balances (
 ```
 
 **credit_transactions**
+
 ```sql
 CREATE TABLE answer42.credit_transactions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -328,6 +343,7 @@ CREATE TABLE answer42.credit_transactions (
 ```
 
 **user_operations**
+
 ```sql
 CREATE TABLE answer42.user_operations (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
@@ -342,6 +358,7 @@ CREATE TABLE answer42.user_operations (
 ```
 
 **operation_costs**
+
 ```sql
 CREATE TABLE answer42.operation_costs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -356,6 +373,7 @@ CREATE TABLE answer42.operation_costs (
 ```
 
 **subscriptions**
+
 ```sql
 CREATE TABLE answer42.subscriptions (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
@@ -372,6 +390,7 @@ CREATE TABLE answer42.subscriptions (
 ```
 
 **subscription_plans**
+
 ```sql
 CREATE TABLE answer42.subscription_plans (
     id character varying(255) NOT NULL,
@@ -428,6 +447,7 @@ CREATE TYPE answer42.operation_type_upper AS ENUM (
 Several custom PostgreSQL functions implement business logic directly in the database:
 
 **add_credits**
+
 ```sql
 CREATE FUNCTION answer42.add_credits(p_user_id uuid, p_amount integer, p_transaction_type text, p_description text, p_reference_id text) RETURNS boolean
     LANGUAGE plpgsql
@@ -441,12 +461,12 @@ BEGIN
   IF p_amount <= 0 THEN
     RAISE EXCEPTION 'Credit amount must be positive';
   END IF;
-  
+
   -- Check if user already has a credit balance
   SELECT EXISTS (
     SELECT 1 FROM answer42.credit_balances WHERE user_id = p_user_id
   ) INTO v_credit_balance_exists;
-  
+
   -- If user doesn't have a credit balance, create one
   IF NOT v_credit_balance_exists THEN
     INSERT INTO answer42.credit_balances (
@@ -461,23 +481,23 @@ BEGIN
       date_trunc('month', now()) + interval '1 month'
     );
   END IF;
-  
+
   -- Get the user's current balance
   SELECT balance INTO v_balance
   FROM answer42.credit_balances
   WHERE user_id = p_user_id
   FOR UPDATE;
-  
+
   -- Calculate new balance
   v_balance_after := v_balance + p_amount;
-  
+
   -- Update balance
   UPDATE answer42.credit_balances
   SET 
     balance = v_balance_after,
     updated_at = now()
   WHERE user_id = p_user_id;
-  
+
   -- Record transaction
   INSERT INTO answer42.credit_transactions (
     user_id,
@@ -494,13 +514,14 @@ BEGIN
     p_description,
     p_reference_id
   );
-  
+
   RETURN true;
 END;
 $$;
 ```
 
 **update_session_last_message_timestamp**
+
 ```sql
 CREATE FUNCTION answer42.update_session_last_message_timestamp() RETURNS trigger
     LANGUAGE plpgsql
@@ -519,11 +540,13 @@ $$;
 Triggers automate various operations:
 
 **update_session_timestamp**
+
 ```sql
 CREATE TRIGGER update_session_timestamp AFTER INSERT ON answer42.chat_messages FOR EACH ROW EXECUTE FUNCTION answer42.update_session_last_message_timestamp();
 ```
 
 **update_user_settings_updated_at_trigger**
+
 ```sql
 CREATE TRIGGER update_user_settings_updated_at_trigger BEFORE UPDATE ON answer42.user_settings FOR EACH ROW EXECUTE FUNCTION answer42.update_user_settings_updated_at();
 ```
@@ -566,6 +589,7 @@ The database makes extensive use of PostgreSQL's JSONB data type for flexible st
 4. **Schema Evolution**: Easily adding new attributes without schema changes
 
 Example JSONB fields:
+
 - `papers.authors`: Array of author information
 - `papers.metadata`: Publication metadata
 - `chat_sessions.context`: Chat context information
@@ -581,15 +605,15 @@ Spring Data JPA repositories provide the data access layer:
 ```java
 @Repository
 public interface PaperRepository extends JpaRepository<Paper, UUID> {
-    
+
     List<Paper> findByUserIdOrderByCreatedAtDesc(UUID userId);
-    
+
     @Query("SELECT p FROM Paper p WHERE p.userId = :userId AND " +
            "LOWER(p.title) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<Paper> searchPapersByTitle(UUID userId, String searchTerm);
-    
+
     Optional<Paper> findByIdAndUserId(UUID id, UUID userId);
-    
+
     @Query("SELECT COUNT(p) FROM Paper p WHERE p.userId = :userId")
     long countByUserId(UUID userId);
 }
@@ -606,30 +630,30 @@ Entities map to database tables using JPA annotations:
 @NoArgsConstructor
 @AllArgsConstructor
 public class Paper {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    
+
     @Column(name = "user_id")
     private UUID userId;
-    
+
     @Column(name = "title", nullable = false)
     private String title;
-    
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb", nullable = false)
     private List<String> authors;
-    
+
     @Column(name = "journal")
     private String journal;
-    
+
     @Column(name = "year")
     private Integer year;
-    
+
     @Column(name = "file_path", nullable = false)
     private String filePath;
-    
+
     // Additional fields and relationships
 }
 ```

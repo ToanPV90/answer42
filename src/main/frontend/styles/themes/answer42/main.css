@@ -17,6 +17,7 @@
 @import url('./components/bulk-upload.css');
 @import url('./components/projects.css');
 @import url('./components/ai-chat.css');
+@import url('./components/discovery.css');
 
 
 /* Component-specific style overrides for Vaadin components */

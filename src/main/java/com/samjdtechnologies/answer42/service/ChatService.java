@@ -19,9 +19,9 @@ import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.ChatMode;
 import com.samjdtechnologies.answer42.repository.ChatMessageRepository;
 import com.samjdtechnologies.answer42.repository.ChatSessionRepository;
-import com.samjdtechnologies.answer42.service.helper.AIInteractionHelper;
-import com.samjdtechnologies.answer42.service.helper.ChatMessageHelper;
-import com.samjdtechnologies.answer42.service.helper.ChatSessionHelper;
+import com.samjdtechnologies.answer42.service.helpers.AIInteractionHelper;
+import com.samjdtechnologies.answer42.service.helpers.ChatMessageHelper;
+import com.samjdtechnologies.answer42.service.helpers.ChatSessionHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**

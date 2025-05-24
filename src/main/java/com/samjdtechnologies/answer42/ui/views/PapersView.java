@@ -198,6 +198,13 @@ public class PapersView extends Div implements BeforeEnterObserver {
         // Apply custom class for compact buttons
         viewButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
+        // Related Papers button
+        Button relatedPapersButton = new Button(new Icon(VaadinIcon.CONNECT));
+        relatedPapersButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        relatedPapersButton.addClickListener(e -> UI.getCurrent().navigate(UIConstants.ROUTE_RELATED_PAPERS + "/" + paper.getId()));
+        relatedPapersButton.getElement().setAttribute("title", "View related papers");
+        relatedPapersButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
+
         // Edit button
         Button editButton = new Button(new Icon(VaadinIcon.EDIT));
         editButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
@@ -236,8 +243,8 @@ public class PapersView extends Div implements BeforeEnterObserver {
         deleteButton.getElement().setAttribute("title", "Delete paper");
         deleteButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
-        // Create a more compact layout - download button is first
-        HorizontalLayout actions = new HorizontalLayout(downloadButton, viewButton, editButton, deleteButton);
+        // Create a more compact layout - now includes related papers button
+        HorizontalLayout actions = new HorizontalLayout(downloadButton, viewButton, relatedPapersButton, editButton, deleteButton);
         actions.setSpacing(false);
         actions.setMargin(false);
         actions.setPadding(false);
@@ -377,6 +384,8 @@ public class PapersView extends Div implements BeforeEnterObserver {
         
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Paper Details");
+        dialog.setWidth("800px");
+        dialog.setMaxWidth("90vw");
         
         VerticalLayout dialogLayout = new VerticalLayout();
         dialogLayout.addClassName(UIConstants.CSS_DIALOG_LAYOUT);
@@ -412,6 +421,9 @@ public class PapersView extends Div implements BeforeEnterObserver {
         
         Paragraph processingStatus = new Paragraph("Processing Status: " + paper.getProcessingStatus());
         
+        // Pipeline progress section for papers being processed
+        Component progressSection = createPipelineProgressSection(paper);
+        
         // Abstract
         if (paper.getPaperAbstract() != null && !paper.getPaperAbstract().isEmpty()) {
             H3 abstractHeader = new H3("Abstract");
@@ -422,7 +434,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
         Button closeButton = new Button("Close", e -> dialog.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         
-        dialogLayout.add(title, authorsPara, metadata, status, processingStatus, closeButton);
+        dialogLayout.add(title, authorsPara, metadata, status, processingStatus, progressSection, closeButton);
         dialog.addClassName(UIConstants.CSS_PAPER_DETAILS_DIALOG);
         dialog.add(dialogLayout);
         dialog.open();
@@ -521,6 +533,180 @@ public class PapersView extends Div implements BeforeEnterObserver {
     private void downloadPaper(Paper paper) {
         // Delegate to helper method to handle download functionality
         getUI().ifPresent(ui -> PapersViewHelper.downloadPaper(paper, ui, this));
+    }
+    
+    /**
+     * Creates a pipeline progress section for papers currently being processed.
+     */
+    private Component createPipelineProgressSection(Paper paper) {
+        if (paper == null || paper.getProcessingStatus() == null) {
+            return new Div(); // Empty div if no processing status
+        }
+        
+        String processingStatus = paper.getProcessingStatus();
+        
+        // Only show progress section for papers that are actively being processed
+        if (!"PROCESSING".equals(paper.getStatus()) && 
+            !processingStatus.contains("PIPELINE") && 
+            !processingStatus.contains("PROCESSING")) {
+            return new Div(); // Empty div for non-processing papers
+        }
+        
+        Div progressSection = new Div();
+        progressSection.addClassName("pipeline-progress-section");
+        progressSection.getStyle()
+            .setMargin("var(--lumo-space-m) 0")
+            .setPadding("var(--lumo-space-m)")
+            .setBorder("1px solid var(--lumo-contrast-20pct)")
+            .setBorderRadius("var(--lumo-border-radius-m)");
+        
+        H3 progressHeader = new H3("Multi-Agent Processing Pipeline");
+        progressHeader.getStyle().setMargin("0 0 var(--lumo-space-s) 0");
+        
+        // Create agent progress indicators
+        String[] agents = {
+            "Text Extraction", "Metadata Enhancement", "Content Summarization",
+            "Concept Explanation", "Quality Checking", "Citation Formatting"
+        };
+        
+        VerticalLayout agentList = new VerticalLayout();
+        agentList.setPadding(false);
+        agentList.setSpacing(true);
+        
+        for (String agentName : agents) {
+            HorizontalLayout agentItem = createAgentProgressItem(agentName, processingStatus);
+            agentList.add(agentItem);
+        }
+        
+        // Overall progress bar
+        Div progressBar = createOverallProgressBar(processingStatus);
+        
+        // Processing time estimate
+        Paragraph timeEstimate = new Paragraph("Estimated completion: 5-10 minutes");
+        timeEstimate.getStyle()
+            .setFontSize("var(--lumo-font-size-s)")
+            .setColor("var(--lumo-secondary-text-color)")
+            .setMargin("var(--lumo-space-s) 0 0 0");
+        
+        progressSection.add(progressHeader, progressBar, agentList, timeEstimate);
+        return progressSection;
+    }
+    
+    /**
+     * Creates a progress item for an individual agent.
+     */
+    private HorizontalLayout createAgentProgressItem(String agentName, String processingStatus) {
+        HorizontalLayout item = new HorizontalLayout();
+        item.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        item.setSpacing(true);
+        item.setPadding(false);
+        item.getStyle().setPadding("var(--lumo-space-xs) 0");
+        
+        // Status icon
+        Icon statusIcon = determineAgentStatus(agentName, processingStatus);
+        statusIcon.setSize("16px");
+        
+        // Agent name
+        Span nameSpan = new Span(agentName);
+        
+        // Status text
+        String status = getAgentStatusText(agentName, processingStatus);
+        Span statusSpan = new Span(status);
+        statusSpan.getStyle()
+            .setFontSize("var(--lumo-font-size-s)")
+            .setColor("var(--lumo-secondary-text-color)");
+        
+        item.add(statusIcon, nameSpan, statusSpan);
+        item.setFlexGrow(1, nameSpan); // Use setFlexGrow instead of style.setFlex
+        return item;
+    }
+    
+    /**
+     * Determines the appropriate status icon for an agent based on processing status.
+     */
+    private Icon determineAgentStatus(String agentName, String processingStatus) {
+        if (processingStatus.contains("COMPLETED") || processingStatus.contains("PROCESSED")) {
+            Icon icon = VaadinIcon.CHECK_CIRCLE.create();
+            icon.getStyle().setColor("var(--lumo-success-color)");
+            return icon;
+        } else if (processingStatus.contains("PROCESSING") && processingStatus.contains(agentName.toUpperCase().replace(" ", "_"))) {
+            Icon icon = VaadinIcon.COG.create();
+            icon.getStyle().setColor("var(--lumo-primary-color)");
+            return icon;
+        } else if (processingStatus.contains("FAILED") || processingStatus.contains("ERROR")) {
+            Icon icon = VaadinIcon.EXCLAMATION_CIRCLE.create();
+            icon.getStyle().setColor("var(--lumo-error-color)");
+            return icon;
+        } else {
+            Icon icon = VaadinIcon.CLOCK.create();
+            icon.getStyle().setColor("var(--lumo-disabled-text-color)");
+            return icon;
+        }
+    }
+    
+    /**
+     * Gets the status text for an agent based on processing status.
+     */
+    private String getAgentStatusText(String agentName, String processingStatus) {
+        if (processingStatus.contains("COMPLETED") || processingStatus.contains("PROCESSED")) {
+            return "Completed";
+        } else if (processingStatus.contains("PROCESSING") && processingStatus.contains(agentName.toUpperCase().replace(" ", "_"))) {
+            return "Processing...";
+        } else if (processingStatus.contains("FAILED") || processingStatus.contains("ERROR")) {
+            return "Failed";
+        } else {
+            return "Pending";
+        }
+    }
+    
+    /**
+     * Creates an overall progress bar for the pipeline.
+     */
+    private Div createOverallProgressBar(String processingStatus) {
+        Div progressContainer = new Div();
+        progressContainer.getStyle()
+            .setWidth("100%")
+            .setHeight("8px")
+            .setBorderRadius("4px")
+            .setBackgroundColor("var(--lumo-contrast-10pct)")
+            .setMargin("0 0 var(--lumo-space-m) 0");
+        
+        Div progressFill = new Div();
+        progressFill.getStyle()
+            .setHeight("100%")
+            .setBorderRadius("4px")
+            .setBackgroundColor("var(--lumo-primary-color)")
+            .setTransition("width 0.3s ease");
+        
+        // Calculate progress percentage based on status
+        int progressPercentage = calculateProgressPercentage(processingStatus);
+        progressFill.getStyle().setWidth(progressPercentage + "%");
+        
+        progressContainer.add(progressFill);
+        return progressContainer;
+    }
+    
+    /**
+     * Calculates progress percentage based on processing status.
+     */
+    private int calculateProgressPercentage(String processingStatus) {
+        if (processingStatus.contains("COMPLETED") || processingStatus.contains("PROCESSED")) {
+            return 100;
+        } else if (processingStatus.contains("CITATION")) {
+            return 85;
+        } else if (processingStatus.contains("QUALITY")) {
+            return 70;
+        } else if (processingStatus.contains("CONCEPT")) {
+            return 55;
+        } else if (processingStatus.contains("SUMMARIZATION")) {
+            return 40;
+        } else if (processingStatus.contains("METADATA")) {
+            return 25;
+        } else if (processingStatus.contains("EXTRACTION")) {
+            return 10;
+        } else {
+            return 5;
+        }
     }
     
     @Override

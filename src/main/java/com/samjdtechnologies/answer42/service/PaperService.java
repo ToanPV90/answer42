@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,12 +25,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.model.daos.Paper;
 import com.samjdtechnologies.answer42.model.daos.Project;
 import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.enums.PipelineStatus;
+import com.samjdtechnologies.answer42.model.pipeline.PipelineConfiguration;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
+import com.samjdtechnologies.answer42.service.pipeline.PipelineOrchestrator;
+import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 import jakarta.transaction.Transactional;
 
 /**
- * Service for handling paper operations.
+ * Enhanced PaperService with multi-agent pipeline integration.
+ * Automatically triggers pipeline processing on paper upload and provides
+ * comprehensive status tracking using PipelineStatus constants.
  */
 @Service
 public class PaperService {
@@ -38,6 +45,8 @@ public class PaperService {
     
     private final PaperRepository paperRepository;
     private final ObjectMapper objectMapper;
+    private final PipelineOrchestrator pipelineOrchestrator;
+    private final CreditService creditService;
     
     // Configure base upload directory for papers
     private final Path uploadDir = Paths.get("uploads/papers");
@@ -48,10 +57,16 @@ public class PaperService {
      * 
      * @param paperRepository the repository for Paper entity operations
      * @param objectMapper the mapper for JSON and Java object conversion
+     * @param pipelineOrchestrator the orchestrator for multi-agent pipeline processing
+     * @param creditService the service for credit management and validation
      */
-    public PaperService(PaperRepository paperRepository, ObjectMapper objectMapper) {
+    public PaperService(PaperRepository paperRepository, ObjectMapper objectMapper,
+                       @Autowired(required = false) PipelineOrchestrator pipelineOrchestrator,
+                       @Autowired(required = false) CreditService creditService) {
         this.paperRepository = paperRepository;
         this.objectMapper = objectMapper;
+        this.pipelineOrchestrator = pipelineOrchestrator;
+        this.creditService = creditService;
         
         // Create upload directories if they don't exist
         try {
@@ -109,6 +124,190 @@ public class PaperService {
         }
         paper.setUpdatedAt(LocalDateTime.now());
         return paperRepository.save(paper);
+    }
+    
+    /**
+     * Upload a paper file and create a paper record with automatic pipeline processing.
+     *
+     * @param file The paper file
+     * @param title The paper title
+     * @param authors The paper authors
+     * @param currentUser The current user
+     * @return The created paper
+     * @throws IOException if there's an error reading from or writing to the file system
+     */
+    @Transactional
+    public Paper uploadPaper(MultipartFile file, String title, String[] authors, User currentUser) throws IOException {
+        // Create user directory if it doesn't exist
+        Path userDir = uploadDir.resolve(currentUser.getId().toString());
+        if (!Files.exists(userDir)) {
+            Files.createDirectories(userDir);
+        }
+        
+        // Generate a unique filename
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        String filename = UUID.randomUUID() + fileExtension;
+        
+        // Save the file
+        Path targetPath = userDir.resolve(filename);
+        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+        
+        // Create paper record with initial pipeline status
+        Paper paper = new Paper();
+        paper.setTitle(title);
+        paper.setAuthors(Arrays.asList(authors));
+        paper.setUser(currentUser);
+        paper.setFilePath(targetPath.toString());
+        paper.setFileSize(file.getSize());
+        paper.setFileType(file.getContentType());
+        paper.setStatus("UPLOADED");
+        paper.setProcessingStatus(PipelineStatus.PENDING.getDisplayName());
+        
+        // Create initial metadata
+        ObjectNode metadata = objectMapper.createObjectNode();
+        metadata.put("originalFilename", originalFilename);
+        metadata.put("contentType", file.getContentType());
+        metadata.put("size", file.getSize());
+        metadata.put("uploadTimestamp", LocalDateTime.now().toString());
+        paper.setMetadata(metadata);
+        
+        // Save paper first
+        Paper savedPaper = savePaper(paper);
+        
+        // Trigger multi-agent pipeline processing if available
+        if (pipelineOrchestrator != null) {
+            initiateMultiAgentProcessing(savedPaper, currentUser);
+        } else {
+            LoggingUtil.warn(logger, "uploadPaper", "PipelineOrchestrator not available, skipping pipeline processing");
+        }
+        
+        return savedPaper;
+    }
+    
+    /**
+     * Initiate multi-agent pipeline processing for a newly uploaded paper.
+     * 
+     * @param paper The paper to process
+     * @param user The user who uploaded the paper
+     */
+    private void initiateMultiAgentProcessing(Paper paper, User user) {
+        try {
+            // Check user credits if credit service is available (assuming 30 credits for full pipeline)
+            if (creditService != null && !creditService.hasEnoughCredits(user.getId(), 30)) {
+                LoggingUtil.warn(logger, "initiateMultiAgentProcessing", 
+                    "User %s has insufficient credits for pipeline processing", user.getId());
+                
+                // Update paper status to indicate credit shortage
+                updatePaperPipelineStatus(paper.getId(), PipelineStatus.PENDING_CREDITS);
+                return;
+            }
+            
+            // Create pipeline configuration
+            PipelineConfiguration config = PipelineConfiguration.builder()
+                .name("Auto Upload Processing")
+                .description("Automatic processing for uploaded paper")
+                .includeMetadataEnhancement(true)
+                .generateSummaries(true)
+                .includeCitationProcessing(true)
+                .includeQualityChecking(true)
+                .maxConcurrentAgents(4)
+                .timeoutMinutes(15)
+                .build();
+            
+            // Start pipeline processing with progress callback
+            pipelineOrchestrator.processPaper(
+                paper.getId(), 
+                user.getId(),
+                config, 
+                progressUpdate -> {
+                    LoggingUtil.debug(logger, "pipelineProgress", 
+                        "Pipeline progress for paper %s: %s", 
+                        paper.getId(), progressUpdate.toString());
+                }
+            );
+            
+            // Update paper status using enum
+            updatePaperPipelineStatus(paper.getId(), PipelineStatus.INITIALIZING);
+            
+            LoggingUtil.info(logger, "initiateMultiAgentProcessing", 
+                "Initiated pipeline processing for paper %s", paper.getId());
+                
+        } catch (Exception e) {
+            LoggingUtil.error(logger, "initiateMultiAgentProcessing", 
+                "Failed to initiate pipeline processing: " + e.getMessage(), e);
+            
+            // Update paper status to indicate processing failure using enum
+            updatePaperPipelineStatus(paper.getId(), PipelineStatus.FAILED);
+        }
+    }
+    
+    /**
+     * Get processing status for pipeline display.
+     * 
+     * @param paperId The paper ID
+     * @return Processing status information
+     */
+    public PipelineStatus getPipelineStatus(UUID paperId) {
+        Optional<Paper> paperOpt = paperRepository.findById(paperId);
+        if (paperOpt.isPresent()) {
+            Paper paper = paperOpt.get();
+            String processingStatus = paper.getProcessingStatus();
+            
+            // Parse from string using the enum's fromString method
+            return PipelineStatus.fromString(processingStatus);
+        }
+        return PipelineStatus.PENDING;
+    }
+    
+    /**
+     * Update paper status using pipeline status enum.
+     *
+     * @param id The paper ID
+     * @param pipelineStatus The new pipeline status
+     * @return Optional containing the updated paper if found
+     */
+    @Transactional
+    public Optional<Paper> updatePaperPipelineStatus(UUID id, PipelineStatus pipelineStatus) {
+        Optional<Paper> paperOpt = paperRepository.findById(id);
+        
+        if (paperOpt.isPresent()) {
+            Paper paper = paperOpt.get();
+            
+            // Use the enum's getPaperStatus method for consistency
+            paper.setStatus(pipelineStatus.getPaperStatus());
+            paper.setProcessingStatus(pipelineStatus.getDisplayName());
+            paper.setUpdatedAt(LocalDateTime.now());
+            
+            return Optional.of(paperRepository.save(paper));
+        }
+        
+        return Optional.empty();
+    }
+    
+    /**
+     * Get processing progress percentage for UI display.
+     * 
+     * @param paperId The paper ID
+     * @return Progress percentage (0-100)
+     */
+    public int getProcessingProgress(UUID paperId) {
+        PipelineStatus status = getPipelineStatus(paperId);
+        return status.getProgressPercentage();
+    }
+    
+    /**
+     * Check if paper processing is complete.
+     * 
+     * @param paperId The paper ID
+     * @return True if processing is complete (success or failure)
+     */
+    public boolean isProcessingComplete(UUID paperId) {
+        PipelineStatus status = getPipelineStatus(paperId);
+        return status.isTerminal();
     }
     
     /**
@@ -186,58 +385,6 @@ public class PaperService {
     }
     
     /**
-     * Upload a paper file and create a paper record.
-     *
-     * @param file The paper file
-     * @param title The paper title
-     * @param authors The paper authors
-     * @param currentUser The current user
-     * @return The created paper
-     * @throws IOException if there's an error reading from or writing to the file system
-     */
-    @Transactional
-    public Paper uploadPaper(MultipartFile file, String title, String[] authors, User currentUser) throws IOException {
-        // Create user directory if it doesn't exist
-        Path userDir = uploadDir.resolve(currentUser.getId().toString());
-        if (!Files.exists(userDir)) {
-            Files.createDirectories(userDir);
-        }
-        
-        // Generate a unique filename
-        String originalFilename = file.getOriginalFilename();
-        String fileExtension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-        String filename = UUID.randomUUID() + fileExtension;
-        
-        // Save the file
-        Path targetPath = userDir.resolve(filename);
-        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-        
-        // Create paper record
-        Paper paper = new Paper();
-        paper.setTitle(title);
-        paper.setAuthors(Arrays.asList(authors)); // Convert String[] to List<String>
-        paper.setUser(currentUser);
-        paper.setFilePath(targetPath.toString());
-        paper.setFileSize(file.getSize());
-        paper.setFileType(file.getContentType());
-        paper.setStatus("PENDING");
-        paper.setProcessingStatus("pending");
-        
-        // Create initial metadata
-        ObjectNode metadata = objectMapper.createObjectNode();
-        metadata.put("originalFilename", originalFilename);
-        metadata.put("contentType", file.getContentType());
-        metadata.put("size", file.getSize());
-        metadata.put("uploadTimestamp", LocalDateTime.now().toString());
-        paper.setMetadata(metadata);
-        
-        return savePaper(paper);
-    }
-    
-    /**
      * Update paper metadata.
      *
      * @param id The paper ID
@@ -258,7 +405,7 @@ public class PaperService {
             Paper paper = paperOpt.get();
             
             if (title != null) paper.setTitle(title);
-            if (authors != null) paper.setAuthors(Arrays.asList(authors)); // Convert String[] to List<String>
+            if (authors != null) paper.setAuthors(Arrays.asList(authors));
             if (paperAbstract != null) paper.setPaperAbstract(paperAbstract);
             if (journal != null) paper.setJournal(journal);
             if (year != null) paper.setYear(year);
@@ -272,7 +419,7 @@ public class PaperService {
     }
     
     /**
-     * Update paper status.
+     * Update paper status (legacy method - use updatePaperPipelineStatus for pipeline integration).
      *
      * @param id The paper ID
      * @param status The new status

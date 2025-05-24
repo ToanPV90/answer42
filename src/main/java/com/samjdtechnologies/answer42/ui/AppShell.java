@@ -39,6 +39,7 @@ import com.vaadin.flow.server.PWA;
 @CssImport("./styles/themes/answer42/components/bulk-upload.css")
 @CssImport("./styles/themes/answer42/components/projects.css")
 @CssImport("./styles/themes/answer42/components/ai-chat.css")
+@CssImport("./styles/themes/answer42/components/discovery.css")
 
 @JavaScript("./sw-loader.js")
 @JavaScript("./jwt-injector.js")

@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 
 import com.samjdtechnologies.answer42.model.daos.ChatMessage;
 import com.samjdtechnologies.answer42.service.ChatService;
-import com.samjdtechnologies.answer42.ui.views.components.AIChatGeneralMesssageBubble;
-import com.samjdtechnologies.answer42.ui.views.components.AIChatThinkingMessageBubble;
+import com.samjdtechnologies.answer42.ui.components.AIChatGeneralMesssageBubble;
+import com.samjdtechnologies.answer42.ui.components.AIChatThinkingMessageBubble;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;

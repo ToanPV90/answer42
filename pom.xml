@@ -13,7 +13,14 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>answer42</name>
-	<description>Demo project for Spring Boot</description>
+	<description>
+		Answer42 is a sophisticated AI-powered platform for academic 
+		researchers, students, and scholars to upload, analyze, and 
+		interact with research papers using multiple AI providers. The 
+		platform combines advanced paper processing with intelligent chat 
+		capabilities and a revolutionary multi-agent processing pipeline 
+		to make academic research more efficient and insightful.
+	</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -30,6 +37,11 @@
 	<properties>
 		<java.version>21</java.version>
 		<vaadin.version>24.7.3</vaadin.version>
+		<lombok.version>1.18.34</lombok.version>
+		<!-- Maven compiler properties for consistency -->
+		<maven.compiler.release>21</maven.compiler.release>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<repositories>
 		<repository>
@@ -60,7 +72,6 @@
 	</repositories>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -87,7 +98,8 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<version>${lombok.version}</version>
+			<scope>compile</scope>
 		</dependency>
 
 		<!-- JWT Dependencies -->
@@ -160,6 +172,7 @@
 			<version>1.0.0-M8</version>
 		</dependency>
 	</dependencies>
+	
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -183,60 +196,18 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<!-- Compiler plugin with Lombok annotation processing -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.11.0</version>
-					<configuration>
-						<annotationProcessorPaths>
-							<path>
-								<groupId>org.projectlombok</groupId>
-								<artifactId>lombok</artifactId>
-								<version>${lombok.version}</version>
-							</path>
-							<!-- Add other annotation processors if you use any -->
-						</annotationProcessorPaths>
-					</configuration>
+					<version>3.12.1</version>
 				</plugin>
-				<!-- Eclipse m2e settings (no effect on the Maven build) -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-checkstyle-plugin</artifactId>
-										<versionRange>[3.0.0,)</versionRange>
-										<goals>
-											<goal>check</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
+				
+				<!-- Checkstyle for enforcing code style -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
 					<version>3.4.0</version>
-					<configuration>
-						<configLocation>checkstyle.xml</configLocation>
-						<encoding>UTF-8</encoding>
-						<consoleOutput>true</consoleOutput>
-						<failsOnError>true</failsOnError>
-						<linkXRef>false</linkXRef>
-						<!-- Add color output -->
-						<outputFormat>plain</outputFormat>
-						<violationSeverity>error</violationSeverity>
-					</configuration>
 					<dependencies>
 						<dependency>
 							<groupId>com.puppycrawl.tools</groupId>
@@ -244,43 +215,130 @@
 							<version>10.14.2</version>
 						</dependency>
 					</dependencies>
+					<configuration>
+						<configLocation>checkstyle.xml</configLocation>
+						<encoding>UTF-8</encoding>
+						<consoleOutput>true</consoleOutput>
+						<failsOnError>true</failsOnError>
+						<linkXRef>false</linkXRef>
+						<outputFormat>plain</outputFormat>
+						<violationSeverity>error</violationSeverity>
+					</configuration>
 				</plugin>
+				
+				<!-- PMD for static code analysis -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-pmd-plugin</artifactId>
 					<version>3.22.0</version>
+					<configuration>
+						<failOnViolation>true</failOnViolation>
+						<printFailingErrors>true</printFailingErrors>
+						<rulesets>
+							<ruleset>${project.basedir}/pmd-ruleset.xml</ruleset>
+						</rulesets>
+						<linkXRef>false</linkXRef>
+						<sourceEncoding>UTF-8</sourceEncoding>
+						<targetJdk>${java.version}</targetJdk>
+						<analysisCache>true</analysisCache>
+					</configuration>
 				</plugin>
+				
+				<!-- SpotBugs for finding potential bugs -->
 				<plugin>
 					<groupId>com.github.spotbugs</groupId>
 					<artifactId>spotbugs-maven-plugin</artifactId>
 					<version>4.8.3.0</version>
+					<configuration>
+						<effort>Max</effort>
+						<threshold>Medium</threshold>
+						<xmlOutput>true</xmlOutput>
+						<excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+					</configuration>
+				</plugin>
+				
+				<!-- Maven Enforcer Plugin -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>3.4.1</version>
+					<configuration>
+						<rules>
+							<dependencyConvergence/>
+							<requireMavenVersion>
+								<version>3.8.0</version>
+							</requireMavenVersion>
+							<requireJavaVersion>
+								<version>21</version>
+							</requireJavaVersion>
+							<banDuplicatePomDependencyVersions/>
+						</rules>
+					</configuration>
+				</plugin>
+
+				<!-- JavaDoc standards enforcement -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>3.6.2</version>
+					<configuration>
+						<source>${java.version}</source>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
+		
 		<plugins>
+			<!-- Maven Compiler Plugin - Explicit annotation processing for future-proofing -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.12.1</version>
+				<configuration>
+					<release>${java.version}</release>
+					<compilerArgs>
+						<arg>-parameters</arg>
+						<!-- Suppress the future javac warning -->
+						<arg>-Xlint:-options</arg>
+					</compilerArgs>
+					<!-- Explicitly enable annotation processing -->
+					<proc>full</proc>
+					<!-- Explicitly specify Lombok processor -->
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
+					<!-- Explicitly list the annotation processors -->
+					<annotationProcessors>
+						<annotationProcessor>lombok.launch.AnnotationProcessorHider$AnnotationProcessor</annotationProcessor>
+					</annotationProcessors>
+				</configuration>
+			</plugin>
+
+			<!-- Spring Boot Maven Plugin -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 			
-			<!-- Checkstyle for enforcing code style -->
+			<!-- Only declare plugins here that you want to actually execute -->
+			<!-- The configuration comes from pluginManagement above -->
+			
+			<!-- Uncomment these if you want them to run automatically during build:
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.4.0</version>
-				<dependencies>
-					<dependency>
-						<groupId>com.puppycrawl.tools</groupId>
-						<artifactId>checkstyle</artifactId>
-						<version>10.14.2</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<configLocation>checkstyle.xml</configLocation>
-					<consoleOutput>true</consoleOutput>
-					<failsOnError>true</failsOnError>
-					<linkXRef>false</linkXRef>
-				</configuration>
 				<executions>
 					<execution>
 						<id>validate</id>
@@ -292,68 +350,20 @@
 				</executions>
 			</plugin>
 			
-			<!-- PMD for static code analysis -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.22.0</version>
-				<configuration>
-					<failOnViolation>true</failOnViolation>
-					<printFailingErrors>true</printFailingErrors>
-					<rulesets>
-						<ruleset>${project.basedir}/pmd-ruleset.xml</ruleset>
-					</rulesets>
-					<linkXRef>false</linkXRef>
-					<sourceEncoding>UTF-8</sourceEncoding>
-					<targetJdk>${java.version}</targetJdk>
-					<analysisCache>true</analysisCache>
-				</configuration>
-				<!-- No executions defined to make this run only when explicitly called -->
-			</plugin>
-			
-			<!-- SpotBugs for finding potential bugs -->
-			<plugin>
-				<groupId>com.github.spotbugs</groupId>
-				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.8.3.0</version>
-				<configuration>
-					<effort>Max</effort>
-					<threshold>Medium</threshold>
-					<xmlOutput>true</xmlOutput>
-					<excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
-				</configuration>
-				<!-- No executions defined to make this run only when explicitly called -->
-			</plugin>
-			
-			<!-- Enforce project architecture rules -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>3.4.1</version>
-				<configuration>
-					<rules>
-						<dependencyConvergence/>
-						<requireMavenVersion>
-							<version>3.8.0</version>
-						</requireMavenVersion>
-						<requireJavaVersion>
-							<version>21</version>
-						</requireJavaVersion>
-						<banDuplicatePomDependencyVersions/>
-					</rules>
-				</configuration>
-				<!-- No executions defined to make this run only when explicitly called -->
+				<executions>
+					<execution>
+						<id>enforce-rules</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
-
-			<!-- JavaDoc standards enforcement -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.6.2</version>
-				<configuration>
-					<source>${java.version}</source>
-				</configuration>
-			</plugin>
+			-->
 		</plugins>
 	</build>
 
@@ -371,7 +381,6 @@
 						</exclusion>
 					</exclusions>
 				</dependency>
-
 			</dependencies>
 			<build>
 				<plugins>
@@ -386,6 +395,56 @@
 								<goals>
 									<goal>prepare-frontend</goal>
 									<goal>build-frontend</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		
+		<!-- Profile for running code quality checks -->
+		<profile>
+			<id>code-quality</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-checkstyle-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>checkstyle-check</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>check</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-pmd-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>pmd-check</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>check</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					
+					<plugin>
+						<groupId>com.github.spotbugs</groupId>
+						<artifactId>spotbugs-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>spotbugs-check</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>check</goal>
 								</goals>
 							</execution>
 						</executions>

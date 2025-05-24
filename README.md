@@ -2,7 +2,7 @@
 
 ![Answer42 Logo](src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)
 
-Answer42 is a sophisticated AI-powered platform for academic researchers, students, and scholars to upload, analyze, and interact with research papers using multiple AI providers. The platform combines advanced paper processing with intelligent chat capabilities to make academic research more efficient and insightful.
+Answer42 is a sophisticated AI-powered platform for academic researchers, students, and scholars to upload, analyze, and interact with research papers using multiple AI providers. The platform combines advanced paper processing with intelligent chat capabilities and a revolutionary multi-agent processing pipeline to make academic research more efficient and insightful.
 
 ## Table of Contents
 
@@ -11,6 +11,8 @@ Answer42 is a sophisticated AI-powered platform for academic researchers, studen
 - [Architecture Overview](#architecture-overview)
 - [Project Structure](#project-structure)
 - [Core Features](#core-features)
+- [Multi-Agent Processing Pipeline](#multi-agent-processing-pipeline)
+- [Related Papers Discovery System](#related-papers-discovery-system)
 - [AI Integration](#ai-integration)
 - [Database Design](#database-design)
 - [Getting Started](#getting-started)
@@ -22,6 +24,8 @@ Answer42 is a sophisticated AI-powered platform for academic researchers, studen
 Answer42 is a comprehensive research assistant that helps academics work with scientific papers through:
 
 - **Intelligent Paper Processing**: Upload PDFs and extract full text, metadata, and structured information
+- **Multi-Agent Processing Pipeline**: Seven specialized AI agents for comprehensive paper analysis (🆕 **NEW!**)
+- **Related Papers Discovery**: Multi-source intelligent discovery of related academic papers (🆕 **NEW!**)
 - **Multi-Modal AI Chat**: Three specialized chat modes using different AI providers for various research needs
 - **Comprehensive Analysis**: Generate summaries, extract key findings, identify methodologies, and create glossaries
 - **External Metadata Integration**: Automatic enhancement using Crossref and Semantic Scholar APIs
@@ -53,6 +57,12 @@ Answer42 is a comprehensive research assistant that helps academics work with sc
 - **OpenAI GPT-4** - Cross-reference analysis and general chat
 - **Perplexity** - Research exploration and external knowledge
 
+### External APIs
+
+- **Crossref API** - Citation network analysis and bibliographic discovery
+- **Semantic Scholar API** - Semantic similarity and influence analysis
+- **Perplexity API** - Real-time research trends and open access discovery
+
 ### Development Tools
 
 - **Maven** - Build automation and dependency management
@@ -61,7 +71,7 @@ Answer42 is a comprehensive research assistant that helps academics work with sc
 
 ## Architecture Overview
 
-Answer42 follows a clean layered architecture:
+Answer42 follows a clean layered architecture with a sophisticated multi-agent processing system and intelligent discovery capabilities:
 
 ```
 ┌─────────────────────┐
@@ -70,6 +80,12 @@ Answer42 follows a clean layered architecture:
 │   Controllers       │  REST API Layer  
 ├─────────────────────┤
 │   Services          │  Business Logic Layer
+├─────────────────────┤
+│  Multi-Agent        │  AI Processing Layer (🆕 NEW!)
+│  Pipeline System    │  Seven Specialized Agents
+├─────────────────────┤
+│  Discovery System   │  Multi-Source Paper Discovery (🆕 NEW!)
+│  (Crossref, S2, AI) │  Citation Networks & Semantic Analysis
 ├─────────────────────┤
 │   Repositories      │  Data Access Layer
 ├─────────────────────┤
@@ -80,221 +96,57 @@ Answer42 follows a clean layered architecture:
 ### Key Design Patterns
 
 - **MVC Architecture** - Clear separation of concerns
+- **Multi-Agent Pattern** - Specialized AI agents for different tasks (🆕 **NEW!**)
+- **Multi-Source Discovery Pattern** - Intelligent paper discovery from multiple APIs (🆕 **NEW!**)
 - **Repository Pattern** - Data access abstraction
 - **Service Layer** - Business logic encapsulation
 - **Dependency Injection** - Loose coupling via Spring IoC
 - **Component-Based UI** - Reusable Vaadin components
-
-## Project Structure
-
-```
-src/
-├── main/
-│   ├── bundles/                              # Development bundles
-│   │   ├── dev.bundle                        # Development configuration bundle
-│   │   └── README.md                         # Bundle documentation
-│   ├── frontend/                             # Frontend resources
-│   │   ├── generated/                        # Generated Vaadin files
-│   │   │   ├── flow/                         # Vaadin Flow components
-│   │   │   │   ├── Flow.tsx                  # React Flow adapter
-│   │   │   │   ├── ReactAdapter.tsx          # React integration
-│   │   │   │   └── web-components/           # Web component definitions
-│   │   │   ├── jar-resources/                # JAR-packaged resources
-│   │   │   │   ├── images/                   # Application images
-│   │   │   │   │   ├── answer42-logo.svg     # Main logo
-│   │   │   │   │   └── icons/                # UI icons for all providers
-│   │   │   │   │       ├── ai_chatbot_avatar_*.{png,svg}  # AI avatar icons
-│   │   │   │   │       ├── openai_icon_*.{png,svg}        # OpenAI icons
-│   │   │   │   │       ├── perplexity_icon_*.{png,svg}    # Perplexity icons
-│   │   │   │   │       ├── paper_chat_icon_*.{png,svg}    # Paper chat icons
-│   │   │   │   │       └── user_avatar_icon_*.{png,svg}   # User avatar icons
-│   │   │   │   ├── copilot/                  # Vaadin Copilot tools
-│   │   │   │   ├── vaadin-dev-tools/         # Development tools
-│   │   │   │   └── *Connector.js             # Frontend connectors
-│   │   │   ├── index.tsx                     # Main entry point
-│   │   │   ├── routes.tsx                    # Application routing
-│   │   │   └── vaadin.ts                     # Vaadin configuration
-│   │   ├── styles/themes/answer42/           # Custom theme
-│   │   │   ├── main.css                      # Core styles
-│   │   │   ├── styles.css                    # Global variables
-│   │   │   ├── answer42-dark.css             # Dark mode theme
-│   │   │   ├── theme.json                    # Theme configuration
-│   │   │   └── components/                   # Component-specific styles
-│   │   │       ├── ai-chat.css               # Chat interface styles
-│   │   │       ├── auth-forms.css            # Authentication forms
-│   │   │       ├── bulk-upload.css           # Bulk upload interface
-│   │   │       ├── credits.css               # Credit management
-│   │   │       ├── dashboard.css             # Dashboard styles
-│   │   │       ├── main-layout.css           # Main layout
-│   │   │       ├── papers.css                # Paper management
-│   │   │       ├── profile.css               # User profile
-│   │   │       ├── projects.css              # Project management
-│   │   │       ├── settings.css              # Settings interface
-│   │   │       ├── subscription.css          # Subscription management
-│   │   │       └── upload-paper.css          # Paper upload
-│   │   └── index.html                        # HTML entry point
-│   ├── java/com/samjdtechnologies/answer42/
-│   │   ├── Answer42Application.java          # Spring Boot main class
-│   │   ├── ServletInitializer.java           # WAR deployment initializer
-│   │   ├── config/                           # Configuration classes
-│   │   │   ├── AIConfig.java                 # AI provider configurations
-│   │   │   ├── AppConfig.java                # General application config
-│   │   │   ├── DatabaseConfig.java           # Database settings
-│   │   │   ├── EnvironmentConfig.java        # Environment variables
-│   │   │   ├── ErrorConfig.java              # Error handling
-│   │   │   ├── JwtConfig.java                # JWT configuration
-│   │   │   ├── LoggingConfig.java            # Logging setup
-│   │   │   ├── SecurityConfig.java           # Security configuration
-│   │   │   ├── ThreadConfig.java             # Thread pool configuration
-│   │   │   ├── TransactionConfig.java        # Transaction management
-│   │   │   ├── VaadinDevModeConfig.java      # Vaadin development
-│   │   │   ├── VaadinSessionConfig.java      # Vaadin session config
-│   │   │   └── VaadinThreadManagerConfig.java # Vaadin threading
-│   │   ├── controller/                       # REST endpoints
-│   │   │   ├── AuthController.java           # Authentication API
-│   │   │   ├── HeartbeatController.java      # Health checks
-│   │   │   ├── SystemController.java         # System management
-│   │   │   └── TestController.java           # Testing endpoints
-│   │   ├── model/                            # Data models
-│   │   │   ├── FileEntry.java                # File system entries
-│   │   │   ├── daos/                         # JPA entities
-│   │   │   │   ├── AnalysisResult.java       # AI analysis results
-│   │   │   │   ├── AnalysisTask.java         # Background analysis tasks
-│   │   │   │   ├── ChatMessage.java          # Chat conversation messages
-│   │   │   │   ├── ChatSession.java          # AI chat sessions
-│   │   │   │   ├── CreditBalance.java        # User credit balances
-│   │   │   │   ├── CreditTransaction.java    # Credit transactions
-│   │   │   │   ├── Paper.java                # Research papers
-│   │   │   │   ├── Project.java              # Research projects
-│   │   │   │   ├── Subscription.java         # User subscriptions
-│   │   │   │   ├── SubscriptionPlan.java     # Subscription plans
-│   │   │   │   ├── User.java                 # User accounts
-│   │   │   │   └── UserPreferences.java      # User preferences
-│   │   │   └── enums/                        # Enumeration types
-│   │   │       ├── AIProvider.java           # AI service providers
-│   │   │       ├── AnalysisType.java         # Types of analysis
-│   │   │       ├── ChatMode.java             # Chat interaction modes
-│   │   │       └── FileStatus.java           # File processing status
-│   │   ├── processors/                       # Background processing
-│   │   │   ├── AIChatMessageProcessor.java   # Chat message handling
-│   │   │   ├── AnthropicPaperAnalysisProcessor.java # Anthropic analysis
-│   │   │   └── PaperBulkUploadProcessor.java # Bulk paper processing
-│   │   ├── repository/                       # Data access interfaces
-│   │   │   ├── AnalysisResultRepository.java # Analysis results data
-│   │   │   ├── AnalysisTaskRepository.java   # Analysis tasks data
-│   │   │   ├── ChatMessageRepository.java    # Chat messages data
-│   │   │   ├── ChatSessionRepository.java    # Chat sessions data
-│   │   │   ├── CreditBalanceRepository.java  # Credit balances data
-│   │   │   ├── CreditTransactionRepository.java # Credit transactions data
-│   │   │   ├── PaperRepository.java          # Papers data access
-│   │   │   ├── ProjectRepository.java        # Projects data access
-│   │   │   ├── SubscriptionPlanRepository.java # Subscription plans data
-│   │   │   ├── SubscriptionRepository.java   # Subscriptions data
-│   │   │   ├── UserPreferencesRepository.java # User preferences data
-│   │   │   └── UserRepository.java           # Users data access
-│   │   ├── security/                         # Authentication & authorization
-│   │   │   ├── CustomUserDetailsService.java # User authentication
-│   │   │   ├── JwtAuthenticationFilter.java  # JWT filter
-│   │   │   └── JwtTokenUtil.java             # JWT token management
-│   │   ├── service/                          # Business logic
-│   │   │   ├── ChatService.java              # AI chat orchestration
-│   │   │   ├── CreditService.java            # Credit management
-│   │   │   ├── PaperAnalysisService.java     # AI-powered analysis
-│   │   │   ├── PaperService.java             # Paper management
-│   │   │   ├── ProjectService.java           # Project management
-│   │   │   ├── SubscriptionService.java      # Subscription management
-│   │   │   ├── UserPreferencesService.java   # User preferences
-│   │   │   ├── UserService.java              # User management
-│   │   │   └── helper/                       # Service helpers
-│   │   │       ├── AIInteractionHelper.java  # AI interaction utilities
-│   │   │       ├── ChatMessageHelper.java    # Chat message utilities
-│   │   │       └── ChatSessionHelper.java    # Chat session utilities
-│   │   ├── transaction/                      # Transaction management
-│   │   │   └── TransactionMonitor.java       # Transaction monitoring
-│   │   ├── ui/                               # Vaadin user interface
-│   │   │   ├── AppShell.java                 # Application shell
-│   │   │   ├── constants/                    # UI constants
-│   │   │   │   └── UIConstants.java          # UI constant definitions
-│   │   │   ├── layout/                       # Layout components
-│   │   │   │   └── MainLayout.java           # Main application layout
-│   │   │   ├── service/                      # UI services
-│   │   │   │   └── AuthenticationService.java # UI authentication
-│   │   │   ├── theme/                        # Theme components
-│   │   │   │   └── Answer42Theme.java        # Custom theme
-│   │   │   └── views/                        # Application views
-│   │   │       ├── AIChatView.java           # AI chat interface
-│   │   │       ├── BulkUploadView.java       # Bulk paper upload
-│   │   │       ├── CreditsView.java          # Credit management
-│   │   │       ├── DashboardView.java        # Main dashboard
-│   │   │       ├── LoginView.java            # User login
-│   │   │       ├── PapersView.java           # Paper management
-│   │   │       ├── ProfileView.java          # User profile
-│   │   │       ├── ProjectsView.java         # Project management
-│   │   │       ├── RegisterView.java         # User registration
-│   │   │       ├── SettingsView.java         # Application settings
-│   │   │       ├── SubscriptionView.java     # Subscription management
-│   │   │       ├── UploadPaperView.java      # Single paper upload
-│   │   │       ├── components/               # Reusable UI components
-│   │   │       │   ├── AIChatContainer.java  # Chat interface container
-│   │   │       │   ├── AIChatGeneralMesssageBubble.java # General message bubble
-│   │   │       │   ├── AIChatModeTabs.java   # Chat mode selection
-│   │   │       │   ├── AIChatProgressMessageBubble.java # Progress messages
-│   │   │       │   ├── AIChatThinkingMessageBubble.java # Thinking indicator
-│   │   │       │   ├── AIChatWelcomeSection.java # Chat welcome screen
-│   │   │       │   ├── AnthropicPoweredAnalysisSection.java # Anthropic section
-│   │   │       │   ├── AuthorContact.java    # Author contact component
-│   │   │       │   ├── PaperPill.java        # Paper display chip
-│   │   │       │   └── PaperSelectionDialog.java # Paper picker dialog
-│   │   │       └── helpers/                  # View helpers
-│   │   │           ├── AIChatViewHelper.java # AI chat view utilities
-│   │   │           ├── PapersViewHelper.java # Papers view utilities
-│   │   │           ├── ProjectsViewHelper.java # Projects view utilities
-│   │   │           └── SubscriptionViewHelper.java # Subscription utilities
-│   │   └── util/                             # Utility classes
-│   │       ├── HibernateUtil.java            # Hibernate utilities
-│   │       └── LoggingUtil.java              # Logging utilities
-│   └── resources/
-│       ├── application.properties            # Main configuration
-│       ├── META-INF/resources/               # Web assets
-│       │   ├── favicon.ico                   # Application favicon
-│       │   ├── favicon.svg                   # SVG favicon
-│       │   ├── manifest.webmanifest          # PWA manifest
-│       │   ├── frontend/                     # Frontend resources
-│       │   │   ├── images/                   # Static images
-│       │   │   │   ├── answer42-logo.svg     # Application logo
-│       │   │   │   ├── bitcoin-qr-mock.svg   # Bitcoin QR code mock
-│       │   │   │   └── icons/                # Application icons
-│       │   │   ├── jwt-injector.js           # JWT injection script
-│       │   │   ├── sw.js                     # Service worker
-│       │   │   ├── sw-loader.js              # Service worker loader
-│       │   │   ├── sw-register.js            # Service worker registration
-│       │   │   └── styles/                   # Additional styles
-│       │   └── images/                       # Resource images
-│       │       └── answer42-logo.svg         # Logo resource
-│       ├── static/                           # Static web resources
-│       │   ├── favicon.ico                   # Static favicon
-│       │   ├── favicon.svg                   # Static SVG favicon
-│       │   ├── manifest.webmanifest          # Static PWA manifest
-│       │   ├── offline.html                  # Offline page
-│       │   ├── offline-stub.html             # Offline stub
-│       │   └── images/                       # Static images
-│       │       ├── answer42-logo.svg         # Static logo
-│       │       └── logo.svg                  # Generic logo
-│       └── templates/                        # Template files
-└── test/                                     # Unit and integration tests
-    └── java/com/samjdtechnologies/answer42/
-        └── Answer42ApplicationTests.java     # Main application tests
-```
 
 ## Core Features
 
 ### 📄 Paper Management
 
 - **PDF Upload & Processing**: Extract text content and metadata from academic papers
+- **Real-time Pipeline Processing**: Live progress tracking during multi-agent analysis (🆕 **NEW!**)
 - **Metadata Enhancement**: Automatic enrichment via Crossref and Semantic Scholar APIs
 - **Comprehensive Storage**: Store papers with full text, abstracts, authors, citations, and analysis results
 - **Organization**: Group papers into research projects for better management
-- **Bulk Upload**: Process multiple papers simultaneously
+- **Bulk Upload**: Process multiple papers simultaneously with parallel pipeline processing
+
+### 🔍 Related Papers Discovery (🆕 **NEW!**)
+
+**Intelligent multi-source discovery system for comprehensive research exploration:**
+
+1. **Multi-Source Discovery**
+   
+   - **Crossref API Integration**: Citation network analysis and bibliographic discovery
+   - **Semantic Scholar API**: Semantic similarity and influence metrics analysis
+   - **Perplexity API**: Real-time research trends and open access paper discovery
+   - **AI Synthesis Engine**: Intelligent combination and ranking of results from all sources
+
+2. **Advanced Discovery Features**
+   
+   - **Citation Networks**: Forward and backward citation analysis with relationship mapping
+   - **Semantic Similarity**: AI-powered related paper discovery based on content similarity
+   - **Author Networks**: Comprehensive researcher tracking and collaboration analysis
+   - **Field Evolution**: Historical and current research trends in specific domains
+   - **Real-time Context**: Current academic discussions and developments
+
+3. **Interactive Discovery Interface**
+   
+   - **Smart Filtering**: Filter by discovery source, relationship type, and relevance score
+   - **Citation Network Visualization**: Interactive graph-based citation network exploration
+   - **Paper Bookmarking**: Save interesting discoveries for future reference
+   - **Feedback Collection**: Structured user feedback to improve discovery algorithms
+   - **Detailed Statistics**: Comprehensive discovery analytics and source breakdown
+
+4. **Quality Assessment & Ranking**
+   
+   - **AI-Powered Relevance Scoring**: Multi-factor ranking algorithm using Claude
+   - **Duplicate Detection**: Intelligent paper merging and deduplication across sources
+   - **Source Reliability Scoring**: Quality assessment based on API source and completeness
+   - **User Feedback Integration**: Continuous improvement through user preference learning
 
 ### 🤖 Multi-Modal AI Chat
 
@@ -337,6 +189,227 @@ src/
 - **Subscription Management**: Credit-based system with multiple tiers
 - **Progress Tracking**: Monitor paper processing and analysis status
 
+## Multi-Agent Processing Pipeline
+
+🆕 **NEW FEATURE**: Answer42 now features a sophisticated multi-agent processing pipeline that automatically analyzes papers using seven specialized AI agents.
+
+### Pipeline Architecture
+
+The multi-agent system processes papers through coordinated AI agents, each optimized for specific tasks:
+
+```mermaid
+flowchart TD
+    A[Paper Upload] --> B[Pipeline Orchestrator]
+    B --> C[Paper Processor Agent]
+    B --> D[Metadata Enhancement Agent]
+    C --> E[Content Summarizer Agent]
+    C --> F[Concept Explainer Agent]
+    E --> G[Quality Checker Agent]
+    F --> G
+    D --> H[Citation Formatter Agent]
+    G --> I[Related Paper Discovery Agent]
+    H --> I
+    I --> J[Pipeline Complete]
+```
+
+### Specialized AI Agents
+
+**🔧 Paper Processor Agent** (OpenAI GPT-4)
+
+- PDF text extraction and structure analysis
+- Section identification (introduction, methods, results, etc.)
+- Table and figure recognition
+- Mathematical notation processing
+
+**📚 Metadata Enhancement Agent** (OpenAI GPT-4)
+
+- Crossref API integration for bibliographic data
+- Semantic Scholar API integration for citation metrics
+- DOI resolution and validation
+- Author disambiguation and affiliation resolution
+
+**📝 Content Summarizer Agent** (Anthropic Claude)
+
+- Multi-level summary generation (brief, standard, detailed)
+- Executive summaries for non-specialists
+- Technical summaries for domain experts
+- Key findings extraction with confidence scoring
+
+**🧠 Concept Explainer Agent** (OpenAI GPT-4)
+
+- Technical term identification and explanation
+- Concept relationship mapping
+- Education level-appropriate explanations
+- Real-world analogies for complex concepts
+
+**✅ Quality Checker Agent** (Anthropic Claude)
+
+- Multi-dimensional accuracy verification
+- Hallucination detection and fact-checking
+- Content consistency analysis
+- Bias detection and quality scoring
+
+**📖 Citation Formatter Agent** (OpenAI GPT-4)
+
+- Reference list parsing and structuring
+- Multiple citation style formatting (APA, MLA, Chicago, IEEE)
+- DOI validation and metadata enrichment
+- Bibliography generation with quality assessment
+
+**🔍 Related Paper Discovery Agent** (🆕 **NEW!**) (Anthropic Claude)
+
+- Multi-source paper discovery coordination
+- AI-powered relevance score enhancement
+- Result synthesis and deduplication
+- Discovery metadata tracking and storage
+
+### Pipeline Features
+
+**Real-time Progress Tracking**
+
+- Live agent status updates in the Papers view
+- Individual agent progress indicators
+- Estimated completion times
+- WebSocket-powered real-time updates
+
+**Intelligent Task Management**
+
+- Database-driven task lifecycle management
+- Spring Event system integration
+- Automatic retry mechanisms and error handling
+- Agent memory and context management
+
+**Cost-Optimized Processing**
+
+- Token usage tracking and analytics
+- Credit-based pricing integration
+- Performance monitoring and optimization
+- User-aware API key management
+
+## Related Papers Discovery System
+
+🆕 **NEW FEATURE**: Answer42's Related Papers Discovery System provides comprehensive research landscape exploration through multi-source intelligent discovery.
+
+### Discovery Architecture
+
+The system combines multiple academic APIs with AI synthesis for comprehensive paper discovery:
+
+```mermaid
+flowchart TD
+    A[Paper Input] --> B[Discovery Coordinator]
+    B --> C[Crossref Discovery Service]
+    B --> D[Semantic Scholar Discovery Service]  
+    B --> E[Perplexity Discovery Service]
+
+    C --> F[Citation Networks]
+    C --> G[Author Networks]
+    C --> H[Venue Discovery]
+
+    D --> I[Semantic Similarity]
+    D --> J[Influence Metrics]
+    D --> K[Field Classification]
+
+    E --> L[Current Trends]
+    E --> M[Open Access Papers]
+    E --> N[Academic Discussions]
+
+    F --> O[AI Synthesis Engine]
+    G --> O
+    H --> O
+    I --> O
+    J --> O
+    K --> O
+    L --> O
+    M --> O
+    N --> O
+
+    O --> P[Relevance Ranking]
+    O --> Q[Duplicate Detection]
+    O --> R[Quality Assessment]
+
+    P --> S[Discovery Results]
+    Q --> S
+    R --> S
+
+    S --> T[Database Storage]
+    S --> U[UI Presentation]
+```
+
+### Discovery Sources
+
+**🔗 Crossref API Discovery**
+
+- Forward citations (papers that cite this work)
+- Backward citations (papers this work cites)
+- Author network discovery and publication venue exploration
+- Subject classification and temporal analysis
+- Rate-limited processing (45 requests/second)
+
+**🧠 Semantic Scholar API Discovery**
+
+- Semantic similarity analysis using paper embeddings
+- Influence metrics and impact assessment
+- Research field classification and author disambiguation
+- Citation context analysis
+- Free tier integration (100 requests/minute)
+
+**🌐 Perplexity API Discovery**
+
+- Real-time research trend analysis
+- Current academic discussions and debates
+- Open access paper discovery
+- Press coverage and impact tracking
+- Trend-aware discovery (10 requests/minute)
+
+### AI Synthesis Engine
+
+**Intelligent Result Processing**
+
+- **Multi-source Deduplication**: DOI, title, and author-based paper matching
+- **AI-Powered Relevance Enhancement**: Claude-based scoring using 5-factor algorithm
+- **Quality Filtering**: Configurable thresholds with source reliability assessment
+- **Batch Processing**: Optimal AI API usage with error handling and fallback
+
+**Advanced Ranking Algorithm**
+
+1. **Base Relevance Score**: From discovery source APIs
+2. **Relationship Importance**: Weighted by relationship type (citations > similarity > trends)
+3. **Citation Impact**: Based on citation count and influence metrics
+4. **Data Completeness**: Higher scores for papers with rich metadata
+5. **Source Reliability**: Crossref > Semantic Scholar > Perplexity weighting
+
+### Discovery Database Schema
+
+**Comprehensive Storage System**
+
+- **discovered_papers**: 38 columns with complete paper metadata from all sources
+- **paper_relationships**: 13 columns tracking relationship types and strength
+- **discovery_results**: 26 columns for discovery session tracking and metrics
+- **discovery_feedback**: 20 columns for user feedback and algorithm improvement
+
+**Performance Optimization**
+
+- 31 database indexes for fast querying and filtering
+- JSONB fields for flexible metadata storage
+- Efficient relationship mapping and discovery result aggregation
+
+### Discovery UI Components
+
+**Interactive Discovery Interface**
+
+- **RelatedPapersSection**: Main discovery results with filtering and statistics
+- **CitationNetworkDialog**: Interactive citation network visualization
+- **PaperDetailsDialog**: Comprehensive paper information display
+- **DiscoveryFeedbackDialog**: Structured user feedback collection
+- **Real-time Progress Tracking**: Live discovery status updates
+
+**User Experience Features**
+
+- **Smart Filtering**: By source, relationship type, and relevance score
+- **Paper Bookmarking**: Save discoveries with visual feedback
+- **Discovery Statistics**: Real-time analytics and source breakdown
+- **Feedback Integration**: User preferences for algorithm improvement
+
 ## AI Integration
 
 Answer42 uses **Spring AI** for unified AI provider management with optimized model selection:
@@ -363,6 +436,13 @@ private String perplexityModel = "llama-3.1-sonar-small-128k-online";
 - **Paper Context Injection**: Automatically include relevant paper content
 - **Multi-Paper Support**: Handle conversations spanning multiple papers
 - **Real-time Processing**: Stream responses for better user experience
+
+### Discovery API Integration
+
+- **Rate Limiting**: Enterprise-grade throttling with circuit breakers
+- **Caching**: Multi-level caching with 24-hour duration
+- **Error Resilience**: Graceful degradation and fallback mechanisms
+- **Cost Tracking**: Comprehensive API usage monitoring
 
 ## Database Design
 
@@ -392,6 +472,13 @@ private String perplexityModel = "llama-3.1-sonar-small-128k-online";
 - Paper organization and grouping
 - Research project metadata
 - Collaboration features
+
+**Discovery System (🆕 NEW!)**
+
+- **Discovered Papers**: Multi-source paper metadata and discovery information
+- **Paper Relationships**: Citation and similarity relationship tracking
+- **Discovery Results**: Session-based discovery tracking and analytics
+- **Discovery Feedback**: User feedback for algorithm improvement
 
 ### JSONB Usage
 
@@ -430,6 +517,7 @@ The theme is activated by loading each CSS file in the AppShell class:
 @CssImport("./styles/themes/answer42/components/main-layout.css")
 @CssImport("./styles/themes/answer42/components/dashboard.css")
 @CssImport("./styles/themes/answer42/components/papers.css")
+@CssImport("./styles/themes/answer42/components/discovery.css")
 ```
 
 ## Database Schema Management
@@ -630,6 +718,21 @@ spring.ai.openai.chat.options.temperature=0.7
 # Perplexity Configuration
 spring.ai.perplexity.api-key=${PERPLEXITY_API_KEY}
 spring.ai.perplexity.chat.options.model=llama-3.1-sonar-small-128k-online
+```
+
+**Discovery API Configuration**
+
+```properties
+# Discovery System Configuration
+discovery.enabled=true
+discovery.semantic-scholar.base-url=https://api.semanticscholar.org/graph/v1
+discovery.crossref.base-url=https://api.crossref.org/works
+discovery.max-papers-per-source=50
+discovery.cache.duration-hours=24
+discovery.rate-limit.enabled=true
+discovery.rate-limit.crossref.requests-per-second=45
+discovery.rate-limit.semantic-scholar.requests-per-minute=100
+discovery.rate-limit.perplexity.requests-per-minute=10
 ```
 
 **Database Configuration**

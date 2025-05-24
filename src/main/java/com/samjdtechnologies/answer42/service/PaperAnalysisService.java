@@ -20,7 +20,7 @@ import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AnalysisType;
 import com.samjdtechnologies.answer42.repository.AnalysisResultRepository;
 import com.samjdtechnologies.answer42.repository.AnalysisTaskRepository;
-import com.samjdtechnologies.answer42.service.helper.AIInteractionHelper;
+import com.samjdtechnologies.answer42.service.helpers.AIInteractionHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**

@@ -1,0 +1,165 @@
+/* Related Papers Discovery Styles */
+
+.related-papers-section {
+    padding: var(--lumo-space-m);
+    background: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-m);
+    box-shadow: var(--lumo-box-shadow-xs);
+}
+
+.discovery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--lumo-space-m);
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+    margin-bottom: var(--lumo-space-m);
+}
+
+.discovery-header h3 {
+    margin: 0;
+    color: var(--lumo-header-text-color);
+    font-weight: 600;
+}
+
+.discovery-controls {
+    display: flex;
+    gap: var(--lumo-space-m);
+    align-items: flex-end;
+    margin-bottom: var(--lumo-space-m);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    background: var(--lumo-contrast-5pct);
+    border-radius: var(--lumo-border-radius-s);
+}
+
+.discovery-controls vaadin-text-field,
+.discovery-controls vaadin-select,
+.discovery-controls vaadin-combo-box {
+    min-width: 200px;
+}
+
+.discovery-grid {
+    background: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-m);
+    overflow: hidden;
+    box-shadow: var(--lumo-box-shadow-xs);
+}
+
+.discovery-grid vaadin-grid-cell-content {
+    padding: var(--lumo-space-s);
+}
+
+.discovery-grid .badge {
+    display: inline-block;
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-s);
+    font-size: var(--lumo-font-size-s);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.discovery-grid .badge.success {
+    background-color: var(--lumo-success-color-10pct);
+    color: var(--lumo-success-color);
+}
+
+.discovery-grid .badge.primary {
+    background-color: var(--lumo-primary-color-10pct);
+    color: var(--lumo-primary-color);
+}
+
+.discovery-grid .badge.contrast {
+    background-color: var(--lumo-contrast-10pct);
+    color: var(--lumo-contrast-90pct);
+}
+
+.discovery-stats {
+    margin-top: var(--lumo-space-m);
+    padding: var(--lumo-space-m);
+    background: var(--lumo-contrast-5pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+.discovery-stats .stat-card {
+    background: var(--lumo-base-color);
+    padding: var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius-s);
+    text-align: center;
+    box-shadow: var(--lumo-box-shadow-xs);
+    border: 1px solid var(--lumo-contrast-10pct);
+}
+
+.discovery-stats .stat-card vaadin-icon {
+    margin-bottom: var(--lumo-space-s);
+}
+
+.discovery-stats .stat-card span {
+    display: block;
+}
+
+.discovery-section {
+    margin-bottom: var(--lumo-space-l);
+}
+
+.discovery-section h5 {
+    margin: 0 0 var(--lumo-space-s) 0;
+    color: var(--lumo-header-text-color);
+    font-weight: 600;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .discovery-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .discovery-controls vaadin-text-field,
+    .discovery-controls vaadin-select,
+    .discovery-controls vaadin-combo-box {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .discovery-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--lumo-space-s);
+    }
+}
+
+/* Loading and empty states */
+.discovery-grid[loading] {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.discovery-empty {
+    text-align: center;
+    padding: var(--lumo-space-xl);
+    color: var(--lumo-secondary-text-color);
+}
+
+.discovery-empty vaadin-icon {
+    font-size: 3em;
+    color: var(--lumo-contrast-30pct);
+    margin-bottom: var(--lumo-space-m);
+}
+
+/* Progress indicator */
+.discovery-progress {
+    margin: var(--lumo-space-m) 0;
+}
+
+/* Action buttons */
+.discovery-actions {
+    display: flex;
+    gap: var(--lumo-space-s);
+    justify-content: flex-end;
+    margin-top: var(--lumo-space-m);
+}
+
+.discovery-actions vaadin-button {
+    min-width: auto;
+}

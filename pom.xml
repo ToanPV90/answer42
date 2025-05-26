@@ -25,7 +25,7 @@
 	<licenses>
 		<license>
 			<name>Answer42 - Agents as a Service (AaaS) License Agreement</name>
-			<url>https://github.com/samjdtechnologies/answer42/blob/main/LICENSE</url>
+			<url>https://github.com/samjd-zz/answer42/blob/main/LICENSE</url>
 			<distribution>repo</distribution>
 			<comments>Proprietary license for Answer42 AI-powered academic research platform</comments>
 		</license>
@@ -44,10 +44,10 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git://github.com/samjdtechnologies/answer42.git</connection>
-		<developerConnection>scm:git:ssh://github.com/samjdtechnologies/answer42.git</developerConnection>
+		<connection>scm:git:https://github.com/samjd-zz/answer42.git</connection>
+		<developerConnection>scm:git:git@github.com:samjd-zz/answer42.git</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/samjdtechnologies/answer42</url>
+		<url>https://github.com/samjd-zz/answer42</url>
 	</scm>
 	<properties>
 		<java.version>21</java.version>

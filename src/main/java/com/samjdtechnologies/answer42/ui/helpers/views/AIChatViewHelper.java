@@ -1,4 +1,4 @@
-package com.samjdtechnologies.answer42.ui.views.helpers;
+package com.samjdtechnologies.answer42.ui.helpers.views;
 
 import java.util.List;
 import java.util.UUID;

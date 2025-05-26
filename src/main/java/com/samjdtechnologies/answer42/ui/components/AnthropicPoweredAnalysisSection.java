@@ -3,7 +3,7 @@ package com.samjdtechnologies.answer42.ui.components;
 import java.util.function.Consumer;
 
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
-import com.samjdtechnologies.answer42.ui.views.helpers.AIChatViewHelper;
+import com.samjdtechnologies.answer42.ui.helpers.views.AIChatViewHelper;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;

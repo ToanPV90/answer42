@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.samjdtechnologies.answer42.model.daos.DiscoveredPaper;
 import com.samjdtechnologies.answer42.model.enums.RelationshipType;
-import com.samjdtechnologies.answer42.ui.components.helpers.RelatedPapersComponentHelper;
+import com.samjdtechnologies.answer42.ui.helpers.components.RelatedPapersComponentHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;

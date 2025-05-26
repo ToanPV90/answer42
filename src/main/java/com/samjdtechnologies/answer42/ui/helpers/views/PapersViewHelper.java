@@ -1,4 +1,4 @@
-package com.samjdtechnologies.answer42.ui.views.helpers;
+package com.samjdtechnologies.answer42.ui.helpers.views;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

@@ -1,7 +1,7 @@
 package com.samjdtechnologies.answer42.service.discovery.ratelimit;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
 
 import com.samjdtechnologies.answer42.model.enums.DiscoverySource;
@@ -302,7 +302,7 @@ public class APIUsageStats {
             return 0.0;
         }
         
-        LocalDateTime requestTime = LocalDateTime.ofInstant(lastRequestTime, ZoneOffset.UTC);
+        ZonedDateTime requestTime = ZonedDateTime.ofInstant(lastRequestTime, ZoneOffset.UTC);
         int hour = requestTime.getHour();
         
         // Peak hours: 9 AM - 5 PM UTC (business hours)

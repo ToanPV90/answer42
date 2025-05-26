@@ -1,6 +1,6 @@
-package com.samjdtechnologies.answer42.ui.views.helpers;
+package com.samjdtechnologies.answer42.ui.helpers.views;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -235,7 +235,7 @@ public class SubscriptionViewHelper {
         
         ComboBox<String> expiryYear = new ComboBox<>("Expiry Year");
         // Add years starting from current year
-        int currentYear = LocalDateTime.now().getYear();
+        int currentYear = ZonedDateTime.now().getYear();
         String[] years = new String[10];
         for (int i = 0; i < 10; i++) {
             years[i] = String.valueOf(currentYear + i);

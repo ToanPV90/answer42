@@ -12,7 +12,7 @@ import lombok.Data;
 /**
  * Metrics collected during agent processing operations.
  */
-
+@Data
 @Builder
 public class ProcessingMetrics {
     private final AgentType agentType;

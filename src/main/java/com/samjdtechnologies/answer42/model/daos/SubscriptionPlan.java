@@ -1,7 +1,7 @@
 package com.samjdtechnologies.answer42.model.daos;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Map;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -60,10 +60,10 @@ public class SubscriptionPlan {
     private Boolean isActive;
     
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
     
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
     
     @Column(name = "is_free")
     private Boolean isFree;

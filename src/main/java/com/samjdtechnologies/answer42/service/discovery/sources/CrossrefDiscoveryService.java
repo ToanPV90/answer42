@@ -3,7 +3,8 @@ package com.samjdtechnologies.answer42.service.discovery.sources;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -394,7 +395,7 @@ public class CrossrefDiscoveryService {
             String title = work.getTitle().get(0);
             List<String> authors = extractAuthors(work);
             String journal = extractJournal(work);
-            LocalDateTime publishedDate = extractPublishedDateTime(work);
+            ZonedDateTime publishedDate = extractPublishedDateTime(work);
             Integer year = extractYear(work);
             String doi = work.getDOI();
             Integer citationCount = work.getReferencedByCount();
@@ -452,9 +453,9 @@ public class CrossrefDiscoveryService {
     }
 
     /**
-     * Extract published date as LocalDateTime from Crossref work.
+     * Extract published date as ZonedDateTime from Crossref work.
      */
-    private LocalDateTime extractPublishedDateTime(CrossrefWork work) {
+    private ZonedDateTime extractPublishedDateTime(CrossrefWork work) {
         try {
             if (work.getPublished() != null && work.getPublished().getDateParts() != null &&
                 !work.getPublished().getDateParts().isEmpty() &&
@@ -465,7 +466,8 @@ public class CrossrefDiscoveryService {
                 int month = dateParts.size() > 1 ? dateParts.get(1) : 1;
                 int day = dateParts.size() > 2 ? dateParts.get(2) : 1;
                 
-                return LocalDate.of(year, month, day).atStartOfDay();
+                return ZonedDateTime.of(year, month, day, 0, 0, 0, 0, ZoneId.systemDefault()); 
+                
             }
         } catch (Exception e) {
             LoggingUtil.debug(LOG, "extractPublishedDateTime", "Failed to parse date", e);

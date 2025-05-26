@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import com.samjdtechnologies.answer42.model.daos.Paper;
 import com.samjdtechnologies.answer42.model.enums.ChatMode;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
-import com.samjdtechnologies.answer42.ui.views.helpers.AIChatViewHelper.PaperSelectionHandler;
+import com.samjdtechnologies.answer42.ui.helpers.views.AIChatViewHelper.PaperSelectionHandler;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;

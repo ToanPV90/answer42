@@ -2,8 +2,9 @@ package com.samjdtechnologies.answer42.service.discovery.sources;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.Year;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -372,7 +373,7 @@ public class PerplexityDiscoveryService {
         Integer publicationYear = year != null ? year : Year.now().getValue();
         
         // Estimate publication date
-        LocalDateTime publishedDate = estimatePublicationDate(year);
+        ZonedDateTime publishedDate = estimatePublicationDate(year);
         
         // Calculate relevance score based on relationship type and metadata completeness
         double relevanceScore = calculateRelevanceScore(relationshipType, doi, url, venue, authorList.size());
@@ -549,11 +550,11 @@ public class PerplexityDiscoveryService {
         return "perplexity-" + UUID.randomUUID().toString();
     }
     
-    private LocalDateTime estimatePublicationDate(Integer year) {
+    private ZonedDateTime estimatePublicationDate(Integer year) {
         if (year != null) {
-            return LocalDateTime.of(year, 6, 15, 0, 0); // Mid-year estimate
+            return ZonedDateTime.of(year, 6, 15, 0, 0, 0, 0, ZoneId.systemDefault()); // Mid-year estimate
         }
-        return LocalDateTime.now();
+        return ZonedDateTime.now();
     }
     
     private double calculateRelevanceScore(RelationshipType type, String doi, String url, 

@@ -1,7 +1,7 @@
 package com.samjdtechnologies.answer42.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,8 +166,8 @@ public class SubscriptionService {
             userId, planId, paymentProvider, isAnnual);
         
         // Set subscription period based on whether it's annual or monthly
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime periodEnd = isAnnual ? now.plusYears(1) : now.plusMonths(1);
+        ZonedDateTime now = ZonedDateTime.now();
+        ZonedDateTime periodEnd = isAnnual ? now.plusYears(1) : now.plusMonths(1);
         
         // Create the subscription
         Subscription subscription = new Subscription(
@@ -202,7 +202,7 @@ public class SubscriptionService {
         
         // Update the subscription
         subscription.setPlanId(newPlanId);
-        subscription.setUpdatedAt(LocalDateTime.now());
+        subscription.setUpdatedAt(ZonedDateTime.now());
         
         // Save and return the updated subscription
         return subscriptionRepository.save(subscription);
@@ -224,7 +224,7 @@ public class SubscriptionService {
         
         // Update the subscription
         subscription.setStatus("canceled");
-        subscription.setUpdatedAt(LocalDateTime.now());
+        subscription.setUpdatedAt(ZonedDateTime.now());
         
         // Save and return the updated subscription
         return subscriptionRepository.save(subscription);
@@ -323,7 +323,7 @@ public class SubscriptionService {
             "Updating features for plan ID: %s", plan.getId());
         
         plan.setFeatures(features);
-        plan.setUpdatedAt(LocalDateTime.now());
+        plan.setUpdatedAt(ZonedDateTime.now());
         
         return planRepository.save(plan);
     }

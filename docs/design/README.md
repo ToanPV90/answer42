@@ -75,13 +75,13 @@ flowchart TD
     E -.-> I
     E -.-> MD
     J --> K[System Ready]
-    
+
     classDef primary fill:#3C46FF,color:white;
     classDef secondary fill:#10A37F,color:white;
     classDef orchestrator fill:#8c52ff,color:white;
     classDef metadata fill:#FF6B6B,color:white;
     classDef external fill:#4CAF50,color:white;
-    
+
     class A,B,C,D,K primary;
     class F,G,H,I secondary;
     class E orchestrator;
@@ -113,7 +113,7 @@ sequenceDiagram
     participant ME as MetadataExtractor
     participant RA as ResearchAnalyzerAgent
     participant CS as ContentSummarizerAgent
-    
+
     C->>AM: executeWorkflow('paper_processing', params)
     AM->>L: log.info("Starting workflow", params)
     AM->>O: createTask(workflow, params)
@@ -125,26 +125,26 @@ sequenceDiagram
     PP->>L: log.info("Processing file", fileInfo)
     PP-->>O: return taskResult
     deactivate PP
-    
+
     O->>ME: createTask(extractMetadata, paperId)
     activate ME
     ME->>L: log.debug("Fetching metadata")
     Note over ME: Parallel API requests
     ME-->>O: return metadataResult
     deactivate ME
-    
+
     O->>RA: createTask(analyzeContent, text, metadata)
     activate RA
     RA->>L: log.info("Analyzing content")
     RA-->>O: return taskResult
     deactivate RA
-    
+
     O->>CS: createTask(summarize, content, metadata)
     activate CS
     CS->>L: log.debug("Generating summary")
     CS-->>O: return taskResult
     deactivate CS
-    
+
     O->>O: assembleResults()
     O->>L: log.info("Workflow completed successfully")
     O-->>AM: return workflowResults
@@ -164,36 +164,36 @@ graph TD
         PaperChat[Paper-Specific Chat]
         CrossRef[Cross-Reference Chat]
         ResearchEx[Research Explorer Chat]
-        
+
         UI --- PaperChat
         UI --- CrossRef
         UI --- ResearchEx
     end
-    
+
     subgraph Backend["Backend Services"]
         ChatController[Chat Controller]
-        
+
         AnthropicSvc[Anthropic Provider]
         CrossRefSvc[CrossReference Service]
         ResearchExSvc[ResearchExplorer Service]
         PerplexitySvc[Perplexity Service]
-        
+
         ChatController --- AnthropicSvc
         ChatController --- CrossRefSvc
         ChatController --- ResearchExSvc
         ChatController --- PerplexitySvc
     end
-    
+
     subgraph AI["AI Providers"]
         Claude[Claude API]
         GPT4[ChatGPT API]
         Perplexity[Perplexity API]
     end
-    
+
     PaperChat --> ChatController
     CrossRef --> ChatController
     ResearchEx --> ChatController
-    
+
     AnthropicSvc --> Claude
     CrossRefSvc --> GPT4
     ResearchExSvc --> GPT4
@@ -201,18 +201,21 @@ graph TD
 ```
 
 ### Paper-Specific Chat (Claude AI)
+
 - Uses Anthropic's Claude models for deep paper understanding
 - Optimized for contextual questions about specific papers
 - Provides source citations for answers with confidence scores
 - Implemented as a direct provider service with paper context
 
 ### Cross-Reference Chat (ChatGPT)
+
 - Powered by OpenAI's GPT-4 models through `CrossReferenceChatService`
 - Specialized for comparing multiple papers to find agreements and contradictions
 - Structures responses with relationship analysis between papers
 - Provides section-by-section comparisons of methods, results, and conclusions
 
 ### Research Explorer Chat (Perplexity/OpenAI Hybrid)
+
 - Frontend features Perplexity's "Deep Research" capabilities
 - Uses `ResearchExplorerChatService` (OpenAI) for structural analysis
 - Uses `PerplexityResearchService` for external research and citations
@@ -226,6 +229,7 @@ Each chat interface operates independently from the agent system, providing spec
 Answer42 implements a standardized logging system across both backend and frontend:
 
 ### Backend Logging
+
 - Express middleware-based logger with request/response tracking
 - Multiple log levels (DEBUG, INFO, WARN, ERROR) with environment-based configuration
 - Multi-parameter support for complex objects and tabular data
@@ -234,6 +238,7 @@ Answer42 implements a standardized logging system across both backend and fronte
 - Special handling for performance-critical routes
 
 ### Frontend Logging
+
 - Browser-compatible logger with identical API to backend
 - Environment-aware configuration with production mode suppression
 - Colored console output for better readability in development
@@ -242,6 +247,7 @@ Answer42 implements a standardized logging system across both backend and fronte
 - Error object special handling for better stack trace visualization
 
 Both systems share a consistent API:
+
 ```typescript
 // Basic logging with multiple parameters
 logger.info("User logged in:", user.name, { id: user.id, role: user.role });
@@ -262,12 +268,14 @@ try {
 ### Environment Configuration
 
 The project uses different environment files for different deployment scenarios:
+
 - **`.env.local`**: Used for local development (never committed to the repository)
 - **`.env.docker`**: Used for Docker-based development (defined in `docker-setup-guide.md`)
 - **`.env.test`**: Used for testing environments
 - **`.env.production`**: Used for production deployment (with sensitive values loaded from secure storage)
 
 For local development setup, copy the template files to `.env.local` and modify as needed:
+
 ```bash
 # For API
 cp api/.env.example api/.env.local

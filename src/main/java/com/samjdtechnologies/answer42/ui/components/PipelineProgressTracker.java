@@ -1,7 +1,7 @@
 package com.samjdtechnologies.answer42.ui.components;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -44,7 +44,7 @@ public class PipelineProgressTracker extends VerticalLayout {
     private ProgressBar overallProgress;
     private VerticalLayout agentDetails;
     private Map<String, HorizontalLayout> agentComponents;
-    private LocalDateTime startTime;
+    private ZonedDateTime startTime;
     
     /**
      * Creates a new PipelineProgressTracker.
@@ -54,7 +54,7 @@ public class PipelineProgressTracker extends VerticalLayout {
     public PipelineProgressTracker(AgentTaskService taskService) {
         this.taskService = taskService;
         this.agentComponents = new HashMap<>();
-        this.startTime = LocalDateTime.now();
+        this.startTime = ZonedDateTime.now();
         
         addClassName("pipeline-progress-container");
         setSpacing(true);
@@ -161,7 +161,7 @@ public class PipelineProgressTracker extends VerticalLayout {
     public void startMonitoring(UUID paperId, UI ui) {
         this.paperId = paperId;
         this.ui = ui;
-        this.startTime = LocalDateTime.now();
+        this.startTime = ZonedDateTime.now();
         
         LoggingUtil.info(LOG, "startMonitoring", "Starting progress monitoring for paper %s", paperId);
         
@@ -230,7 +230,7 @@ public class PipelineProgressTracker extends VerticalLayout {
             }
         } else {
             // Add elapsed time
-            Duration elapsed = Duration.between(startTime, LocalDateTime.now());
+            Duration elapsed = Duration.between(startTime, ZonedDateTime.now());
             String elapsedText = formatDuration(elapsed);
             statusText += " (Elapsed: " + elapsedText + ")";
         }
@@ -318,7 +318,7 @@ public class PipelineProgressTracker extends VerticalLayout {
         // This is a simplified mock implementation
         // In reality, this would query AgentTaskService for actual status
         
-        Duration elapsed = Duration.between(startTime, LocalDateTime.now());
+        Duration elapsed = Duration.between(startTime, ZonedDateTime.now());
         long elapsedSeconds = elapsed.getSeconds();
         
         // Simulate progress over time

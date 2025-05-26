@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.ui.views;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -247,7 +247,7 @@ public class CreditsView extends VerticalLayout implements BeforeEnterObserver {
         
         // Define columns
         transactionsGrid.addColumn(transaction -> {
-            LocalDateTime date = transaction.getCreatedAt();
+            ZonedDateTime date = transaction.getCreatedAt();
             return date.format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));
         }).setHeader("Date").setKey("date").setAutoWidth(true);
         
@@ -458,7 +458,7 @@ public class CreditsView extends VerticalLayout implements BeforeEnterObserver {
         return creditService.getUserTransactions(userId);
     }
     
-    private String formatResetDate(LocalDateTime date) {
+    private String formatResetDate(ZonedDateTime date) {
         if (date == null) {
             return "N/A";
         }

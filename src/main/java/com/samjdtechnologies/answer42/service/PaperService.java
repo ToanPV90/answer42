@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -120,9 +120,9 @@ public class PaperService {
     @Transactional
     public Paper savePaper(Paper paper) {
         if (paper.getCreatedAt() == null) {
-            paper.setCreatedAt(LocalDateTime.now());
+            paper.setCreatedAt(ZonedDateTime.now());
         }
-        paper.setUpdatedAt(LocalDateTime.now());
+        paper.setUpdatedAt(ZonedDateTime.now());
         return paperRepository.save(paper);
     }
     
@@ -172,7 +172,7 @@ public class PaperService {
         metadata.put("originalFilename", originalFilename);
         metadata.put("contentType", file.getContentType());
         metadata.put("size", file.getSize());
-        metadata.put("uploadTimestamp", LocalDateTime.now().toString());
+        metadata.put("uploadTimestamp", ZonedDateTime.now().toString());
         paper.setMetadata(metadata);
         
         // Save paper first
@@ -280,7 +280,7 @@ public class PaperService {
             // Use the enum's getPaperStatus method for consistency
             paper.setStatus(pipelineStatus.getPaperStatus());
             paper.setProcessingStatus(pipelineStatus.getDisplayName());
-            paper.setUpdatedAt(LocalDateTime.now());
+            paper.setUpdatedAt(ZonedDateTime.now());
             
             return Optional.of(paperRepository.save(paper));
         }
@@ -411,7 +411,7 @@ public class PaperService {
             if (year != null) paper.setYear(year);
             if (doi != null) paper.setDoi(doi);
             
-            paper.setUpdatedAt(LocalDateTime.now());
+            paper.setUpdatedAt(ZonedDateTime.now());
             return Optional.of(paperRepository.save(paper));
         }
         
@@ -436,7 +436,7 @@ public class PaperService {
             if (status != null) paper.setStatus(status);
             if (processingStatus != null) paper.setProcessingStatus(processingStatus);
             
-            paper.setUpdatedAt(LocalDateTime.now());
+            paper.setUpdatedAt(ZonedDateTime.now());
             return Optional.of(paperRepository.save(paper));
         }
         
@@ -457,7 +457,7 @@ public class PaperService {
         if (paperOpt.isPresent()) {
             Paper paper = paperOpt.get();
             paper.setTextContent(textContent);
-            paper.setUpdatedAt(LocalDateTime.now());
+            paper.setUpdatedAt(ZonedDateTime.now());
             return Optional.of(paperRepository.save(paper));
         }
         
@@ -478,7 +478,7 @@ public class PaperService {
         if (paperOpt.isPresent()) {
             Paper paper = paperOpt.get();
             paper.setIsPublic(isPublic);
-            paper.setUpdatedAt(LocalDateTime.now());
+            paper.setUpdatedAt(ZonedDateTime.now());
             return Optional.of(paperRepository.save(paper));
         }
         

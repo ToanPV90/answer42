@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.service.helpers;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,13 +66,13 @@ public class ChatMessageHelper {
         message.setSessionId(session.getId());
         message.setRole(role);
         message.setContent(content);
-        message.setCreatedAt(LocalDateTime.now());
+        message.setCreatedAt(ZonedDateTime.now());
         message.setSequenceNumber(nextSequence);
         message.setMessageType("message");
         message.setIsEdited(false);
         
         // Update session timestamp
-        sessionHelper.updateLastMessageTimestamp(session);
+        sessionHelper.updateUpdatedAtTimestamp(session);
         
         // Save message
         return messageRepository.save(message);
@@ -102,14 +102,14 @@ public class ChatMessageHelper {
         message.setSessionId(session.getId());
         message.setRole(role);
         message.setContent(content);
-        message.setCreatedAt(LocalDateTime.now());
+        message.setCreatedAt(ZonedDateTime.now());
         message.setSequenceNumber(nextSequence);
         message.setMessageType(messageType);
         message.setMetadata(metadata);
         message.setIsEdited(false);
         
         // Update session timestamp
-        sessionHelper.updateLastMessageTimestamp(session);
+        sessionHelper.updateUpdatedAtTimestamp(session);
         
         // Save message
         return messageRepository.save(message);
@@ -159,7 +159,7 @@ public class ChatMessageHelper {
         // Update context
         context.put("analysisIds", analysisIds);
         session.setContext(context);
-        sessionHelper.updateLastMessageTimestamp(session);
+        sessionHelper.updateUpdatedAtTimestamp(session);
         
         // Format the analysis type for display
         String analysisType = analysisResult.getAnalysisType().toString()

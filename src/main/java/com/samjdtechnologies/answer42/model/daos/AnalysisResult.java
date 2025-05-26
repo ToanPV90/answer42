@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.daos;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -59,10 +59,10 @@ public class AnalysisResult {
     
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
     
     @Column(name = "last_accessed_at")
-    private LocalDateTime lastAccessedAt = LocalDateTime.now();
+    private ZonedDateTime lastAccessedAt = ZonedDateTime.now();
     
     @Column(name = "is_archived")
     private boolean isArchived = false;
@@ -88,6 +88,6 @@ public class AnalysisResult {
      * Update the last accessed time to now.
      */
     public void updateLastAccessed() {
-        this.lastAccessedAt = LocalDateTime.now();
+        this.lastAccessedAt = ZonedDateTime.now();
     }
 }

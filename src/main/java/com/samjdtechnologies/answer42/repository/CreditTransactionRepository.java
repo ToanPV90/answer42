@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.repository;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,8 +36,8 @@ public interface CreditTransactionRepository extends JpaRepository<CreditTransac
     @Query("SELECT ct FROM CreditTransaction ct WHERE ct.userId = :userId AND ct.createdAt BETWEEN :startDate AND :endDate ORDER BY ct.createdAt DESC")
     List<CreditTransaction> findByUserIdAndDateRange(
         @Param("userId") UUID userId, 
-        @Param("startDate") LocalDateTime startDate, 
-        @Param("endDate") LocalDateTime endDate
+        @Param("startDate") ZonedDateTime startDate, 
+        @Param("endDate") ZonedDateTime endDate
     );
     
     /**

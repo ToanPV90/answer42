@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.daos.UserRole;
 import com.samjdtechnologies.answer42.repository.UserRepository;
+import com.samjdtechnologies.answer42.repository.UserRoleRepository;
 
 /**
  * Service for managing user operations including registration, authentication, and profile management.
@@ -19,16 +21,19 @@ import com.samjdtechnologies.answer42.repository.UserRepository;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
      * Constructs a new UserService with required dependencies.
      * 
      * @param userRepository the repository for User entity operations
+     * @param userRoleRepository the repository for UserRole entity operations
      * @param passwordEncoder the encoder for securely hashing passwords
      */
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, UserRoleRepository userRoleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -147,5 +152,148 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    // ========== ENHANCED ROLE MANAGEMENT METHODS ==========
+
+    /**
+     * Adds a role to a user with database-level audit trail.
+     * Uses the new UserRole entity for improved performance and consistency.
+     * 
+     * @param userId the ID of the user to add the role to
+     * @param role the role to add (e.g., "ROLE_ADMIN", "ROLE_USER")
+     * @throws IllegalArgumentException if the user does not exist
+     */
+    @Transactional
+    public void addRoleToUser(UUID userId, String role) {
+        // Verify user exists
+        if (!userRepository.existsById(userId)) {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+        
+        // Check if role already exists to avoid duplicates
+        if (!userRoleRepository.existsByUserIdAndRole(userId, role)) {
+            UserRole userRole = new UserRole(userId, role);
+            userRoleRepository.save(userRole);
+        }
+    }
+
+    /**
+     * Removes a role from a user.
+     * 
+     * @param userId the ID of the user to remove the role from
+     * @param role the role to remove
+     */
+    @Transactional
+    public void removeRoleFromUser(UUID userId, String role) {
+        userRoleRepository.deleteByUserIdAndRole(userId, role);
+    }
+
+    /**
+     * Gets all users with a specific role using optimized database queries.
+     * Leverages new composite indexes for improved performance.
+     * 
+     * @param role the role to search for
+     * @return list of users with the specified role
+     */
+    @Transactional(readOnly = true)
+    public List<User> getUsersByRole(String role) {
+        return userRepository.findByRole(role);
+    }
+
+    /**
+     * Checks if a user has a specific role using efficient database-level check.
+     * This method uses optimized EXISTS queries for better performance.
+     * 
+     * @param userId the ID of the user to check
+     * @param role the role to check for
+     * @return true if the user has the role, false otherwise
+     */
+    @Transactional(readOnly = true)
+    public boolean userHasRole(UUID userId, String role) {
+        return userRepository.userHasRole(userId, role);
+    }
+
+    /**
+     * Gets all distinct roles available in the system.
+     * Useful for role management interfaces and validation.
+     * 
+     * @return list of all distinct roles in the system
+     */
+    @Transactional(readOnly = true)
+    public List<String> getAllAvailableRoles() {
+        return userRoleRepository.findAllDistinctRoles();
+    }
+
+    /**
+     * Gets all roles for a specific user.
+     * 
+     * @param userId the ID of the user
+     * @return list of roles assigned to the user
+     */
+    @Transactional(readOnly = true)
+    public List<String> getUserRoles(UUID userId) {
+        return userRoleRepository.findRolesByUserId(userId);
+    }
+
+    /**
+     * Enhanced registration method that uses the new role management system.
+     * This method creates the user and adds the default role using the
+     * optimized UserRole entity instead of the legacy collection approach.
+     * 
+     * @param username the username for the new user
+     * @param email the email address for the new user
+     * @param password the password for the new user (will be encoded)
+     * @return the newly created and saved user entity
+     * @throws IllegalArgumentException if the username or email already exists
+     */
+    @Transactional
+    public User registerWithEnhancedRoles(String username, String email, String password) {
+        // Check if username or email already exists
+        if (userRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+
+        // Create user without roles first
+        User user = new User(username, passwordEncoder.encode(password), email);
+        user = userRepository.save(user);
+        
+        // Add default role using enhanced role management
+        addRoleToUser(user.getId(), "ROLE_USER");
+        
+        return user;
+    }
+
+    /**
+     * Bulk role assignment method for administrative operations.
+     * 
+     * @param userIds list of user IDs to assign roles to
+     * @param role the role to assign to all users
+     * @return number of role assignments made (excludes duplicates)
+     */
+    @Transactional
+    public int bulkAssignRole(List<UUID> userIds, String role) {
+        int assignmentCount = 0;
+        for (UUID userId : userIds) {
+            if (userRepository.existsById(userId) && !userRoleRepository.existsByUserIdAndRole(userId, role)) {
+                UserRole userRole = new UserRole(userId, role);
+                userRoleRepository.save(userRole);
+                assignmentCount++;
+            }
+        }
+        return assignmentCount;
+    }
+
+    /**
+     * Gets user role statistics for administrative dashboards.
+     * 
+     * @return list of role counts
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getRoleStatistics() {
+        return userRoleRepository.countUsersByRole();
     }
 }

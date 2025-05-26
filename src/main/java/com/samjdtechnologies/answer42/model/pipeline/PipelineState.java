@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.pipeline;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -29,8 +29,8 @@ public class PipelineState {
     private UUID userId;
     private PipelineConfiguration configuration;
     private PipelineStatus status;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private ZonedDateTime startTime;
+    private ZonedDateTime endTime;
     
     @Builder.Default
     private Map<StageType, StageStatus> stageStatuses = new HashMap<>();
@@ -96,7 +96,7 @@ public class PipelineState {
     public void markFailed(String errorMessage) {
         this.status = PipelineStatus.FAILED;
         this.errorMessage = errorMessage;
-        this.endTime = LocalDateTime.now();
+        this.endTime = ZonedDateTime.now();
     }
     
     /**
@@ -104,7 +104,7 @@ public class PipelineState {
      */
     public void markCompleted() {
         this.status = PipelineStatus.COMPLETED;
-        this.endTime = LocalDateTime.now();
+        this.endTime = ZonedDateTime.now();
         this.progressPercentage = 100.0;
     }
 }

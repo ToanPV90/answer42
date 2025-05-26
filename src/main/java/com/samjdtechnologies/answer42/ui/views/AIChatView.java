@@ -26,7 +26,7 @@ import com.samjdtechnologies.answer42.ui.components.PaperPill;
 import com.samjdtechnologies.answer42.ui.components.PaperSelectionDialog;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.views.helpers.AIChatViewHelper;
+import com.samjdtechnologies.answer42.ui.helpers.views.AIChatViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;

@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.service.helpers;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -268,7 +268,7 @@ public class SemanticScholarApiHelper {
 
             List<String> authors = extractAuthors(paper);
             String journal = paper.getVenue();
-            LocalDateTime publishedDate = extractPublishedDateTime(paper);
+            ZonedDateTime publishedDate = extractPublishedDateTime(paper);
             Integer year = paper.getYear();
             String doi = paper.getExternalIds() != null ? paper.getExternalIds().getDOI() : null;
             Integer citationCount = paper.getCitationCount();
@@ -351,11 +351,11 @@ public class SemanticScholarApiHelper {
     /**
      * Extract published date from Semantic Scholar paper.
      */
-    private LocalDateTime extractPublishedDateTime(SemanticScholarPaper paper) {
+    private ZonedDateTime extractPublishedDateTime(SemanticScholarPaper paper) {
         try {
             if (paper.getPublicationDate() != null && !paper.getPublicationDate().trim().isEmpty()) {
                 // Parse date in format "YYYY-MM-DD"
-                return LocalDateTime.parse(paper.getPublicationDate() + "T00:00:00");
+                return ZonedDateTime.parse(paper.getPublicationDate() + "T00:00:00");
             }
         } catch (Exception e) {
             LoggingUtil.debug(LOG, "extractPublishedDateTime", "Failed to parse date", e);

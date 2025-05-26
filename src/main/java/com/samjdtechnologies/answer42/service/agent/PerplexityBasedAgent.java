@@ -9,15 +9,18 @@ import org.springframework.ai.chat.prompt.PromptTemplate;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 
 /**
  * Base class for agents that use Perplexity models.
- * Provides Perplexity-specific optimizations for research and fact-checking.
+ * Provides Perplexity-specific optimizations for research and fact-checking with retry policy integration.
  */
 public abstract class PerplexityBasedAgent extends AbstractConfigurableAgent {
 
-    protected PerplexityBasedAgent(AIConfig aiConfig, ThreadConfig threadConfig) {
-        super(aiConfig, threadConfig);
+    protected PerplexityBasedAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                                  AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
     }
 
     @Override

@@ -20,6 +20,8 @@ import com.samjdtechnologies.answer42.service.discovery.sources.PerplexityDiscov
 import com.samjdtechnologies.answer42.service.discovery.sources.SemanticScholarDiscoveryService;
 import com.samjdtechnologies.answer42.service.discovery.synthesis.AISynthesisEngine;
 import com.samjdtechnologies.answer42.service.helpers.SemanticScholarApiHelper;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 
 /**
  * Configuration class for the Related Paper Discovery Agent and all its dependencies.
@@ -43,6 +45,8 @@ public class RelatedPaperDiscoveryConfig {
      * 
      * @param aiConfig AI configuration for model access
      * @param threadConfig Thread pool configuration
+     * @param retryPolicy Agent retry policy for error handling
+     * @param rateLimiter API rate limiter for resource management
      * @param discoveryCoordinator Orchestrates multi-source discovery
      * @param paperRepository Repository for paper data access
      * @return Fully configured RelatedPaperDiscoveryAgent
@@ -51,12 +55,16 @@ public class RelatedPaperDiscoveryConfig {
     public RelatedPaperDiscoveryAgent relatedPaperDiscoveryAgent(
             AIConfig aiConfig,
             ThreadConfig threadConfig,
+            AgentRetryPolicy retryPolicy,
+            APIRateLimiter rateLimiter,
             DiscoveryCoordinator discoveryCoordinator,
             PaperRepository paperRepository) {
         
         return new RelatedPaperDiscoveryAgent(
             aiConfig, 
             threadConfig, 
+            retryPolicy,
+            rateLimiter,
             discoveryCoordinator, 
             paperRepository
         );

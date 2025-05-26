@@ -13,19 +13,37 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
+import com.samjdtechnologies.answer42.model.agent.SummaryResult;
+import com.samjdtechnologies.answer42.model.agent.SummaryConfig;
 import com.samjdtechnologies.answer42.model.daos.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
  * Content Summarizer Agent - Generates multi-level summaries using Anthropic Claude.
  * Provides brief, standard, and detailed summaries optimized for different audiences.
+ * 
+ * Features:
+ * - Multi-level summarization (brief, standard, detailed)
+ * - Intelligent content analysis and key finding extraction
+ * - Quality assessment and compression ratio calculation
+ * - Fallback mechanisms for robust operation
  */
 @Component
 public class ContentSummarizerAgent extends AnthropicBasedAgent {
     
-    public ContentSummarizerAgent(AIConfig aiConfig, ThreadConfig threadConfig) {
-        super(aiConfig, threadConfig);
+    // Summary type configurations
+    private static final Map<String, SummaryConfig> SUMMARY_CONFIGS = Map.of(
+        "brief", new SummaryConfig(1, 50, "Single impactful sentence capturing core contribution"),
+        "standard", new SummaryConfig(100, 150, "Balanced overview covering methodology and findings"),
+        "detailed", new SummaryConfig(300, 400, "Comprehensive analysis with methodology, results, and implications")
+    );
+    
+    public ContentSummarizerAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                                 AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
     }
     
     @Override
@@ -46,6 +64,13 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
             
             if (textContent == null || textContent.trim().isEmpty()) {
                 return AgentResult.failure(task.getId(), "No text content provided for summarization");
+            }
+            
+            // Validate summary type and get configuration
+            if (!SUMMARY_CONFIGS.containsKey(summaryType.toLowerCase())) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Unknown summary type %s, defaulting to standard", summaryType);
+                summaryType = "standard";
             }
             
             // Generate summary based on type
@@ -85,21 +110,26 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
         Prompt prompt = optimizePromptForAnthropic(summaryPrompt, variables);
         ChatResponse response = executePrompt(prompt);
         
-        String aiResponse = response.getResult().getOutput().toString();
+        String aiResponse = response.getResult().getOutput().getText();
         
         return parseSummaryResponse(aiResponse, summaryType, content);
     }
     
     /**
-     * Builds summary prompt based on type.
+     * Builds summary prompt based on type using SUMMARY_CONFIGS.
      */
     private String buildSummaryPrompt(String summaryType, String content) {
-        String basePrompt = """
-            Analyze the following academic paper content and create a {summaryType} summary:
+        SummaryConfig config = SUMMARY_CONFIGS.get(summaryType.toLowerCase());
+        
+        String basePrompt = String.format("""
+            Analyze the following academic paper content and create a %s summary:
             
             Content: {content}
             
-            """;
+            Target: %s (%s)
+            Guidance: %s
+            
+            """, summaryType.toUpperCase(), config.getTargetRange(), config.getTargetWords() + " words", config.getGuidance());
         
         return switch (summaryType.toLowerCase()) {
             case "brief" -> basePrompt + """
@@ -288,57 +318,4 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
         return Duration.ofMinutes(3);
     }
     
-    /**
-     * Data class for summary results.
-     */
-    public static class SummaryResult {
-        private final String content;
-        private final String summaryType;
-        private final int wordCount;
-        private final double compressionRatio;
-        private final List<String> keyFindings;
-        private final double qualityScore;
-        private final String processingNotes;
-        
-        private SummaryResult(Builder builder) {
-            this.content = builder.content;
-            this.summaryType = builder.summaryType;
-            this.wordCount = builder.wordCount;
-            this.compressionRatio = builder.compressionRatio;
-            this.keyFindings = builder.keyFindings;
-            this.qualityScore = builder.qualityScore;
-            this.processingNotes = builder.processingNotes;
-        }
-        
-        // Getters
-        public String getContent() { return content; }
-        public String getSummaryType() { return summaryType; }
-        public int getWordCount() { return wordCount; }
-        public double getCompressionRatio() { return compressionRatio; }
-        public List<String> getKeyFindings() { return keyFindings; }
-        public double getQualityScore() { return qualityScore; }
-        public String getProcessingNotes() { return processingNotes; }
-        
-        public static Builder builder() { return new Builder(); }
-        
-        public static class Builder {
-            private String content;
-            private String summaryType;
-            private int wordCount;
-            private double compressionRatio;
-            private List<String> keyFindings;
-            private double qualityScore;
-            private String processingNotes;
-            
-            public Builder content(String content) { this.content = content; return this; }
-            public Builder summaryType(String summaryType) { this.summaryType = summaryType; return this; }
-            public Builder wordCount(int wordCount) { this.wordCount = wordCount; return this; }
-            public Builder compressionRatio(double compressionRatio) { this.compressionRatio = compressionRatio; return this; }
-            public Builder keyFindings(List<String> keyFindings) { this.keyFindings = keyFindings; return this; }
-            public Builder qualityScore(double qualityScore) { this.qualityScore = qualityScore; return this; }
-            public Builder processingNotes(String processingNotes) { this.processingNotes = processingNotes; return this; }
-            
-            public SummaryResult build() { return new SummaryResult(this); }
-        }
-    }
 }

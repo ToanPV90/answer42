@@ -9,15 +9,18 @@ import org.springframework.ai.chat.prompt.PromptTemplate;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 
 /**
  * Base class for agents that use OpenAI GPT models.
- * Provides OpenAI-specific optimizations and configurations.
+ * Provides OpenAI-specific optimizations and configurations with retry policy integration.
  */
 public abstract class OpenAIBasedAgent extends AbstractConfigurableAgent {
 
-    protected OpenAIBasedAgent(AIConfig aiConfig, ThreadConfig threadConfig) {
-        super(aiConfig, threadConfig);
+    protected OpenAIBasedAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                              AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
     }
 
     @Override

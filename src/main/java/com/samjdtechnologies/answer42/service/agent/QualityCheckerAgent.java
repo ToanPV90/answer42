@@ -20,6 +20,8 @@ import com.samjdtechnologies.answer42.model.daos.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.enums.QualityCheckType;
 import com.samjdtechnologies.answer42.model.quality.QualityCheckResult;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.samjdtechnologies.answer42.util.QualityResponseParser;
 
@@ -33,8 +35,10 @@ public class QualityCheckerAgent extends AnthropicBasedAgent {
     private static final int MAX_CONTENT_LENGTH = 8000; // Claude context limit consideration
     private final QualityResponseParser responseParser;
     
-    public QualityCheckerAgent(AIConfig aiConfig, ThreadConfig threadConfig, QualityResponseParser responseParser) {
-        super(aiConfig, threadConfig);
+    public QualityCheckerAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                              AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
+                              QualityResponseParser responseParser) {
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
         this.responseParser = responseParser;
     }
     

@@ -17,24 +17,31 @@ The semantic search system is designed around the following principles:
 ## Document Structure
 
 ### [01. Architecture Overview](./01-architecture-overview.md)
+
 High-level system architecture, current database analysis, and design principles.
 
 ### [02. Database Schema](./02-database-schema.md)
+
 pgvector setup, table modifications, and new schema additions for embedding storage.
 
 ### [03. Embedding Generation](./03-embedding-generation.md)
+
 Embedding service implementation and agent integration for generating vector embeddings.
 
 ### [04. Semantic Search Service](./04-semantic-search-service.md)
+
 Core search functionality with multi-dimensional similarity search capabilities.
 
 ### [05. Batch Processing](./05-batch-processing.md)
+
 Scheduled processing, status tracking, and automated embedding generation.
 
 ### [06. UI Integration](./06-ui-integration.md)
+
 Frontend components, search interfaces, and user experience enhancements.
 
 ### [07. Implementation Plan](./07-implementation-plan.md)
+
 Phased implementation approach, timeline, and deployment strategy.
 
 ## Key Features
@@ -65,12 +72,14 @@ Phased implementation approach, timeline, and deployment strategy.
 ## Benefits
 
 ### For Researchers
+
 - **Semantic Discovery**: Find related papers beyond keyword matching
 - **Methodology Matching**: Identify papers using similar research approaches
 - **Concept Exploration**: Discover papers covering related technical concepts
 - **Cross-Reference Analysis**: Enhanced paper relationship identification
 
 ### For System Performance
+
 - **Efficient Storage**: Leverages existing PostgreSQL infrastructure
 - **Scalable Architecture**: pgvector designed for production workloads
 - **Cost Optimization**: Batch processing reduces API costs
@@ -86,17 +95,17 @@ gantt
     Database Setup     :active, p1, 2025-05-23, 3d
     pgvector Install   :p1a, 2025-05-23, 1d
     Schema Migration   :p1b, after p1a, 2d
-    
+
     section Phase 2
     Embedding Service  :p2, after p1, 5d
     Agent Integration  :p2a, after p1, 3d
     Batch Processing   :p2b, after p2a, 2d
-    
+
     section Phase 3
     Search Service     :p3, after p2, 4d
     Multi-dimensional  :p3a, after p2, 3d
     Performance Opt    :p3b, after p3a, 1d
-    
+
     section Phase 4
     UI Integration     :p4, after p3, 3d
     Testing           :p4a, after p4, 2d

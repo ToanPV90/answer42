@@ -22,6 +22,8 @@ import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.daos.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
@@ -42,8 +44,9 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     private static final Pattern AUTHOR_COUNT_PATTERN = Pattern.compile("(?i)author[s]?\\s*count\\s*[:\"]?\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern CITATION_COUNT_PATTERN = Pattern.compile("(?i)citation[s]?\\s*count\\s*[:\"]?\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
     
-    public MetadataEnhancementAgent(AIConfig aiConfig, ThreadConfig threadConfig) {
-        super(aiConfig, threadConfig);
+    public MetadataEnhancementAgent(AIConfig aiConfig, ThreadConfig threadConfig,
+                                   AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
     }
     
     @Override

@@ -7,12 +7,17 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,9 +31,7 @@ import com.samjdtechnologies.answer42.model.daos.Paper;
 import com.samjdtechnologies.answer42.model.daos.Project;
 import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.model.enums.PipelineStatus;
-import com.samjdtechnologies.answer42.model.pipeline.PipelineConfiguration;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
-import com.samjdtechnologies.answer42.service.pipeline.PipelineOrchestrator;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 import jakarta.transaction.Transactional;
@@ -45,7 +48,8 @@ public class PaperService {
     
     private final PaperRepository paperRepository;
     private final ObjectMapper objectMapper;
-    private final PipelineOrchestrator pipelineOrchestrator;
+    private final JobLauncher jobLauncher;
+    private final Job paperProcessingJob;
     private final CreditService creditService;
     
     // Configure base upload directory for papers
@@ -57,15 +61,18 @@ public class PaperService {
      * 
      * @param paperRepository the repository for Paper entity operations
      * @param objectMapper the mapper for JSON and Java object conversion
-     * @param pipelineOrchestrator the orchestrator for multi-agent pipeline processing
+     * @param jobLauncher the Spring Batch job launcher for pipeline processing
+     * @param paperProcessingJob the Spring Batch job for paper processing
      * @param creditService the service for credit management and validation
      */
     public PaperService(PaperRepository paperRepository, ObjectMapper objectMapper,
-                       @Autowired(required = false) PipelineOrchestrator pipelineOrchestrator,
+                       @Autowired(required = false) JobLauncher jobLauncher,
+                       @Autowired(required = false) Job paperProcessingJob,
                        @Autowired(required = false) CreditService creditService) {
         this.paperRepository = paperRepository;
         this.objectMapper = objectMapper;
-        this.pipelineOrchestrator = pipelineOrchestrator;
+        this.jobLauncher = jobLauncher;
+        this.paperProcessingJob = paperProcessingJob;
         this.creditService = creditService;
         
         // Create upload directories if they don't exist
@@ -179,17 +186,17 @@ public class PaperService {
         Paper savedPaper = savePaper(paper);
         
         // Trigger multi-agent pipeline processing if available
-        if (pipelineOrchestrator != null) {
+        if (jobLauncher != null && paperProcessingJob != null) {
             initiateMultiAgentProcessing(savedPaper, currentUser);
         } else {
-            LoggingUtil.warn(logger, "uploadPaper", "PipelineOrchestrator not available, skipping pipeline processing");
+            LoggingUtil.warn(logger, "uploadPaper", "Spring Batch not available, skipping pipeline processing");
         }
         
         return savedPaper;
     }
     
     /**
-     * Initiate multi-agent pipeline processing for a newly uploaded paper.
+     * Initiate multi-agent pipeline processing for a newly uploaded paper using Spring Batch.
      * 
      * @param paper The paper to process
      * @param user The user who uploaded the paper
@@ -206,35 +213,22 @@ public class PaperService {
                 return;
             }
             
-            // Create pipeline configuration
-            PipelineConfiguration config = PipelineConfiguration.builder()
-                .name("Auto Upload Processing")
-                .description("Automatic processing for uploaded paper")
-                .includeMetadataEnhancement(true)
-                .generateSummaries(true)
-                .includeCitationProcessing(true)
-                .includeQualityChecking(true)
-                .maxConcurrentAgents(4)
-                .timeoutMinutes(15)
-                .build();
+            // Create Spring Batch job parameters
+            JobParameters jobParameters = new JobParametersBuilder()
+                .addString("paperId", paper.getId().toString())
+                .addString("userId", user.getId().toString())
+                .addDate("startTime", new Date())
+                .addString("processingMode", "FULL_ANALYSIS")
+                .toJobParameters();
             
-            // Start pipeline processing with progress callback
-            pipelineOrchestrator.processPaper(
-                paper.getId(), 
-                user.getId(),
-                config, 
-                progressUpdate -> {
-                    LoggingUtil.debug(logger, "pipelineProgress", 
-                        "Pipeline progress for paper %s: %s", 
-                        paper.getId(), progressUpdate.toString());
-                }
-            );
+            // Launch Spring Batch job
+            jobLauncher.run(paperProcessingJob, jobParameters);
             
             // Update paper status using enum
             updatePaperPipelineStatus(paper.getId(), PipelineStatus.INITIALIZING);
             
             LoggingUtil.info(logger, "initiateMultiAgentProcessing", 
-                "Initiated pipeline processing for paper %s", paper.getId());
+                "Initiated Spring Batch pipeline processing for paper %s", paper.getId());
                 
         } catch (Exception e) {
             LoggingUtil.error(logger, "initiateMultiAgentProcessing", 

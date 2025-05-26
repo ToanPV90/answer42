@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -111,9 +111,9 @@ public class ProjectService {
     @Transactional
     public Project saveProject(Project project) {
         if (project.getCreatedAt() == null) {
-            project.setCreatedAt(LocalDateTime.now());
+            project.setCreatedAt(ZonedDateTime.now());
         }
-        project.setUpdatedAt(LocalDateTime.now());
+        project.setUpdatedAt(ZonedDateTime.now());
         return projectRepository.save(project);
     }
     
@@ -132,8 +132,8 @@ public class ProjectService {
         
         // Create initial settings
         ObjectNode settings = objectMapper.createObjectNode();
-        settings.put("createdTimestamp", LocalDateTime.now().toString());
-        settings.put("lastModifiedTimestamp", LocalDateTime.now().toString());
+        settings.put("createdTimestamp", ZonedDateTime.now().toString());
+        settings.put("lastModifiedTimestamp", ZonedDateTime.now().toString());
         project.setSettings(settings);
         
         return saveProject(project);
@@ -222,7 +222,7 @@ public class ProjectService {
             if (description != null) project.setDescription(description);
             if (isPublic != null) project.setIsPublic(isPublic);
             
-            project.setUpdatedAt(LocalDateTime.now());
+            project.setUpdatedAt(ZonedDateTime.now());
             return Optional.of(projectRepository.save(project));
         }
         
@@ -243,7 +243,7 @@ public class ProjectService {
         if (projectOpt.isPresent()) {
             Project project = projectOpt.get();
             project.setSettings(settings);
-            project.setUpdatedAt(LocalDateTime.now());
+            project.setUpdatedAt(ZonedDateTime.now());
             return Optional.of(projectRepository.save(project));
         }
         
@@ -264,7 +264,7 @@ public class ProjectService {
         if (projectOpt.isPresent()) {
             Project project = projectOpt.get();
             project.addPaper(paper);
-            project.setUpdatedAt(LocalDateTime.now());
+            project.setUpdatedAt(ZonedDateTime.now());
             return Optional.of(projectRepository.save(project));
         }
         
@@ -285,7 +285,7 @@ public class ProjectService {
         if (projectOpt.isPresent()) {
             Project project = projectOpt.get();
             project.removePaper(paper);
-            project.setUpdatedAt(LocalDateTime.now());
+            project.setUpdatedAt(ZonedDateTime.now());
             return Optional.of(projectRepository.save(project));
         }
         

@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.concept;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +26,7 @@ public class ConceptExplanationResult {
     private Map<EducationLevel, ConceptExplanations> explanations = new HashMap<>();
     private ConceptRelationshipMap relationshipMap;
     @Builder.Default
-    private LocalDateTime processedAt = LocalDateTime.now();
+    private ZonedDateTime processedAt = ZonedDateTime.now();
     @Builder.Default
     private int totalTermsProcessed = 0;
     @Builder.Default
@@ -38,7 +38,7 @@ public class ConceptExplanationResult {
                                   ConceptRelationshipMap relationshipMap) {
         this.explanations = explanations != null ? explanations : new HashMap<>();
         this.relationshipMap = relationshipMap;
-        this.processedAt = LocalDateTime.now();
+        this.processedAt = ZonedDateTime.now();
         this.totalTermsProcessed = calculateTotalTerms();
         this.overallQualityScore = calculateOverallQuality();
         this.processingMetadata = new HashMap<>();

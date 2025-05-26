@@ -1,12 +1,14 @@
 package com.samjdtechnologies.answer42.model.daos;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -56,7 +58,8 @@ public class Paper {
     @Column(name = "file_path")
     private String filePath;
 
-    @Column(name = "text_content")
+    // UPDATED: Change to text type
+    @Column(name = "text_content", columnDefinition = "text")
     private String textContent;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -66,11 +69,14 @@ public class Paper {
     @Column(name = "status")
     private String status = "PENDING";
 
+    // UPDATED: Add proper timestamp annotations
+    @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private ZonedDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
 
     @Column(name = "file_size")
     private Long fileSize;
@@ -81,7 +87,7 @@ public class Paper {
     @Column(name = "is_public")
     private Boolean isPublic = false;
 
-    @Column(name = "paper_abstract")
+    @Column(name = "paper_abstract", columnDefinition = "text")
     private String paperAbstract;
 
     @Column(name = "doi")
@@ -106,13 +112,13 @@ public class Paper {
     @Column(name = "research_questions", columnDefinition = "jsonb")
     private JsonNode researchQuestions;
 
-    @Column(name = "summary_brief")
+    @Column(name = "summary_brief", columnDefinition = "text")
     private String summaryBrief;
 
-    @Column(name = "summary_standard")
+    @Column(name = "summary_standard", columnDefinition = "text")
     private String summaryStandard;
 
-    @Column(name = "summary_detailed")
+    @Column(name = "summary_detailed", columnDefinition = "text")
     private String summaryDetailed;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -147,7 +153,7 @@ public class Paper {
     private Double crossrefScore = 0.0;
 
     @Column(name = "crossref_last_verified")
-    private LocalDateTime crossrefLastVerified;
+    private ZonedDateTime crossrefLastVerified;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "crossref_metadata", columnDefinition = "jsonb")
@@ -173,7 +179,7 @@ public class Paper {
     private Double semanticScholarScore = 0.0;
 
     @Column(name = "semantic_scholar_last_verified")
-    private LocalDateTime semanticScholarLastVerified;
+    private ZonedDateTime semanticScholarLastVerified;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "semantic_scholar_metadata", columnDefinition = "jsonb")
@@ -284,19 +290,19 @@ public class Paper {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -476,11 +482,11 @@ public class Paper {
         this.crossrefScore = crossrefScore;
     }
 
-    public LocalDateTime getCrossrefLastVerified() {
+    public ZonedDateTime getCrossrefLastVerified() {
         return crossrefLastVerified;
     }
 
-    public void setCrossrefLastVerified(LocalDateTime crossrefLastVerified) {
+    public void setCrossrefLastVerified(ZonedDateTime crossrefLastVerified) {
         this.crossrefLastVerified = crossrefLastVerified;
     }
 
@@ -540,11 +546,11 @@ public class Paper {
         this.semanticScholarScore = semanticScholarScore;
     }
 
-    public LocalDateTime getSemanticScholarLastVerified() {
+    public ZonedDateTime getSemanticScholarLastVerified() {
         return semanticScholarLastVerified;
     }
 
-    public void setSemanticScholarLastVerified(LocalDateTime semanticScholarLastVerified) {
+    public void setSemanticScholarLastVerified(ZonedDateTime semanticScholarLastVerified) {
         this.semanticScholarLastVerified = semanticScholarLastVerified;
     }
 

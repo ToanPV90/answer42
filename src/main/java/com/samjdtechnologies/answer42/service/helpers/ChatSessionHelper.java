@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.service.helpers;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,8 +60,8 @@ public class ChatSessionHelper {
         session.setUser(user);
         session.setMode(mode.toString());
         session.setProvider(provider.toString());
-        session.setCreatedAt(LocalDateTime.now());
-        session.setLastMessageAt(LocalDateTime.now());
+        session.setCreatedAt(ZonedDateTime.now());
+        session.setUpdatedAt(ZonedDateTime.now());
         session.setContext(new HashMap<>());
         
         return sessionRepository.save(session);
@@ -303,8 +303,8 @@ public class ChatSessionHelper {
      * @return the updated session
      */
     @Transactional
-    public ChatSession updateLastMessageTimestamp(ChatSession session) {
-        session.setLastMessageAt(LocalDateTime.now());
+    public ChatSession updateUpdatedAtTimestamp(ChatSession session) {
+        session.setUpdatedAt(ZonedDateTime.now());
         return sessionRepository.save(session);
     }
 }

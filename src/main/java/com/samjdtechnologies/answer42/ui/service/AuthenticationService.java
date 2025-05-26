@@ -89,7 +89,7 @@ public class AuthenticationService {
                 // Update the user's last login timestamp
                 userService.findByUsername(username).ifPresent(user -> {
                     // Update the last login timestamp
-                    user.setLastLogin(java.time.LocalDateTime.now());
+                    user.setLastLogin(java.time.ZonedDateTime.now());
                     userService.save(user);
                     LoggingUtil.debug(LOG, "login", "Updated last login timestamp for user: %s", username);
                     

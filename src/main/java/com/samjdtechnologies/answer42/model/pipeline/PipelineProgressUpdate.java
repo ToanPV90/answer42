@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.pipeline;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import com.samjdtechnologies.answer42.model.enums.StageType;
@@ -44,7 +44,7 @@ public class PipelineProgressUpdate {
      * Timestamp of this progress update.
      */
     @Builder.Default
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private ZonedDateTime timestamp = ZonedDateTime.now();
 
     /**
      * Estimated time remaining in seconds.

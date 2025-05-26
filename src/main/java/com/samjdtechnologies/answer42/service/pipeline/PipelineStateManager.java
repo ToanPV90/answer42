@@ -1,7 +1,7 @@
 package com.samjdtechnologies.answer42.service.pipeline;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +61,7 @@ public class PipelineStateManager {
             .userId(userId)
             .configuration(config)
             .status(PipelineStatus.INITIALIZING)
-            .startTime(LocalDateTime.now())
+            .startTime(ZonedDateTime.now())
             .build();
 
         activePipelines.put(state.getId(), state);
@@ -125,7 +125,7 @@ public class PipelineStateManager {
         }
 
         state.setStatus(PipelineStatus.COMPLETED);
-        state.setEndTime(LocalDateTime.now());
+        state.setEndTime(ZonedDateTime.now());
         state.setStageResults(results);
 
         // Update paper status
@@ -153,7 +153,7 @@ public class PipelineStateManager {
         }
 
         state.setStatus(PipelineStatus.FAILED);
-        state.setEndTime(LocalDateTime.now());
+        state.setEndTime(ZonedDateTime.now());
         state.setErrorMessage(errorMessage);
 
         // Update paper status
@@ -263,7 +263,7 @@ public class PipelineStateManager {
         try {
             paperRepository.findById(paperId).ifPresent(paper -> {
                 paper.setProcessingStatus(status);
-                paper.setUpdatedAt(LocalDateTime.now());
+                paper.setUpdatedAt(ZonedDateTime.now());
                 paperRepository.save(paper);
             });
         } catch (Exception e) {
@@ -277,7 +277,7 @@ public class PipelineStateManager {
      */
     private void schedulePipelineCleanup(UUID pipelineId) {
         try {
-            // Schedule cleanup after 1 hour using a Date instead of LocalDateTime
+            // Schedule cleanup after 1 hour using a Date instead of ZonedDateTime
             Date cleanupTime = new Date(System.currentTimeMillis() + Duration.ofHours(1).toMillis());
             
             taskScheduler.schedule(() -> {

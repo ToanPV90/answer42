@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.daos;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -53,7 +53,7 @@ public class ChatMessage {
     
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
     
     @Column(name = "sequence_number")
     private Integer sequenceNumber = 0;
@@ -69,7 +69,7 @@ public class ChatMessage {
     
     @UpdateTimestamp
     @Column(name = "last_edited_at")
-    private LocalDateTime lastEditedAt;
+    private ZonedDateTime lastEditedAt;
     
     /**
      * Convenience constructor for creating a new message.
@@ -95,6 +95,6 @@ public class ChatMessage {
     public void edit(String newContent) {
         this.content = newContent;
         this.isEdited = true;
-        this.lastEditedAt = LocalDateTime.now();
+        this.lastEditedAt = ZonedDateTime.now();
     }
 }

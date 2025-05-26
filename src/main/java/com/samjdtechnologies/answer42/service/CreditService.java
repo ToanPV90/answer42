@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -81,7 +81,7 @@ public class CreditService {
         int initialCredits = plan.map(SubscriptionPlan::getBaseCredits).orElse(0);
         
         // Calculate next reset date (first day of next month)
-        LocalDateTime nextResetDate = LocalDateTime.now()
+        ZonedDateTime nextResetDate = ZonedDateTime.now()
                 .plusMonths(1)
                 .withDayOfMonth(1)
                 .withHour(0)
@@ -290,7 +290,7 @@ public class CreditService {
      * @return the list of credit transactions
      */
     public List<CreditTransaction> getUserTransactionsInDateRange(
-            UUID userId, LocalDateTime startDate, LocalDateTime endDate) {
+            UUID userId, ZonedDateTime startDate, ZonedDateTime endDate) {
         
         LoggingUtil.debug(LOG, "getUserTransactionsInDateRange", 
                 "Getting transactions for user ID: %s between %s and %s", 
@@ -353,7 +353,7 @@ public class CreditService {
         balance.setUsedThisPeriod(0);
         
         // Calculate next reset date (first day of next month)
-        LocalDateTime nextResetDate = LocalDateTime.now()
+        ZonedDateTime nextResetDate = ZonedDateTime.now()
                 .plusMonths(1)
                 .withDayOfMonth(1)
                 .withHour(0)

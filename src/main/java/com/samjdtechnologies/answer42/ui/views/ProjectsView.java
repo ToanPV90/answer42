@@ -16,7 +16,7 @@ import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.ProjectService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;
-import com.samjdtechnologies.answer42.ui.views.helpers.ProjectsViewHelper;
+import com.samjdtechnologies.answer42.ui.helpers.views.ProjectsViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;

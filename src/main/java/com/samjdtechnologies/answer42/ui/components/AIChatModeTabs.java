@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.ChatMode;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
-import com.samjdtechnologies.answer42.ui.views.helpers.AIChatViewHelper;
+import com.samjdtechnologies.answer42.ui.helpers.views.AIChatViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;

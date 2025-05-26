@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.repository;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -87,10 +87,10 @@ public interface DiscoveredPaperRepository extends JpaRepository<DiscoveredPaper
 
     // Recent discoveries
     @Query("SELECT dp FROM DiscoveredPaper dp WHERE dp.user.id = :userId AND dp.discoveredAt >= :since ORDER BY dp.discoveredAt DESC")
-    List<DiscoveredPaper> findRecentByUserId(@Param("userId") UUID userId, @Param("since") LocalDateTime since);
+    List<DiscoveredPaper> findRecentByUserId(@Param("userId") UUID userId, @Param("since") ZonedDateTime since);
 
     @Query("SELECT dp FROM DiscoveredPaper dp WHERE dp.sourcePaper.id = :sourcePaperId AND dp.discoveredAt >= :since ORDER BY dp.relevanceScore DESC")
-    List<DiscoveredPaper> findRecentBySourcePaperId(@Param("sourcePaperId") UUID sourcePaperId, @Param("since") LocalDateTime since);
+    List<DiscoveredPaper> findRecentBySourcePaperId(@Param("sourcePaperId") UUID sourcePaperId, @Param("since") ZonedDateTime since);
 
     // Advanced filtering queries
     @Query("SELECT dp FROM DiscoveredPaper dp WHERE dp.sourcePaper.id = :sourcePaperId AND dp.year >= :minYear AND dp.year <= :maxYear ORDER BY dp.year DESC, dp.relevanceScore DESC")
@@ -111,10 +111,10 @@ public interface DiscoveredPaperRepository extends JpaRepository<DiscoveredPaper
     List<DiscoveredPaper> findAllDuplicates();
 
     @Query("SELECT dp FROM DiscoveredPaper dp WHERE dp.discoveredAt < :cutoff AND dp.lastAccessedAt IS NULL")
-    List<DiscoveredPaper> findNeverAccessedOlderThan(@Param("cutoff") LocalDateTime cutoff);
+    List<DiscoveredPaper> findNeverAccessedOlderThan(@Param("cutoff") ZonedDateTime cutoff);
 
     @Query("SELECT dp FROM DiscoveredPaper dp WHERE dp.lastAccessedAt < :cutoff AND dp.userRating IS NULL")
-    List<DiscoveredPaper> findUnratedNotAccessedSince(@Param("cutoff") LocalDateTime cutoff);
+    List<DiscoveredPaper> findUnratedNotAccessedSince(@Param("cutoff") ZonedDateTime cutoff);
 
     // Batch operations
     @Modifying
@@ -123,11 +123,11 @@ public interface DiscoveredPaperRepository extends JpaRepository<DiscoveredPaper
 
     @Modifying
     @Query("UPDATE DiscoveredPaper dp SET dp.lastAccessedAt = :accessTime WHERE dp.id = :paperId")
-    int updateLastAccessedAt(@Param("paperId") UUID paperId, @Param("accessTime") LocalDateTime accessTime);
+    int updateLastAccessedAt(@Param("paperId") UUID paperId, @Param("accessTime") ZonedDateTime accessTime);
 
     @Modifying
     @Query("DELETE FROM DiscoveredPaper dp WHERE dp.discoveredAt < :cutoff AND dp.isDuplicate = true")
-    int deleteDuplicatesOlderThan(@Param("cutoff") LocalDateTime cutoff);
+    int deleteDuplicatesOlderThan(@Param("cutoff") ZonedDateTime cutoff);
 
     // Statistics and insights
     @Query("SELECT AVG(dp.relevanceScore) FROM DiscoveredPaper dp WHERE dp.user.id = :userId")

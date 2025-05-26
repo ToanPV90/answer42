@@ -1,4 +1,4 @@
-package com.samjdtechnologies.answer42.ui.components.helpers;
+package com.samjdtechnologies.answer42.ui.helpers.components;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;

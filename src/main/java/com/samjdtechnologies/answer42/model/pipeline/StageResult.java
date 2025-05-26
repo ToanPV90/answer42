@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.pipeline;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Map;
 
 import com.samjdtechnologies.answer42.model.enums.StageType;
@@ -23,8 +23,8 @@ public class StageResult {
     private StageType stageType;
     private boolean success;
     private String errorMessage;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private ZonedDateTime startTime;
+    private ZonedDateTime endTime;
     private Map<String, Object> resultData;
     private Map<String, Object> metrics;
     
@@ -36,7 +36,7 @@ public class StageResult {
             .stageType(stageType)
             .success(true)
             .resultData(resultData)
-            .endTime(LocalDateTime.now())
+            .endTime(ZonedDateTime.now())
             .build();
     }
     
@@ -48,7 +48,7 @@ public class StageResult {
             .stageType(stageType)
             .success(false)
             .errorMessage(errorMessage)
-            .endTime(LocalDateTime.now())
+            .endTime(ZonedDateTime.now())
             .build();
     }
     
@@ -60,7 +60,7 @@ public class StageResult {
             .stageType(stageType)
             .success(true)
             .errorMessage("Skipped: " + reason)
-            .endTime(LocalDateTime.now())
+            .endTime(ZonedDateTime.now())
             .build();
     }
     

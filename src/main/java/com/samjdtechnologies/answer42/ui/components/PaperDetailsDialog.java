@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.samjdtechnologies.answer42.model.daos.DiscoveredPaper;
 import com.samjdtechnologies.answer42.repository.DiscoveredPaperRepository;
-import com.samjdtechnologies.answer42.ui.components.helpers.PaperDetailsDialogComponentHelper;
+import com.samjdtechnologies.answer42.ui.helpers.components.PaperDetailsDialogComponentHelper;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;

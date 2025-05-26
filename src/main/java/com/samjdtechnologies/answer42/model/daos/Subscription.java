@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.daos;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -43,10 +43,10 @@ public class Subscription {
     private String status;
     
     @Column(name = "current_period_start")
-    private LocalDateTime currentPeriodStart;
+    private ZonedDateTime currentPeriodStart;
     
     @Column(name = "current_period_end")
-    private LocalDateTime currentPeriodEnd;
+    private ZonedDateTime currentPeriodEnd;
     
     @Column(name = "payment_provider", nullable = false)
     private String paymentProvider;
@@ -55,10 +55,10 @@ public class Subscription {
     private String paymentProviderId;
     
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
     
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
     
     // Constructors
     
@@ -73,7 +73,7 @@ public class Subscription {
      * @param paymentProvider The payment provider used for this subscription
      */
     public Subscription(UUID userId, String planId, String status, 
-                      LocalDateTime currentPeriodStart, LocalDateTime currentPeriodEnd,
+                      ZonedDateTime currentPeriodStart, ZonedDateTime currentPeriodEnd,
                       String paymentProvider) {
         this.id = UUID.randomUUID();
         this.userId = userId;
@@ -82,8 +82,8 @@ public class Subscription {
         this.currentPeriodStart = currentPeriodStart;
         this.currentPeriodEnd = currentPeriodEnd;
         this.paymentProvider = paymentProvider;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = ZonedDateTime.now();
+        this.updatedAt = ZonedDateTime.now();
     }
     
     /**
@@ -144,7 +144,7 @@ public class Subscription {
      * @return true if the current period end date is in the past, false otherwise
      */
     public boolean isExpired() {
-        return currentPeriodEnd != null && currentPeriodEnd.isBefore(LocalDateTime.now());
+        return currentPeriodEnd != null && currentPeriodEnd.isBefore(ZonedDateTime.now());
     }
     
     /**

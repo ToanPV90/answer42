@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.daos;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -78,7 +78,7 @@ public class CreditTransaction {
     
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
     
     
     /**

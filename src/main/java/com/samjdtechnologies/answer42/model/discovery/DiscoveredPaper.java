@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.discovery;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import com.samjdtechnologies.answer42.model.enums.DiscoverySource;
@@ -35,7 +35,7 @@ public class DiscoveredPaper {
     private Double influenceScore;
     private List<String> keywords;
     private String venue;
-    private LocalDateTime publishedDate;
+    private ZonedDateTime publishedDate;
     private RelationshipType relationshipType;
     private String relationshipDescription;
     private DiscoveryMetadata metadata;

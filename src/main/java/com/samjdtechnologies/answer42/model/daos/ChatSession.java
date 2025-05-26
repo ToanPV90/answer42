@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.daos;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -46,10 +46,11 @@ public class ChatSession {
     
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
-    
-    @Column(name = "last_message_at")
-    private LocalDateTime lastMessageAt;
+    private ZonedDateTime createdAt = ZonedDateTime.now();
+
+    @CreationTimestamp
+    @Column(name = "updated_at")
+    private ZonedDateTime updatedAt = ZonedDateTime.now();
     
     @Column(name = "title")
     private String title;
@@ -72,12 +73,6 @@ public class ChatSession {
         this.mode = mode;
         this.provider = provider;
     }
-    
-    /**
-     * Updates the last message timestamp to now.
-     */
-    public void updateLastMessageTimestamp() {
-        this.lastMessageAt = LocalDateTime.now();
-    }
+
 
 }

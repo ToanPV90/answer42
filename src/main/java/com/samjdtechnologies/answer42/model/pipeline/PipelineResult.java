@@ -1,7 +1,7 @@
 package com.samjdtechnologies.answer42.model.pipeline;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -28,8 +28,8 @@ public class PipelineResult {
     private UUID paperId;
     private UUID userId;
     private PipelineStatus status;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private ZonedDateTime startTime;
+    private ZonedDateTime endTime;
     private Duration totalProcessingTime;
     
     private Map<StageType, StageResult> stageResults;
@@ -119,7 +119,7 @@ public class PipelineResult {
             .paperId(paperId)
             .status(PipelineStatus.COMPLETED)
             .stageResults(stageResults)
-            .endTime(LocalDateTime.now())
+            .endTime(ZonedDateTime.now())
             .build();
     }
     
@@ -135,7 +135,7 @@ public class PipelineResult {
             .paperId(paperId)
             .status(PipelineStatus.FAILED)
             .errorMessage(errorMessage)
-            .endTime(LocalDateTime.now())
+            .endTime(ZonedDateTime.now())
             .build();
     }
     

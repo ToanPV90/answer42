@@ -22,7 +22,7 @@ import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.model.enums.FileStatus;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.ProjectService;
-import com.samjdtechnologies.answer42.ui.views.helpers.PapersViewHelper;
+import com.samjdtechnologies.answer42.ui.helpers.views.PapersViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;

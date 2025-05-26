@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.daos;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -126,7 +126,7 @@ public class DiscoveredPaper {
     private List<String> fieldsOfStudy;
 
     @Column(name = "publication_date")
-    private LocalDateTime publicationDate;
+    private ZonedDateTime publicationDate;
 
     @Column(name = "venue")
     private String venue;
@@ -144,15 +144,15 @@ public class DiscoveredPaper {
     private String userNotes;
 
     @Column(name = "last_accessed_at")
-    private LocalDateTime lastAccessedAt;
+    private ZonedDateTime lastAccessedAt;
 
     @CreationTimestamp
     @Column(name = "discovered_at")
-    private LocalDateTime discoveredAt;
+    private ZonedDateTime discoveredAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
 
     /**
      * Constructor with required fields for creating a new discovered paper.
@@ -405,11 +405,11 @@ public class DiscoveredPaper {
         this.fieldsOfStudy = fieldsOfStudy;
     }
 
-    public LocalDateTime getPublicationDate() {
+    public ZonedDateTime getPublicationDate() {
         return publicationDate;
     }
 
-    public void setPublicationDate(LocalDateTime publicationDate) {
+    public void setPublicationDate(ZonedDateTime publicationDate) {
         this.publicationDate = publicationDate;
     }
 
@@ -453,27 +453,27 @@ public class DiscoveredPaper {
         this.userNotes = userNotes;
     }
 
-    public LocalDateTime getLastAccessedAt() {
+    public ZonedDateTime getLastAccessedAt() {
         return lastAccessedAt;
     }
 
-    public void setLastAccessedAt(LocalDateTime lastAccessedAt) {
+    public void setLastAccessedAt(ZonedDateTime lastAccessedAt) {
         this.lastAccessedAt = lastAccessedAt;
     }
 
-    public LocalDateTime getDiscoveredAt() {
+    public ZonedDateTime getDiscoveredAt() {
         return discoveredAt;
     }
 
-    public void setDiscoveredAt(LocalDateTime discoveredAt) {
+    public void setDiscoveredAt(ZonedDateTime discoveredAt) {
         this.discoveredAt = discoveredAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -493,7 +493,7 @@ public class DiscoveredPaper {
      * Updates the last accessed timestamp to now.
      */
     public void updateLastAccessed() {
-        this.lastAccessedAt = LocalDateTime.now();
+        this.lastAccessedAt = ZonedDateTime.now();
     }
 
     /**

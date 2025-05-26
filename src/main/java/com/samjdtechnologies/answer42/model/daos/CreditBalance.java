@@ -1,6 +1,6 @@
 package com.samjdtechnologies.answer42.model.daos;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -40,15 +40,15 @@ public class CreditBalance {
     private Integer usedThisPeriod;
     
     @Column(name = "next_reset_date")
-    private LocalDateTime nextResetDate;
+    private ZonedDateTime nextResetDate;
     
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
     
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
     
     
     /**
@@ -59,7 +59,7 @@ public class CreditBalance {
      * @param usedThisPeriod The number of credits used in the current period
      * @param nextResetDate The date when the usage counter will be reset
      */
-    public CreditBalance(UUID userId, Integer balance, Integer usedThisPeriod, LocalDateTime nextResetDate) {
+    public CreditBalance(UUID userId, Integer balance, Integer usedThisPeriod, ZonedDateTime nextResetDate) {
         this.userId = userId;
         this.balance = balance;
         this.usedThisPeriod = usedThisPeriod;
@@ -101,7 +101,7 @@ public class CreditBalance {
      * @return true if the current time is after the next reset date, false otherwise
      */
     public boolean isPeriodExpired() {
-        return LocalDateTime.now().isAfter(nextResetDate);
+        return ZonedDateTime.now().isAfter(nextResetDate);
     }
 
 }

@@ -6,6 +6,7 @@ import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.anthropic.api.AnthropicApi;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.model.tool.DefaultToolCallingManager;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -26,6 +27,8 @@ import com.samjdtechnologies.answer42.model.daos.UserPreferences;
 import com.samjdtechnologies.answer42.service.UserPreferencesService;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
 
 @Configuration
@@ -73,6 +76,9 @@ public class AIConfig {
 
     @Value("${spring.ai.openai.chat.options.model}")
     private String openaiModel;
+    
+    @Value("${spring.ai.token-logging.enabled:true}")
+    private boolean tokenLoggingEnabled;
     
     private final UserPreferencesService userPreferencesService;
     
@@ -196,13 +202,167 @@ public class AIConfig {
     }
 
     /**
-     * Creates a no-operation observation registry used for the AI model components.
+     * Logs token usage information and estimated cost from a chat response.
      * 
-     * @return A no-operation ObservationRegistry instance
+     * @param response The chat response containing usage metadata
+     * @param modelName The name of the model used for the request
+     */
+    public void logTokenUsage(ChatResponse response, String modelName) {
+        if (!tokenLoggingEnabled || response == null || response.getMetadata() == null) {
+            return;
+        }
+        
+        var usage = response.getMetadata().getUsage();
+        if (usage != null) {
+            long promptTokens = usage.getPromptTokens() != null ? usage.getPromptTokens() : 0;
+            long completionTokens = usage.getCompletionTokens() != null ? usage.getCompletionTokens() : 0;
+            long totalTokens = usage.getTotalTokens() != null ? usage.getTotalTokens() : 0;
+            
+            double estimatedCost = calculateCost(modelName, promptTokens, completionTokens);
+            
+            LoggingUtil.info(LOG, "logTokenUsage", 
+                "Model: %s | Tokens - Prompt: %d, Completion: %d, Total: %d | Estimated Cost: $%.4f", 
+                modelName, promptTokens, completionTokens, totalTokens, estimatedCost);
+        }
+    }
+    
+    /**
+     * Calculates the estimated cost based on model pricing and token usage.
+     * Prices are approximate and based on standard API pricing as of 2024.
+     * 
+     * @param modelName The name of the model used
+     * @param promptTokens Number of prompt tokens
+     * @param completionTokens Number of completion tokens
+     * @return Estimated cost in USD
+     */
+    private double calculateCost(String modelName, long promptTokens, long completionTokens) {
+        double promptCostPer1K = 0.0;
+        double completionCostPer1K = 0.0;
+        
+        // Pricing per 1K tokens (approximate, update as needed)
+        switch (modelName.toLowerCase()) {
+            case "anthropic claude":
+            case "claude-3-sonnet-20240229":
+            case "claude-3-haiku-20240307":
+                promptCostPer1K = 0.003;      // $3/1M tokens = $0.003/1K
+                completionCostPer1K = 0.015;  // $15/1M tokens = $0.015/1K
+                break;
+            case "claude-3-opus-20240229":
+                promptCostPer1K = 0.015;      // $15/1M tokens
+                completionCostPer1K = 0.075;  // $75/1M tokens
+                break;
+            case "claude-4-opus":
+            case "claude-opus-4-20250514":
+                promptCostPer1K = 0.015;      // $15/1M tokens (estimated, similar to Claude 3 Opus)
+                completionCostPer1K = 0.075;  // $75/1M tokens (estimated, similar to Claude 3 Opus)
+                break;
+            case "claude-4-sonnet":
+            case "claude-sonnet-4-20250514":
+                promptCostPer1K = 0.003;      // $3/1M tokens (estimated, similar to Claude 3 Sonnet)
+                completionCostPer1K = 0.015;  // $15/1M tokens (estimated, similar to Claude 3 Sonnet)
+                break;
+            case "gpt-4":
+            case "gpt-4-0314":
+                promptCostPer1K = 0.03;       // $30/1M tokens
+                completionCostPer1K = 0.06;   // $60/1M tokens
+                break;
+            case "gpt-4.1":
+            case "gpt-4.1-turbo":
+                promptCostPer1K = 0.008;      // $8/1M tokens (estimated)
+                completionCostPer1K = 0.024;  // $24/1M tokens (estimated)
+                break;
+            case "gpt-4.1-mini":
+                promptCostPer1K = 0.0001;     // $0.1/1M tokens (estimated)
+                completionCostPer1K = 0.0004; // $0.4/1M tokens (estimated)
+                break;
+            case "gpt-4.1-nano":
+                promptCostPer1K = 0.00005;    // $0.05/1M tokens (estimated)
+                completionCostPer1K = 0.0002; // $0.2/1M tokens (estimated)
+                break;
+            case "gpt-4-turbo":
+            case "gpt-4-turbo-preview":
+            case "gpt-4-turbo-2024-04-09":
+                promptCostPer1K = 0.01;       // $10/1M tokens
+                completionCostPer1K = 0.03;   // $30/1M tokens
+                break;
+            case "gpt-4o":
+            case "gpt-4o-2024-05-13":
+                promptCostPer1K = 0.005;      // $5/1M tokens
+                completionCostPer1K = 0.015;  // $15/1M tokens
+                break;
+            case "gpt-4o-mini":
+            case "gpt-4o-mini-2024-07-18":
+                promptCostPer1K = 0.00015;    // $0.15/1M tokens
+                completionCostPer1K = 0.0006; // $0.6/1M tokens
+                break;
+            case "o1-preview":
+            case "o1-preview-2024-09-12":
+                promptCostPer1K = 0.015;      // $15/1M tokens
+                completionCostPer1K = 0.06;   // $60/1M tokens
+                break;
+            case "o1-mini":
+            case "o1-mini-2024-09-12":
+                promptCostPer1K = 0.003;      // $3/1M tokens
+                completionCostPer1K = 0.012;  // $12/1M tokens
+                break;
+            case "gpt-3.5-turbo":
+                promptCostPer1K = 0.0005;     // $0.5/1M tokens
+                completionCostPer1K = 0.0015; // $1.5/1M tokens
+                break;
+            case "llama-3.1-sonar-small-128k-online":
+                promptCostPer1K = 0.0002;     // Perplexity pricing
+                completionCostPer1K = 0.0002;
+                break;
+            default:
+                // Generic pricing for unknown models
+                promptCostPer1K = 0.001;
+                completionCostPer1K = 0.002;
+                LoggingUtil.debug(LOG, "calculateCost", "Unknown model pricing for: %s, using generic rates", modelName);
+                break;
+        }
+        
+        double promptCost = (promptTokens / 1000.0) * promptCostPer1K;
+        double completionCost = (completionTokens / 1000.0) * completionCostPer1K;
+        
+        return promptCost + completionCost;
+    }
+
+    /**
+     * Creates an observation registry with token usage logging capabilities.
+     * 
+     * @return An ObservationRegistry configured for token tracking
      */
     @Bean
     public ObservationRegistry observationRegistry() {
-        return ObservationRegistry.NOOP;
+        if (!tokenLoggingEnabled) {
+            return ObservationRegistry.NOOP;
+        }
+        
+        ObservationRegistry registry = ObservationRegistry.create();
+        
+        // Add custom observation handler for token counting
+        registry.observationConfig()
+            .observationHandler(new ObservationHandler<Observation.Context>() {
+                @Override
+                public boolean supportsContext(Observation.Context context) {
+                    return context.getName().contains("spring.ai");
+                }
+                
+                @Override
+                public void onStop(Observation.Context context) {
+                    if (tokenLoggingEnabled) {
+                        context.getAllKeyValues().forEach(keyValue -> {
+                            String key = keyValue.getKey();
+                            if (key.contains("token") || key.contains("usage")) {
+                                LoggingUtil.debug(LOG, "observationHandler", 
+                                    "AI Observation: %s = %s", key, keyValue.getValue());
+                            }
+                        });
+                    }
+                }
+            });
+        
+        return registry;
     }
     
     /**

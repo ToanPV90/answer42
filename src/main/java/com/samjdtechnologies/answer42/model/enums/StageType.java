@@ -10,6 +10,7 @@ public enum StageType {
     CONCEPT_EXTRACTION("Concept Extraction", "Extract key concepts and terms"),
     CITATION_PROCESSING("Citation Processing", "Process and format citations"),
     RESEARCH_DISCOVERY("Research Discovery", "Discover related research and external knowledge"),
+    PERPLEXITY_RESEARCH("Perplexity Research", "External fact verification and research using Perplexity"),
     QUALITY_CHECK("Quality Check", "Verify output quality");
 
     private final String displayName;

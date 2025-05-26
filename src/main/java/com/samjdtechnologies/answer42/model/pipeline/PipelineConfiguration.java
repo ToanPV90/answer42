@@ -35,6 +35,7 @@ public class PipelineConfiguration {
     private boolean includeCitationProcessing;
     private boolean includeQualityChecking;
     private boolean includeResearchDiscovery;
+    private boolean includePerplexityResearch;
     
     private int maxConcurrentAgents;
     private long timeoutMinutes;

@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
@@ -111,6 +112,11 @@ public class PipelineOrchestrator {
         // Stage 5: Research Discovery (Conditional)
         if (config.isIncludeResearchDiscovery()) {
             builder.addStage(StageType.RESEARCH_DISCOVERY, AgentType.RELATED_PAPER_DISCOVERY);
+        }
+
+        // Stage 6: Perplexity Research (Conditional - for fact verification and external research)
+        if (config.isIncludePerplexityResearch()) {
+            builder.addStage(StageType.PERPLEXITY_RESEARCH, AgentType.PERPLEXITY_RESEARCHER);
         }
 
         // Stage 6: Quality Verification (Always last)
@@ -225,6 +231,16 @@ public class PipelineOrchestrator {
                     state.getPaperId().toString(),
                     "comprehensive"
                 );
+            case PERPLEXITY_RESEARCHER:
+                return AgentTask.builder()
+                    .id(generateTaskId())
+                    .agentId(stage.getAgentType().getAgentId())
+                    .userId(state.getUserId())
+                    .input(JsonNodeFactory.instance.objectNode()
+                        .put("paperId", state.getPaperId().toString())
+                        .put("researchType", "fact_verification"))
+                    .status("pending")
+                    .build();
             default:
                 // Generic task creation for other agents
                 return AgentTask.builder()

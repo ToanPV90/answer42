@@ -20,11 +20,8 @@ public abstract class BaseAgentTasklet implements Tasklet {
     
     protected static final Logger LOG = LoggerFactory.getLogger(BaseAgentTasklet.class);
     
-    // System fallback IDs
-    private static final UUID SYSTEM_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
-    
     /**
-     * Extracts user ID from job parameters with multiple fallback strategies.
+     * Extracts user ID from job parameters (required for AIConfig integration and cost tracking).
      */
     protected UUID getUserId(ChunkContext chunkContext) {
         try {
@@ -61,15 +58,15 @@ public abstract class BaseAgentTasklet implements Tasklet {
                 return (UUID) userIdFromContext;
             }
 
-            LoggingUtil.warn(LOG, "getUserId", 
-                "No user ID found in job parameters, using system default");
+            throw new IllegalArgumentException(
+                "Required parameter 'userId' is missing. " +
+                "userId is mandatory for AIConfig integration, cost tracking, and audit trail.");
 
+        } catch (IllegalArgumentException e) {
+            throw e; // Re-throw validation errors
         } catch (Exception e) {
-            LoggingUtil.warn(LOG, "getUserId", 
-                "Error extracting user ID: %s, using system default", e.getMessage());
+            throw new IllegalArgumentException("Error extracting user ID: " + e.getMessage(), e);
         }
-
-        return SYSTEM_USER_ID;
     }
     
     /**

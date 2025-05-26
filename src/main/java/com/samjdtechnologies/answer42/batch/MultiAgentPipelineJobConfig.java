@@ -40,6 +40,27 @@ import com.samjdtechnologies.answer42.batch.tasklets.RelatedPaperDiscoveryTaskle
  * 8. Quality Assessment        → papers.quality_feedback, papers.quality_score
  * </pre>
  * 
+ * <h2>Core vs Enhancement Agents for AI Chat Integration</h2>
+ * The pipeline agents are classified as either CORE (required for chat functionality) or ENHANCEMENT (beneficial but optional):
+ * 
+ * <h3>Paper Chat (Anthropic Claude) - Individual Paper Analysis</h3>
+ * <ul>
+ *   <li><strong>CORE REQUIRED:</strong> Paper Processor (text_content), Content Summarizer (summaries, key_findings), Concept Explainer (glossary, main_concepts)</li>
+ *   <li><strong>ENHANCEMENT:</strong> Metadata Enhancement, Perplexity Research, Related Paper Discovery, Citation Formatting, Quality Assessment</li>
+ * </ul>
+ * 
+ * <h3>Cross-Reference Chat (OpenAI GPT-4) - Multi-Paper Comparison</h3>
+ * <ul>
+ *   <li><strong>CORE REQUIRED:</strong> Paper Processor (text_content), Content Summarizer (summaries, key_findings), Citation Formatter (citations), Quality Checker (reliability assessment)</li>
+ *   <li><strong>ENHANCEMENT:</strong> Metadata Enhancement, Concept Explainer, Perplexity Research, Related Paper Discovery</li>
+ * </ul>
+ * 
+ * <h3>Research Explorer Chat (Perplexity) - External Research & Discovery</h3>
+ * <ul>
+ *   <li><strong>CORE REQUIRED:</strong> Paper Processor (text_content), Perplexity Research (research_questions, methodology_details), Related Paper Discovery (discovered_papers, research_context)</li>
+ *   <li><strong>ENHANCEMENT:</strong> Metadata Enhancement, Content Summarizer, Concept Explainer, Citation Formatting, Quality Assessment</li>
+ * </ul>
+ * 
  * <h2>Cost Tracking & Operations</h2>
  * Each step automatically creates entries in:
  * <ul>

@@ -22,6 +22,8 @@ import com.samjdtechnologies.answer42.model.research.PerplexityResearchResult;
 import com.samjdtechnologies.answer42.model.research.ResearchParameters;
 import com.samjdtechnologies.answer42.model.research.ResearchQuery;
 import com.samjdtechnologies.answer42.model.research.ResearchResult;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.samjdtechnologies.answer42.util.ResearchResponseParser;
 
@@ -37,8 +39,9 @@ public class PerplexityResearchAgent extends PerplexityBasedAgent {
     private static final Pattern STATISTICAL_PATTERN = Pattern.compile("(?i)\\b(?:p\\s*[<>=]\\s*0\\.\\d+|significant|correlation|regression|odds\\s+ratio|confidence\\s+interval)");
     private static final Pattern CAUSAL_PATTERN = Pattern.compile("(?i)\\b(?:caused?\\s+by|leads?\\s+to|results?\\s+in|due\\s+to|because\\s+of|associated\\s+with)");
 
-    public PerplexityResearchAgent(AIConfig aiConfig, ThreadConfig threadConfig) {
-        super(aiConfig, threadConfig);
+    public PerplexityResearchAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                                  AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
         LoggingUtil.info(LOG, "PerplexityResearchAgent", 
             "Initialized Perplexity Research Agent with enhanced claim extraction");
     }

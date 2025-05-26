@@ -24,6 +24,8 @@ import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
 import com.samjdtechnologies.answer42.service.discovery.DiscoveryCoordinator;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
@@ -38,8 +40,9 @@ public class RelatedPaperDiscoveryAgent extends AbstractConfigurableAgent {
     private final ObjectMapper objectMapper;
 
     public RelatedPaperDiscoveryAgent(AIConfig aiConfig, ThreadConfig threadConfig,
+            AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
             DiscoveryCoordinator discoveryCoordinator, PaperRepository paperRepository) {
-        super(aiConfig, threadConfig);
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
         this.discoveryCoordinator = discoveryCoordinator;
         this.paperRepository = paperRepository;
         this.objectMapper = new ObjectMapper();

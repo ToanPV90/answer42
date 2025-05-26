@@ -9,12 +9,13 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.daos.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
@@ -24,10 +25,10 @@ import com.samjdtechnologies.answer42.util.LoggingUtil;
 @Component
 public class PaperProcessorAgent extends OpenAIBasedAgent {
     
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     
-    public PaperProcessorAgent(AIConfig aiConfig, ThreadConfig threadConfig) {
-        super(aiConfig, threadConfig);
+    public PaperProcessorAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                              AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
     }
     
     @Override
@@ -75,41 +76,60 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
     private StructuredDocument analyzeDocumentStructure(String textContent, String paperId) {
         LoggingUtil.info(LOG, "analyzeDocumentStructure", "Analyzing structure for paper %s", paperId);
         
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("text", textContent);
-        variables.put("paperId", paperId);
-        
-        String structurePrompt = """
-            Analyze the following academic paper text and extract its structure:
+        try {
+            // Create structured prompt for OpenAI using the optimized prompt method
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("paperId", paperId);
+            variables.put("textLength", textContent.length());
+            variables.put("text", textContent.length() > 8000 ? textContent.substring(0, 8000) + "..." : textContent);
             
-            Paper ID: {paperId}
-            Text: {text}
+            String structurePromptTemplate = """
+                Analyze the following academic paper text and extract its structure:
+                
+                Paper ID: {paperId}
+                Text Length: {textLength} characters
+                
+                Text: {text}
+                
+                Please identify and extract:
+                1. Title and authors with affiliations
+                2. Abstract (complete text)
+                3. Main sections with clear boundaries:
+                   - Introduction
+                   - Methods/Methodology  
+                   - Results
+                   - Discussion
+                   - Conclusion
+                   - References
+                4. Key findings and contributions
+                5. Technical terms and concepts
+                6. Figure and table references
+                
+                Return structured information that preserves the academic content while organizing it clearly.
+                Focus on accurate content extraction and logical section identification.
+                """;
             
-            Please identify and extract:
-            1. Title and authors with affiliations
-            2. Abstract (complete text)
-            3. Main sections with clear boundaries:
-               - Introduction
-               - Methods/Methodology  
-               - Results
-               - Discussion
-               - Conclusion
-               - References
-            4. Key findings and contributions
-            5. Technical terms and concepts
-            6. Figure and table references
+            // Use the optimized prompt method from OpenAIBasedAgent
+            Prompt prompt = optimizePromptForOpenAI(structurePromptTemplate, variables);
             
-            Return structured information that preserves the academic content while organizing it clearly.
-            Focus on accurate content extraction and logical section identification.
-            """;
-        
-        Prompt prompt = optimizePromptForOpenAI(structurePrompt, variables);
-        ChatResponse response = executePrompt(prompt);
-        
-        // Extract content from response - using the correct Spring AI API
-        String aiResponse = response.getResult().getOutput().toString();
-        
-        return parseStructureResponse(aiResponse, textContent, paperId);
+            // Use executePrompt method from AbstractConfigurableAgent (includes retry and rate limiting)
+            ChatResponse response = executePrompt(prompt);
+            
+            // Extract content from response - using correct Spring AI API
+            String aiResponse = response.getResult().getOutput().getText();
+            
+            LoggingUtil.info(LOG, "analyzeDocumentStructure", 
+                "Received AI response for paper %s: %d characters", paperId, aiResponse.length());
+            
+            return parseStructureResponse(aiResponse, textContent, paperId);
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "analyzeDocumentStructure", 
+                "Failed to analyze structure for paper %s", e, paperId);
+            
+            // Return fallback structure on error
+            return createFallbackStructure(textContent, paperId);
+        }
     }
     
     /**
@@ -151,9 +171,13 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
      * Cleans and normalizes text content.
      */
     private String cleanText(String text) {
-        return text != null ? text.trim()
-            .replaceAll("\\s+", " ")
-            .replaceAll("\\n{3,}", "\n\n") : "";
+        if (text == null) return "";
+        
+        return text.trim()
+            .replaceAll("\\s+", " ")           // Collapse multiple spaces
+            .replaceAll("\\n{3,}", "\n\n")     // Collapse multiple newlines
+            .replaceAll("\\r", "")             // Remove carriage returns
+            .replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", ""); // Remove control chars
     }
     
     /**
@@ -162,32 +186,62 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
     private Map<String, String> extractSections(String aiResponse, String originalText) {
         Map<String, String> sections = new HashMap<>();
         
-        // Basic section extraction (this would be more sophisticated in practice)
-        sections.put("abstract", extractSection(originalText, "abstract"));
-        sections.put("introduction", extractSection(originalText, "introduction"));
-        sections.put("methodology", extractSection(originalText, "method"));
-        sections.put("results", extractSection(originalText, "results"));
-        sections.put("discussion", extractSection(originalText, "discussion"));
-        sections.put("conclusion", extractSection(originalText, "conclusion"));
+        // Use both AI response and original text for section extraction
+        String combinedText = aiResponse + "\n\n" + originalText;
+        
+        // Extract standard academic sections
+        sections.put("abstract", extractSection(combinedText, "abstract"));
+        sections.put("introduction", extractSection(combinedText, "introduction"));
+        sections.put("methodology", extractSection(combinedText, "method"));
+        sections.put("results", extractSection(combinedText, "results"));
+        sections.put("discussion", extractSection(combinedText, "discussion"));
+        sections.put("conclusion", extractSection(combinedText, "conclusion"));
+        sections.put("references", extractSection(combinedText, "reference"));
+        
+        LoggingUtil.info(LOG, "extractSections", "Extracted %d sections", sections.size());
         
         return sections;
     }
     
     /**
-     * Basic section extraction helper.
+     * Basic section extraction helper with improved logic.
      */
     private String extractSection(String text, String sectionName) {
-        // Simplified section extraction - in practice would use more sophisticated parsing
-        String lowerText = text.toLowerCase();
-        int startIndex = lowerText.indexOf(sectionName);
+        if (text == null || text.isEmpty()) return "";
         
-        if (startIndex == -1) {
+        String lowerText = text.toLowerCase();
+        String[] sectionVariants = {
+            sectionName.toLowerCase(),
+            sectionName.toLowerCase() + "s",  // plural
+            sectionName.toLowerCase() + ":",   // with colon
+            "\n" + sectionName.toLowerCase(),  // at line start
+            " " + sectionName.toLowerCase()    // after space
+        };
+        
+        int bestStartIndex = -1;
+        for (String variant : sectionVariants) {
+            int index = lowerText.indexOf(variant);
+            if (index != -1) {
+                bestStartIndex = index;
+                break;
+            }
+        }
+        
+        if (bestStartIndex == -1) {
             return "";
         }
         
-        // Extract a reasonable chunk (limiting to 2000 chars for this example)
-        int endIndex = Math.min(startIndex + 2000, text.length());
-        return text.substring(startIndex, endIndex).trim();
+        // Extract a reasonable chunk (limiting to 3000 chars for better content)
+        int endIndex = Math.min(bestStartIndex + 3000, text.length());
+        
+        // Try to find a natural break point (paragraph or section)
+        String extracted = text.substring(bestStartIndex, endIndex);
+        int lastParagraph = extracted.lastIndexOf("\n\n");
+        if (lastParagraph > 500) { // Only use if it gives us a decent amount of content
+            extracted = extracted.substring(0, lastParagraph);
+        }
+        
+        return extracted.trim();
     }
     
     /**
@@ -197,8 +251,18 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("processingTimestamp", System.currentTimeMillis());
         metadata.put("processor", "PaperProcessorAgent");
-        metadata.put("aiProvider", "OpenAI");
-        metadata.put("contentLength", aiResponse.length());
+        metadata.put("aiProvider", getProvider().name());
+        metadata.put("responseLength", aiResponse.length());
+        metadata.put("processingMode", "ai_enhanced");
+        
+        // Extract quality indicators
+        String lowerResponse = aiResponse.toLowerCase();
+        metadata.put("hasTitle", lowerResponse.contains("title"));
+        metadata.put("hasAbstract", lowerResponse.contains("abstract"));
+        metadata.put("hasReferences", lowerResponse.contains("reference"));
+        metadata.put("hasMethods", lowerResponse.contains("method"));
+        metadata.put("hasResults", lowerResponse.contains("result"));
+        
         return metadata;
     }
     
@@ -207,10 +271,37 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
      */
     private Map<String, Object> parseAIStructureResponse(String aiResponse) {
         Map<String, Object> structure = new HashMap<>();
-        structure.put("hasTitle", aiResponse.toLowerCase().contains("title"));
-        structure.put("hasAbstract", aiResponse.toLowerCase().contains("abstract"));
-        structure.put("hasReferences", aiResponse.toLowerCase().contains("reference"));
-        structure.put("structureQuality", "basic");
+        String lowerResponse = aiResponse.toLowerCase();
+        
+        // Structure quality assessment
+        int structureScore = 0;
+        if (lowerResponse.contains("title")) structureScore += 20;
+        if (lowerResponse.contains("abstract")) structureScore += 20;
+        if (lowerResponse.contains("introduction")) structureScore += 15;
+        if (lowerResponse.contains("method")) structureScore += 15;
+        if (lowerResponse.contains("result")) structureScore += 15;
+        if (lowerResponse.contains("conclusion")) structureScore += 15;
+        
+        structure.put("structureScore", structureScore);
+        structure.put("qualityLevel", structureScore >= 80 ? "high" : 
+                                      structureScore >= 60 ? "medium" : "low");
+        
+        // Component detection
+        structure.put("hasTitle", lowerResponse.contains("title"));
+        structure.put("hasAbstract", lowerResponse.contains("abstract"));
+        structure.put("hasIntroduction", lowerResponse.contains("introduction"));
+        structure.put("hasMethods", lowerResponse.contains("method"));
+        structure.put("hasResults", lowerResponse.contains("result"));
+        structure.put("hasDiscussion", lowerResponse.contains("discussion"));
+        structure.put("hasConclusion", lowerResponse.contains("conclusion"));
+        structure.put("hasReferences", lowerResponse.contains("reference"));
+        
+        // Content analysis
+        structure.put("wordCount", aiResponse.split("\\s+").length);
+        structure.put("hasEquations", lowerResponse.contains("equation") || aiResponse.contains("="));
+        structure.put("hasFigures", lowerResponse.contains("figure") || lowerResponse.contains("fig."));
+        structure.put("hasTables", lowerResponse.contains("table"));
+        
         return structure;
     }
     
@@ -218,9 +309,27 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
      * Creates fallback structure when AI parsing fails.
      */
     private StructuredDocument createFallbackStructure(String originalText, String paperId) {
+        LoggingUtil.warn(LOG, "createFallbackStructure", 
+            "Creating fallback structure for paper %s", paperId);
+        
         Map<String, Object> basicStructure = new HashMap<>();
         basicStructure.put("type", "fallback");
         basicStructure.put("contentLength", originalText.length());
+        basicStructure.put("processingMode", "fallback");
+        basicStructure.put("structureScore", 0);
+        basicStructure.put("qualityLevel", "fallback");
+        
+        // Basic content analysis even without AI
+        String lowerText = originalText.toLowerCase();
+        basicStructure.put("hasAbstract", lowerText.contains("abstract"));
+        basicStructure.put("hasIntroduction", lowerText.contains("introduction"));
+        basicStructure.put("hasReferences", lowerText.contains("references"));
+        
+        Map<String, Object> fallbackMetadata = new HashMap<>();
+        fallbackMetadata.put("processingMode", "fallback");
+        fallbackMetadata.put("processingTimestamp", System.currentTimeMillis());
+        fallbackMetadata.put("processor", "PaperProcessorAgent");
+        fallbackMetadata.put("fallbackReason", "AI processing failed");
         
         return StructuredDocument.builder()
             .paperId(paperId)
@@ -228,8 +337,8 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
             .cleanedText(cleanText(originalText))
             .structure(basicStructure)
             .sections(new HashMap<>())
-            .metadata(Map.of("processingMode", "fallback"))
-            .processingNotes("Used fallback processing due to parsing errors")
+            .metadata(fallbackMetadata)
+            .processingNotes("Used fallback processing due to AI processing errors")
             .build();
     }
     
@@ -238,7 +347,7 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
         JsonNode input = task.getInput();
         if (input != null && input.has("textContent")) {
             int contentLength = input.get("textContent").asText().length();
-            // Base: 30 seconds + 1 second per 1000 characters
+            // Base: 30 seconds + 1 second per 1000 characters, with realistic caps
             long estimatedSeconds = 30 + (contentLength / 1000);
             return Duration.ofSeconds(Math.min(estimatedSeconds, 300)); // Cap at 5 minutes
         }
@@ -261,9 +370,9 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
             this.paperId = builder.paperId;
             this.originalText = builder.originalText;
             this.cleanedText = builder.cleanedText;
-            this.structure = builder.structure;
-            this.sections = builder.sections;
-            this.metadata = builder.metadata;
+            this.structure = builder.structure != null ? builder.structure : new HashMap<>();
+            this.sections = builder.sections != null ? builder.sections : new HashMap<>();
+            this.metadata = builder.metadata != null ? builder.metadata : new HashMap<>();
             this.processingNotes = builder.processingNotes;
         }
         

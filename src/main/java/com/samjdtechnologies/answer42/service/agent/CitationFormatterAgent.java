@@ -28,6 +28,8 @@ import com.samjdtechnologies.answer42.model.citation.StructuredCitation;
 import com.samjdtechnologies.answer42.model.daos.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.enums.CitationStyle;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
@@ -41,8 +43,9 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
         "(?:(?:\\[\\d+\\])|(?:\\(\\w+(?:,\\s*\\w+)*,?\\s*\\d{4}\\))|(?:\\w+\\s+et\\s+al\\.?,?\\s*\\d{4}))"
     );
 
-    public CitationFormatterAgent(AIConfig aiConfig, ThreadConfig threadConfig) {
-        super(aiConfig, threadConfig);
+    public CitationFormatterAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                                 AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
     }
 
     @Override

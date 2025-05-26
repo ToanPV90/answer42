@@ -19,11 +19,14 @@ import com.samjdtechnologies.answer42.model.agent.ProcessingMetrics;
 import com.samjdtechnologies.answer42.model.daos.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.LoadStatus;
 import com.samjdtechnologies.answer42.model.interfaces.AIAgent;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
  * Abstract base class for all configurable AI agents.
- * Integrates with AIConfig for user-aware API key management and ThreadConfig for async processing.
+ * Integrates with AIConfig for user-aware API key management, ThreadConfig for async processing,
+ * and AgentRetryPolicy for enterprise-grade resilience with circuit breaker protection.
  */
 public abstract class AbstractConfigurableAgent implements AIAgent {
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractConfigurableAgent.class);
@@ -31,14 +34,20 @@ public abstract class AbstractConfigurableAgent implements AIAgent {
     protected final AIConfig aiConfig;
     protected final Executor taskExecutor;
     protected final ChatClient chatClient;
+    protected final AgentRetryPolicy retryPolicy;
+    protected final APIRateLimiter rateLimiter;
 
-    protected AbstractConfigurableAgent(AIConfig aiConfig, ThreadConfig threadConfig) {
+    protected AbstractConfigurableAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                                      AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
         this.aiConfig = aiConfig;
         this.taskExecutor = threadConfig.taskExecutor();
         this.chatClient = getConfiguredChatClient();
+        this.retryPolicy = retryPolicy;
+        this.rateLimiter = rateLimiter;
 
         LoggingUtil.info(LOG, "AbstractConfigurableAgent", 
-            "Initialized agent %s with provider %s", getAgentType(), getProvider());
+            "Initialized agent %s with provider %s, retry policy, and rate limiter", 
+            getAgentType(), getProvider());
     }
 
     /**
@@ -48,16 +57,30 @@ public abstract class AbstractConfigurableAgent implements AIAgent {
 
     @Override
     public CompletableFuture<AgentResult> process(AgentTask task) {
+        // Validate task requirements first
+        try {
+            validateTaskRequirements(task);
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "process", 
+                "Task validation failed for agent %s: %s", getAgentType(), e.getMessage());
+            return CompletableFuture.completedFuture(AgentResult.failure(task.getId(), e.getMessage()));
+        }
+
+        // Execute with retry policy and circuit breaker protection
+        return retryPolicy.executeWithRetry(getAgentType(), () -> executeAgentLogic(task));
+    }
+
+    /**
+     * Internal agent execution logic wrapped with retry policy.
+     */
+    private CompletableFuture<AgentResult> executeAgentLogic(AgentTask task) {
         return CompletableFuture.supplyAsync(() -> {
             Instant startTime = Instant.now();
             
             try {
-                LoggingUtil.info(LOG, "process", 
+                LoggingUtil.info(LOG, "executeAgentLogic", 
                     "Agent %s processing task %s using %s provider", 
                     getAgentType(), task.getId(), getProvider());
-
-                // Validate task requirements
-                validateTaskRequirements(task);
 
                 // Process with configuration
                 AgentResult result = processWithConfig(task);
@@ -66,7 +89,7 @@ public abstract class AbstractConfigurableAgent implements AIAgent {
                 ProcessingMetrics metrics = createProcessingMetrics(startTime);
                 result = enrichWithMetrics(result, metrics);
 
-                LoggingUtil.info(LOG, "process", 
+                LoggingUtil.info(LOG, "executeAgentLogic", 
                     "Agent %s completed task %s successfully in %d ms", 
                     getAgentType(), task.getId(), 
                     Duration.between(startTime, Instant.now()).toMillis());
@@ -74,9 +97,19 @@ public abstract class AbstractConfigurableAgent implements AIAgent {
                 return result;
 
             } catch (Exception e) {
-                LoggingUtil.error(LOG, "process", 
+                LoggingUtil.error(LOG, "executeAgentLogic", 
                     "Agent %s failed to process task %s", e, getAgentType(), task.getId());
-                return AgentResult.failure(task.getId(), e.getMessage());
+                
+                // Determine if this is a retryable exception
+                if (isRetryableException(e)) {
+                    LoggingUtil.warn(LOG, "executeAgentLogic", 
+                        "Retryable exception occurred for agent %s: %s", getAgentType(), e.getMessage());
+                } else {
+                    LoggingUtil.error(LOG, "executeAgentLogic", 
+                        "Non-retryable exception occurred for agent %s: %s", getAgentType(), e.getMessage());
+                }
+                
+                throw new RuntimeException("Agent processing failed: " + e.getMessage(), e);
             }
         }, taskExecutor);
     }
@@ -132,15 +165,94 @@ public abstract class AbstractConfigurableAgent implements AIAgent {
 
     /**
      * Executes a chat interaction using the configured chat client.
+     * This method includes rate limiting and is protected by retry policy when called from processWithConfig.
      */
     protected ChatResponse executePrompt(Prompt prompt) {
         try {
+            // Acquire rate limit permit before making API call
+            rateLimiter.acquirePermit(getProvider()).join();
+            
+            LoggingUtil.debug(LOG, "executePrompt", 
+                "Acquired rate limit permit for %s provider", getProvider());
+            
             return chatClient.prompt(prompt).call().chatResponse();
         } catch (Exception e) {
             LoggingUtil.error(LOG, "executePrompt", 
                 "Failed to execute prompt with %s provider", e, getProvider());
             throw new RuntimeException("AI provider communication failed: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Executes a chat interaction with explicit retry protection.
+     * Use this for critical operations that need extra retry protection.
+     */
+    protected CompletableFuture<ChatResponse> executePromptWithRetry(Prompt prompt) {
+        return retryPolicy.executeWithRetry(getAgentType(), () -> 
+            CompletableFuture.supplyAsync(() -> executePrompt(prompt), taskExecutor)
+        );
+    }
+
+    /**
+     * Gets circuit breaker status for this agent.
+     */
+    public String getCircuitBreakerStatus() {
+        return retryPolicy.getCircuitBreakerStatus(getAgentType()).name();
+    }
+
+    /**
+     * Gets retry statistics for this agent.
+     */
+    public String getRetryStatistics() {
+        var stats = retryPolicy.getAgentRetryStatistics(getAgentType());
+        return String.format("Attempts: %d, Retries: %d, Success Rate: %.2f%%", 
+            stats.getTotalAttempts(), stats.getTotalRetries(), stats.getSuccessRate() * 100);
+    }
+
+    /**
+     * Determines if an exception should be retried.
+     * Subclasses can override for agent-specific retry logic.
+     */
+    protected boolean isRetryableException(Exception e) {
+        if (e == null) {
+            return false;
+        }
+        
+        String message = e.getMessage();
+        if (message == null) {
+            message = "";
+        }
+        
+        // Network-related errors that are typically transient
+        if (e instanceof java.net.SocketTimeoutException ||
+            e instanceof java.net.ConnectException ||
+            e instanceof java.io.IOException) {
+            return true;
+        }
+        
+        // AI provider specific errors
+        if (message.contains("timeout") ||
+            message.contains("rate limit") ||
+            message.contains("throttle") ||
+            message.contains("503") ||
+            message.contains("502") ||
+            message.contains("504") ||
+            message.contains("overloaded") ||
+            message.contains("capacity")) {
+            return true;
+        }
+        
+        // Authentication errors are not retryable
+        if (message.contains("401") ||
+            message.contains("403") ||
+            message.contains("unauthorized") ||
+            message.contains("forbidden") ||
+            message.contains("invalid_api_key")) {
+            return false;
+        }
+        
+        // Default: don't retry unknown exceptions
+        return false;
     }
 
     /**

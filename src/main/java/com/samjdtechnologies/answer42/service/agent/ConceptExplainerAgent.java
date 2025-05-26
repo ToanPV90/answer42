@@ -26,6 +26,8 @@ import com.samjdtechnologies.answer42.model.concept.TechnicalTerm;
 import com.samjdtechnologies.answer42.model.daos.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.enums.EducationLevel;
+import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.ConceptResponseParser;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
@@ -39,8 +41,9 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
     private final ConceptResponseParser responseParser;
     
     public ConceptExplainerAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                                AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
                                 ConceptResponseParser responseParser) {
-        super(aiConfig, threadConfig);
+        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
         this.responseParser = responseParser;
     }
     
@@ -145,7 +148,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
         
         try {
             ChatResponse response = executePrompt(extractionPrompt);
-            String responseContent = response.getResult().getOutput().toString();
+            String responseContent = response.getResult().getOutput().getText();
             
             List<TechnicalTerm> terms = responseParser.parseTermsFromResponse(responseContent);
             
@@ -226,7 +229,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
         
         try {
             ChatResponse response = executePrompt(explanationPrompt);
-            String responseContent = response.getResult().getOutput().toString();
+            String responseContent = response.getResult().getOutput().getText();
             
             return responseParser.parseExplanationsFromResponse(responseContent, level);
             
@@ -271,7 +274,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
         
         try {
             ChatResponse response = executePrompt(relationshipPrompt);
-            String responseContent = response.getResult().getOutput().toString();
+            String responseContent = response.getResult().getOutput().getText();
             
             return responseParser.parseRelationshipMapFromResponse(responseContent);
             

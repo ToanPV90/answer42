@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.JobParametersValidator;
@@ -29,7 +28,7 @@ public class MultiAgentJobParametersValidator implements JobParametersValidator 
         // Validate paperId (required)
         validatePaperId(parameters);
         
-        // Validate userId (optional) 
+        // Validate userId (required) 
         validateUserId(parameters);
         
         // Validate optional parameters if present
@@ -59,18 +58,18 @@ public class MultiAgentJobParametersValidator implements JobParametersValidator 
     }
 
     /**
-     * Validates the userId parameter.
+     * Validates the userId parameter (required for AIConfig integration and cost tracking).
      */
     private void validateUserId(JobParameters parameters) throws JobParametersInvalidException {
         String userId = parameters.getString("userId");
         
         if (userId == null || userId.trim().isEmpty()) {
-            LoggingUtil.warn(LOG, "validateUserId", 
-                "Parameter 'userId' is missing or empty, will use system default");
-            return; // userId is optional, will use system default
+            throw new JobParametersInvalidException(
+                "Required parameter 'userId' is missing or empty. " +
+                "userId is mandatory for AIConfig integration, cost tracking, and audit trail.");
         }
 
-        // Validate UUID format if provided
+        // Validate UUID format
         try {
             UUID.fromString(userId.trim());
             LoggingUtil.debug(LOG, "validateUserId", "Valid userId: %s", userId);

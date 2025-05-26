@@ -18,13 +18,14 @@ Answer42 is a sophisticated AI-powered platform for academic researchers, studen
 - [Getting Started](#getting-started)
 - [Development](#development)
 - [Configuration](#configuration)
+- [License](#license)
 
 ## What is Answer42?
 
 Answer42 is a comprehensive research assistant that helps academics work with scientific papers through:
 
 - **Intelligent Paper Processing**: Upload PDFs and extract full text, metadata, and structured information
-- **Multi-Agent Processing Pipeline**: Seven specialized AI agents for comprehensive paper analysis (🆕 **NEW!**)
+- **Multi-Agent Processing Pipeline**: Eight specialized AI agents for comprehensive paper analysis (🆕 **NEW!**)
 - **Related Papers Discovery**: Multi-source intelligent discovery of related academic papers (🆕 **NEW!**)
 - **Multi-Modal AI Chat**: Three specialized chat modes using different AI providers for various research needs
 - **Comprehensive Analysis**: Generate summaries, extract key findings, identify methodologies, and create glossaries
@@ -38,6 +39,7 @@ Answer42 is a comprehensive research assistant that helps academics work with sc
 
 - **Java 21** - Modern Java with latest features
 - **Spring Boot 3.4.5** - Enterprise application framework
+- **Spring Batch** - Enterprise-grade job processing and workflow orchestration (🆕 **NEW!**)
 - **Spring Security** - Authentication and authorization
 - **Spring Data JPA** - Database access with Hibernate
 - **Spring AI** - Unified AI provider integration
@@ -82,7 +84,7 @@ Answer42 follows a clean layered architecture with a sophisticated multi-agent p
 │   Services          │  Business Logic Layer
 ├─────────────────────┤
 │  Multi-Agent        │  AI Processing Layer (🆕 NEW!)
-│  Pipeline System    │  Seven Specialized Agents
+│  Pipeline System    │  Eight Specialized Agents
 ├─────────────────────┤
 │  Discovery System   │  Multi-Source Paper Discovery (🆕 NEW!)
 │  (Crossref, S2, AI) │  Citation Networks & Semantic Analysis
@@ -191,25 +193,35 @@ Answer42 follows a clean layered architecture with a sophisticated multi-agent p
 
 ## Multi-Agent Processing Pipeline
 
-🆕 **NEW FEATURE**: Answer42 now features a sophisticated multi-agent processing pipeline that automatically analyzes papers using seven specialized AI agents.
+🆕 **NEW FEATURE**: Answer42 now features a sophisticated multi-agent processing pipeline powered by **Spring Batch** that automatically analyzes papers using eight specialized AI agents.
 
 ### Pipeline Architecture
 
-The multi-agent system processes papers through coordinated AI agents, each optimized for specific tasks:
+The multi-agent system uses **Spring Batch** for enterprise-grade job processing and workflow orchestration, processing papers through coordinated AI agents in a sequential 8-step pipeline:
 
 ```mermaid
 flowchart TD
-    A[Paper Upload] --> B[Pipeline Orchestrator]
-    B --> C[Paper Processor Agent]
-    B --> D[Metadata Enhancement Agent]
-    C --> E[Content Summarizer Agent]
-    C --> F[Concept Explainer Agent]
-    E --> G[Quality Checker Agent]
-    F --> G
-    D --> H[Citation Formatter Agent]
-    G --> I[Related Paper Discovery Agent]
-    H --> I
-    I --> J[Pipeline Complete]
+    A[Paper Upload] --> B[Spring Batch Job: paperProcessingJob]
+    B --> C[Step 1: Paper Text Extraction<br/>PaperProcessorTasklet<br/>OpenAI GPT-4]
+    C --> D[Step 2: Metadata Enhancement<br/>MetadataEnhancementTasklet<br/>OpenAI GPT-4 + APIs]
+    D --> E[Step 3: Content Summarization<br/>ContentSummarizerTasklet<br/>Anthropic Claude]
+    E --> F[Step 4: Concept Explanation<br/>ConceptExplainerTasklet<br/>OpenAI GPT-4]
+    F --> G[Step 5: Perplexity Research<br/>PerplexityResearchTasklet<br/>Perplexity API]
+    G --> H[Step 6: Related Paper Discovery<br/>RelatedPaperDiscoveryTasklet<br/>Anthropic Claude + Multi-APIs]
+    H --> I[Step 7: Citation Formatting<br/>CitationFormatterTasklet<br/>OpenAI GPT-4]
+    I --> J[Step 8: Quality Assessment<br/>QualityCheckerTasklet<br/>Anthropic Claude]
+    J --> K[Pipeline Complete<br/>papers.status = 'PROCESSED']
+
+    style B fill:#e1f5fe
+    style C fill:#f3e5f5
+    style D fill:#f3e5f5
+    style E fill:#e8f5e8
+    style F fill:#f3e5f5
+    style G fill:#fff3e0
+    style H fill:#e1f5fe
+    style I fill:#f3e5f5
+    style J fill:#e8f5e8
+    style K fill:#e8f6f3
 ```
 
 ### Specialized AI Agents
@@ -256,12 +268,20 @@ flowchart TD
 - DOI validation and metadata enrichment
 - Bibliography generation with quality assessment
 
-**🔍 Related Paper Discovery Agent** (🆕 **NEW!**) (Anthropic Claude)
+**🔍 Related Paper Discovery Agent** (🆕 **NEW!**) (Anthropic Claude + Perplexity API)
 
-- Multi-source paper discovery coordination
-- AI-powered relevance score enhancement
-- Result synthesis and deduplication
+- Multi-source paper discovery coordination (Crossref, Semantic Scholar, Perplexity)
+- AI-powered relevance score enhancement using Anthropic Claude
+- Perplexity API integration for real-time research trends and discussions
+- Result synthesis and deduplication across all sources
 - Discovery metadata tracking and storage
+
+**🔬 Perplexity Research Agent** (🆕 **NEW!**) (Perplexity API)
+
+- External research and fact verification
+- Real-time web search and research synthesis
+- Current literature verification and validation
+- Research trend analysis and contextualization
 
 ### Pipeline Features
 
@@ -285,6 +305,49 @@ flowchart TD
 - Credit-based pricing integration
 - Performance monitoring and optimization
 - User-aware API key management
+
+### Core vs Enhancement Agents for AI Chat Integration
+
+The multi-agent pipeline produces data that directly powers Answer42's three AI chat modes. Each chat mode requires specific agent outputs to function optimally:
+
+#### **Paper Chat (Anthropic Claude) - Individual Paper Analysis**
+
+**CORE REQUIRED (Essential for functionality):**
+
+- 🔧 **Paper Processor** → `papers.text_content` (raw paper content)
+- 📝 **Content Summarizer** → `papers.summary_brief/standard/detailed`, `papers.key_findings`
+- 🧠 **Concept Explainer** → `papers.glossary`, `papers.main_concepts`
+
+**ENHANCEMENT (Beneficial but optional):**
+
+- Metadata Enhancement, Perplexity Research, Related Paper Discovery, Citation Formatting, Quality Assessment
+
+#### **Cross-Reference Chat (OpenAI GPT-4) - Multi-Paper Comparison**
+
+**CORE REQUIRED (Essential for functionality):**
+
+- 🔧 **Paper Processor** → `papers.text_content` (raw paper content)
+- 📝 **Content Summarizer** → `papers.summary_brief/standard/detailed`, `papers.key_findings`
+- 📖 **Citation Formatter** → `papers.citations` (for reference comparisons)
+- ✅ **Quality Checker** → `papers.quality_feedback`, `papers.quality_score` (reliability assessment)
+
+**ENHANCEMENT (Beneficial but optional):**
+
+- Metadata Enhancement, Concept Explainer, Perplexity Research, Related Paper Discovery
+
+#### **Research Explorer Chat (Perplexity) - External Research & Discovery**
+
+**CORE REQUIRED (Essential for functionality):**
+
+- 🔧 **Paper Processor** → `papers.text_content` (raw paper content)
+- 🔬 **Perplexity Research** → `papers.research_questions`, `papers.methodology_details`
+- 🔍 **Related Paper Discovery** → `discovered_papers`, `papers.metadata.research_context`
+
+**ENHANCEMENT (Beneficial but optional):**
+
+- Metadata Enhancement, Content Summarizer, Concept Explainer, Citation Formatting, Quality Assessment
+
+**Database Integration:** The AI chat clients automatically access the appropriate database tables populated by these core agents, enabling contextual conversations about papers with rich, pre-processed information.
 
 ## Related Papers Discovery System
 
@@ -742,6 +805,23 @@ spring.datasource.url=jdbc:postgresql://localhost:54322/postgres
 spring.jpa.properties.hibernate.default_schema=answer42
 spring.jpa.hibernate.ddl-auto=update
 ```
+
+## License
+
+Answer42 is licensed under a custom **Agents as a Service (AaaS) License Agreement**. 
+
+This license governs the use of Answer42's AI-powered academic research platform and its specialized multi-agent processing system. The platform provides Agents as a Service (AaaS) through sophisticated AI agents for paper processing, analysis, and research discovery.
+
+For complete license terms and conditions, please see the [LICENSE](./LICENSE) file in the project root.
+
+**Key License Highlights:**
+
+- **Commercial Service License**: Answer42 operates as a subscription-based service with credit management
+- **AI Agent Usage**: Licensed use of specialized AI agents through the Answer42 platform
+- **Data Privacy**: Your research content remains private and is not used to train AI models
+- **Service Terms**: Comprehensive terms for AI provider usage, subscription management, and service availability
+
+For questions about licensing, please contact: legal@answer42.app
 
 ---
 

@@ -585,6 +585,66 @@ The theme is activated by loading each CSS file in the AppShell class:
 
 ## Database Schema Management
 
+### Available Schema Files
+
+Answer42 provides pre-built PostgreSQL schema files for quick database setup:
+
+#### **`answer42.schema-with-data.sql`** - Complete Database with Sample Data
+- **Full PostgreSQL dump** with schema structure and sample data
+- **40+ tables** including users, papers, discovery system, and AI agent infrastructure
+- **Sample papers** for testing the multi-agent pipeline
+- **Pre-configured subscription plans** and credit packages
+- **Operation costs** for all AI agent types
+- **User roles and permissions** setup
+- **Indexes and constraints** optimized for production
+
+**Usage:**
+```bash
+# Import complete database with sample data
+psql -d your_database -f answer42.schema-with-data.sql
+```
+
+#### **`answer42.schema.sql`** - Schema Structure Only
+- **Database structure only** (no sample data)
+- **Clean slate** for production deployment
+- **All tables, functions, triggers, and indexes**
+- **Optimized for fresh installations**
+
+**Usage:**
+```bash
+# Import schema structure only
+psql -d your_database -f answer42.schema.sql
+```
+
+### Schema Highlights
+
+**Core Tables:**
+- `users` - User authentication and profiles
+- `papers` - Academic papers with full-text and metadata
+- `discovered_papers` - Multi-source paper discovery results
+- `chat_sessions` & `chat_messages` - AI conversation history
+- `projects` - Research project organization
+- `credit_balances` & `credit_transactions` - Credit system
+
+**AI Agent Tables:**
+- `tasks` - Agent task management and tracking
+- `agent_memory_store` - Agent context and memory
+- `operation_costs` - AI operation pricing by tier
+- `user_operations` - Usage tracking and analytics
+
+**Discovery System Tables:**
+- `discovery_results` - Discovery session tracking
+- `paper_relationships` - Citation and similarity relationships
+- `discovery_feedback` - User feedback for algorithm improvement
+
+**Advanced Features:**
+- **JSONB Fields** - Flexible metadata storage for papers and analysis results
+- **Full-Text Search** - GIN indexes on titles and abstracts
+- **Relationship Mapping** - Complex paper relationship tracking
+- **Performance Optimization** - 31 specialized indexes for fast queries
+
+### Custom Database Setup Commands
+
 **Dump the entire schema**
 
 ```bash
@@ -614,6 +674,10 @@ supabase db dump --schema-only > structure.sql
 ```bash
 supabase db dump --table papers --table users > specific_tables.sql
 ```
+
+### Database Migration
+
+For existing installations, Spring Boot will automatically handle schema migrations through Hibernate DDL auto-update. For production deployments, consider using the provided schema files for consistent database structure.
 
 ### Entity Design Guidelines
 

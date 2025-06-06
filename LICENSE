@@ -1,161 +1,197 @@
-# ANSWER42 - AGENTS AS A SERVICE (AaaS) LICENSE AGREEMENT
+Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
 
-## 1. INTRODUCTION
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-This Agents as a Service License Agreement ("Agreement") is a legal agreement between you (either an individual or a legal entity) and Answer42, Inc. ("Answer42," "we," "our," or "us") for the use of the Answer42 platform and services, including all associated AI agents, algorithms, software components, APIs, and documentation (collectively, the "Service").
+   1. Definitions.
 
-## 2. ACCEPTANCE OF TERMS
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
 
-By accessing or using the Service, you agree to be bound by the terms and conditions of this Agreement. If you do not agree to these terms, you must not access or use the Service.
+      "Licensor" shall mean the copyright owner or entity granting the License.
 
-## 3. SERVICE DESCRIPTION
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
 
-Answer42 is an AI-powered academic research assistant platform that provides Agents as a Service (AaaS), including but not limited to:
-- Paper management and analysis
-- AI-driven document processing
-- Research project organization
-- Specialized chat interfaces
-- Cross-reference analysis
-- Study material generation
-- Metadata extraction and enrichment
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
 
-## 4. SUBSCRIPTION AND PAYMENT TERMS
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
 
-### 4.1 Subscription Model
-The Service is offered on a subscription basis with tiered plans and/or a credit-based system for specialized operations. The features available to you depend on the subscription tier or credit package purchased.
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
 
-### 4.2 Payment
-All fees are due in advance and non-refundable except as expressly provided in this Agreement. Answer42 reserves the right to change the fees upon reasonable notice.
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (which shall not be interpreted as modifying the License).
 
-### 4.3 Taxes
-All fees are exclusive of taxes. You are responsible for paying all applicable taxes related to your use of the Service.
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based upon (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and related separate and independent works which are not
+      otherwise combined with the Work to form a larger work.
 
-## 5. LICENSE GRANT
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control
+      systems, and issue tracking systems that are managed by, or on behalf
+      of, the Licensor for the purpose of discussing and improving the Work,
+      but excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
 
-### 5.1 Limited License
-Subject to your compliance with this Agreement and payment of applicable fees, Answer42 grants you a limited, non-exclusive, non-transferable, non-sublicensable license to access and use the Service for your internal business or personal research purposes.
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
 
-### 5.2 Restrictions
-You may not:
-- Reverse engineer, decompile, disassemble, or otherwise attempt to discover the source code of the Service
-- Modify, adapt, or create derivative works based on the Service
-- Remove, obscure, or alter any proprietary notices on the Service
-- Resell, redistribute, or provide third parties with access to the Service
-- Use the Service to develop a competing product or service
-- Use the Service in any way that violates applicable laws or regulations
-- Attempt to gain unauthorized access to the Service or its related systems
-- Use automated methods to extract data from the Service beyond its provided APIs and export functions
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to use, reproduce, modify, merge, publish,
+      distribute, sublicense, and/or sell copies of the Work, and to
+      permit persons to whom the Work is furnished to do so, subject to
+      the following conditions:
 
-### 5.3 Agent Usage
-The AI agents provided as part of the Service are licensed for use solely through the Answer42 platform. You may not extract, isolate, or separately use any AI models or agents outside of the Service.
+      The above copyright notice and this permission notice shall be
+      included in all copies or substantial portions of the Work.
 
-## 6. DATA AND CONTENT
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
 
-### 6.1 Your Content
-You retain all rights to any content you upload, create, or process through the Service ("Your Content"). You grant Answer42 a limited license to store, process, and analyze Your Content solely to provide and improve the Service.
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
 
-### 6.2 User Data
-Answer42 collects and processes user data as described in our Privacy Policy. By using the Service, you consent to the collection and processing of your data in accordance with our Privacy Policy.
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
 
-### 6.3 Agent-Generated Content
-Content generated by the AI agents ("Agent-Generated Content") through your use of the Service is licensed to you for your own use. You own the specific outputs generated for you through your usage of the Service, but Answer42 retains ownership of the underlying AI models, agents, and systems.
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
 
-### 6.4 Academic Citations
-The Service may generate citations, references, and metadata for academic works. You are responsible for verifying the accuracy of any citations or references generated by the Service before use in academic or published works.
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, trademark, patent,
+          attribution and other notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
 
-## 7. INTELLECTUAL PROPERTY
+      (d) If the Work includes a "NOTICE" file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
 
-### 7.1 Ownership
-Answer42 retains all right, title, and interest in and to the Service, including all intellectual property rights. Nothing in this Agreement transfers any ownership rights to you.
+      You may add Your own copyright notice to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
 
-### 7.2 Feedback
-If you provide feedback, suggestions, or recommendations regarding the Service ("Feedback"), Answer42 may use such Feedback without restriction or obligation to you.
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate contributor license agreement you may have
+      executed with Licensor regarding such Contributions.
 
-### 7.3 Data Usage
-Answer42 uses your data solely to provide the Service. We do not train AI models using your data. Your content remains private and confidential, and will only be used to provide the requested services to you. We may collect anonymized usage statistics for purposes of improving the Service functionality and user experience, but this data is never used to train AI models.
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
 
-## 8. CONFIDENTIALITY
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
 
-### 8.1 Service Confidentiality
-The Service, including its algorithms, models, and non-public components, constitutes confidential information of Answer42. You agree to maintain the confidentiality of this information and not disclose it to third parties.
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
 
-### 8.2 Your Content Confidentiality
-Answer42 will treat Your Content as confidential and will not disclose it to third parties except as necessary to provide the Service or as required by law.
+   9. Accepting Warranty or Support. You are not required to accept
+      warranty or support for the Work. However, You may accept warranty
+      or support on terms of Your own choosing.
 
-## 9. DISCLAIMER OF WARRANTIES
+   END OF TERMS AND CONDITIONS
 
-THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. ANSWER42 DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+   APPENDIX: How to apply the Apache License to your work.
 
-## 10. LIMITATION OF LIABILITY
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same page as the copyright notice for easier identification.
 
-### 10.1 Limitation
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, ANSWER42 SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES.
+   Copyright 2025 Answer42 Contributors
 
-### 10.2 AI Agent Outputs
-Given the nature of AI technology, Answer42 does not guarantee that AI agent outputs will be free from errors, omissions, or inaccuracies. Answer42 is not liable for any decisions made or actions taken based on AI agent outputs. Users must apply their own judgment and expertise when using agent-generated content, especially in academic, professional, or research contexts.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-### 10.3 Cap on Liability
-ANSWER42'S TOTAL LIABILITY ARISING OUT OF OR RELATED TO THIS AGREEMENT SHALL NOT EXCEED THE AMOUNTS PAID BY YOU FOR THE SERVICE DURING THE 12 MONTHS PRECEDING THE CLAIM.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-## 11. INDEMNIFICATION
-
-You agree to indemnify and hold harmless Answer42 from and against any claims, liabilities, damages, losses, and expenses arising out of or in any way connected with your use of the Service, violation of this Agreement, or infringement of any third-party rights.
-
-## 12. TERM AND TERMINATION
-
-### 12.1 Term
-This Agreement begins when you first use the Service and continues until terminated as described herein.
-
-### 12.2 Termination by You
-You may terminate this Agreement by cancelling your subscription and ceasing all use of the Service.
-
-### 12.3 Termination by Answer42
-Answer42 may terminate this Agreement if you breach any terms of this Agreement, fail to pay fees when due, or upon reasonable notice for any reason.
-
-### 12.4 Effect of Termination
-Upon termination, you must cease all use of the Service. You may export Your Content from the Service within 30 days of termination, after which Answer42 may delete Your Content.
-
-## 13. EXPORT CONTROLS
-
-You agree to comply with all applicable export and re-export control laws and regulations, including the Export Administration Regulations maintained by the U.S. Department of Commerce.
-
-## 14. GOVERNING LAW AND DISPUTE RESOLUTION
-
-This Agreement shall be governed by the laws of California without regard to its conflict of law principles. Any dispute arising from or relating to this Agreement shall be resolved exclusively in the state or federal courts located in San Francisco, California.
-
-## 15. CHANGES TO THE AGREEMENT
-
-Answer42 may modify this Agreement from time to time by posting the modified terms on its website or by notifying you. Your continued use of the Service after such modifications constitutes your acceptance of the modified terms.
-
-## 16. AGENTS AS A SERVICE (AaaS) SPECIFIC TERMS
-
-### 16.1 Agent Availability
-Answer42 makes no guarantees regarding the continuous availability of specific AI agents. We reserve the right to modify, replace, or discontinue any agent at our discretion.
-
-### 16.2 Agent Performance
-AI agent performance may vary based on multiple factors including but not limited to: input quality, data availability, system load, and ongoing improvements to underlying models. No specific level of performance is guaranteed.
-
-### 16.3 Usage Quotas
-Certain AI agents may be subject to usage quotas, rate limits, or credit consumption based on computational intensity. These limitations help ensure fair usage of resources across all users.
-
-### 16.4 Third-Party AI Provider Changes
-Answer42 utilizes AI technologies from third-party providers (such as OpenAI, Anthropic, and others). Changes in third-party services, APIs, or terms may affect the functionality of Answer42 agents.
-
-## 17. MISCELLANEOUS
-
-### 17.1 Entire Agreement
-This Agreement constitutes the entire agreement between you and Answer42 regarding the Service and supersedes all prior agreements and understandings.
-
-### 17.2 Severability
-If any provision of this Agreement is found to be unenforceable, the remaining provisions will remain in full force and effect.
-
-### 17.3 Waiver
-The failure of Answer42 to enforce any right or provision of this Agreement will not be deemed a waiver of such right or provision.
-
-### 17.4 Assignment
-You may not assign this Agreement without Answer42's prior written consent. Answer42 may assign this Agreement without restriction.
-
-### 17.5 Contact
-Questions about this Agreement should be sent to legal@answer42.app.
-
-© 2025 Answer42, Inc. All Rights Reserved.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.

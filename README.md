@@ -25,8 +25,8 @@ Answer42 is a sophisticated AI-powered platform for academic researchers, studen
 Answer42 is a comprehensive research assistant that helps academics work with scientific papers through:
 
 - **Intelligent Paper Processing**: Upload PDFs and extract full text, metadata, and structured information
-- **Multi-Agent Processing Pipeline**: Eight specialized AI agents for comprehensive paper analysis (🆕 **NEW!**)
-- **Related Papers Discovery**: Multi-source intelligent discovery of related academic papers (🆕 **NEW!**)
+- **Multi-Agent Processing Pipeline**: Eight specialized AI agents for comprehensive paper analysis 
+- **Related Papers Discovery**: Multi-source intelligent discovery of related academic papers 
 - **Multi-Modal AI Chat**: Three specialized chat modes using different AI providers for various research needs
 - **Comprehensive Analysis**: Generate summaries, extract key findings, identify methodologies, and create glossaries
 - **External Metadata Integration**: Automatic enhancement using Crossref and Semantic Scholar APIs
@@ -39,7 +39,7 @@ Answer42 is a comprehensive research assistant that helps academics work with sc
 
 - **Java 21** - Modern Java with latest features
 - **Spring Boot 3.4.5** - Enterprise application framework
-- **Spring Batch** - Enterprise-grade job processing and workflow orchestration (🆕 **NEW!**)
+- **Spring Batch** - Enterprise-grade job processing and workflow orchestration
 - **Spring Security** - Authentication and authorization
 - **Spring Data JPA** - Database access with Hibernate
 - **Spring AI** - Unified AI provider integration
@@ -754,6 +754,88 @@ This creates an optimized build with:
 - Production Vaadin compilation
 - Optimized JAR/WAR packaging
 
+### 🎨 UI Development & Contributing
+
+**📋 Remaining UI Implementation:**
+
+Answer42 has comprehensive design mockups for UI components that still need implementation. Before contributing to the frontend, please review the design specifications in the `docs/design/` directory:
+
+**Available Design Mockups:**
+- `dashboard.png` - Main dashboard layout and widgets
+- `projects.png` - Research project management interface
+- `profile.png` - User profile and account settings
+- `credits.png` - Credit balance and subscription management
+- `subscriptions.png` - Subscription plans and billing interface
+- `settings.png` - Application settings and preferences
+- `studyGuides.png` - Study guide generation and management
+- `uploadPaper.png` & `bulkUploadPaper.png` - Paper upload interfaces
+- `viewPaper.png` - Individual paper viewing and analysis
+- `papers.png` - Paper library and organization
+- `aiChat*.png` - AI chat interface variations and workflows
+
+**Design Documentation:**
+- `docs/design/README.md` - Complete design system documentation
+- `answer42_pitch_deck.md` - Product vision and feature overview
+
+**Contributing Guidelines:**
+1. Check `docs/design/` for existing mockups before starting UI work
+2. Follow the established Vaadin component patterns in existing views
+3. Ensure responsive design compatibility across devices
+4. Implement dark mode support using the existing theme system
+5. Add appropriate accessibility features (ARIA labels, keyboard navigation)
+
+**UI Architecture:**
+- **Views**: Located in `src/main/java/com/samjdtechnologies/answer42/ui/views/`
+- **Helpers**: UI helper classes in `src/main/java/com/samjdtechnologies/answer42/ui/helpers/`
+- **Themes**: CSS themes in `src/main/frontend/styles/themes/answer42/`
+- **Components**: Reusable components following Vaadin best practices
+
+Contributors are encouraged to implement these designed interfaces to complete the platform's user experience.
+
+### 🔧 Technical Debt & Refactoring Opportunities
+
+**🤖 AI Chat System Modernization:**
+
+The current AI chat implementation needs to be refactored to leverage the sophisticated agent system:
+
+**Current Architecture Issues:**
+- Chat helper classes should be refactored to proper chat controllers
+- Direct AI provider calls should be replaced with enterprise-grade agent implementations
+- Missing integration with the retry policy, rate limiting, and circuit breaker systems
+
+**Recommended Refactoring:**
+1. **Migrate to Agent-Based Architecture**: Replace direct AI provider calls with the comprehensive agent implementations in `src/main/java/com/samjdtechnologies/answer42/service/agent/`
+
+2. **Available Agent Classes for Integration**:
+   - `AbstractConfigurableAgent.java` - Base class with retry policies, rate limiting, and circuit breakers
+   - `AnthropicBasedAgent.java` - Optimized for Anthropic Claude interactions
+   - `OpenAIBasedAgent.java` - Optimized for OpenAI GPT-4 interactions  
+   - `PerplexityBasedAgent.java` - Optimized for Perplexity research queries
+   - `ContentSummarizerAgent.java` - Multi-level summarization capabilities
+   - `ConceptExplainerAgent.java` - Technical term explanation with education levels
+   - `QualityCheckerAgent.java` - Comprehensive quality assessment and bias detection
+
+3. **Benefits of Migration**:
+   - ✅ Enterprise-grade error handling and retry mechanisms
+   - ✅ Built-in rate limiting and circuit breaker protection
+   - ✅ Comprehensive metrics and monitoring
+   - ✅ User-aware API key management through AIConfig
+   - ✅ Parallel processing capabilities via ThreadConfig
+   - ✅ Consistent logging and debugging support
+
+4. **Implementation Priority**:
+   - **High**: Paper Chat (Anthropic) → Use `AnthropicBasedAgent` + `ContentSummarizerAgent`
+   - **High**: Cross-Reference Chat (OpenAI) → Use `OpenAIBasedAgent` + `QualityCheckerAgent`  
+   - **Medium**: Research Explorer (Perplexity) → Use `PerplexityBasedAgent` + `PerplexityResearchAgent`
+
+**Chat Controller Architecture:**
+- Move from helper classes to proper Spring MVC controllers
+- Implement RESTful endpoints for chat interactions
+- Add WebSocket support for real-time streaming responses
+- Integrate with the existing agent task management system
+
+This refactoring will significantly improve system reliability, performance monitoring, and maintenance while providing a better user experience through the advanced agent capabilities.
+
 ## Configuration
 
 ### Key Configuration Files
@@ -808,20 +890,45 @@ spring.jpa.hibernate.ddl-auto=update
 
 ## License
 
-Answer42 is licensed under a custom **Agents as a Service (AaaS) License Agreement**. 
+Answer42 is licensed under the **Apache License 2.0** - a permissive open source license that allows both personal and commercial use.
 
-This license governs the use of Answer42's AI-powered academic research platform and its specialized multi-agent processing system. The platform provides Agents as a Service (AaaS) through sophisticated AI agents for paper processing, analysis, and research discovery.
+This license allows you to:
+- ✅ **Use** the software for any purpose (personal, academic, commercial)
+- ✅ **Modify** the source code to fit your needs
+- ✅ **Distribute** copies of the original or modified software
+- ✅ **Patent Grant** protection from patent litigation
+- ✅ **Sublicense** and create derivative works
 
-For complete license terms and conditions, please see the [LICENSE](./LICENSE) file in the project root.
+**Requirements:**
+- 📄 Include the original copyright notice and license text
+- 📝 State any significant changes made to the code
+- 🔗 Provide attribution to the original project
 
-**Key License Highlights:**
+For complete license terms, see the [LICENSE](./LICENSE) file in the project root.
 
-- **Commercial Service License**: Answer42 operates as a subscription-based service with credit management
-- **AI Agent Usage**: Licensed use of specialized AI agents through the Answer42 platform
-- **Data Privacy**: Your research content remains private and is not used to train AI models
-- **Service Terms**: Comprehensive terms for AI provider usage, subscription management, and service availability
+**Why Apache License 2.0?**
 
-For questions about licensing, please contact: legal@answer42.app
+We chose Apache License 2.0 because it:
+- **Encourages Collaboration**: Permissive terms foster community contributions and innovation
+- **Enterprise Friendly**: Companies can integrate and build upon Answer42 without restrictive copyleft requirements
+- **Patent Protection**: Explicit patent grant protects users from patent litigation
+- **Academic Compatible**: Universities and researchers can freely use and modify the platform
+- **Industry Standard**: Widely adopted by major open source projects (Apache Software Foundation, Google, Meta)
+- **Clear Terms**: Well-understood legal framework reduces licensing uncertainty
+
+**Data Privacy & AI Models:**
+- 🔒 Your research content remains private and secure
+- 🚫 We never use your data to train AI models
+- 🎯 AI processing is performed through external APIs (OpenAI, Anthropic, Perplexity) per their terms
+- 📊 Only anonymous usage statistics are collected to improve the platform
+
+**Commercial Use:**
+This software is free for commercial use under Apache License 2.0. If you build a business using Answer42, please consider:
+- Contributing improvements back to the community
+- Sponsoring the project development
+- Providing attribution in your product documentation
+
+For questions about licensing, contributions, or commercial partnerships, please open an issue or contact the maintainers.
 
 ---
 

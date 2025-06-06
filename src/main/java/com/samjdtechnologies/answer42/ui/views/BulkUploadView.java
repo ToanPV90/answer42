@@ -42,7 +42,7 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.upload.MultiFileReceiver;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -63,7 +63,7 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
     private final PaperBulkUploadProcessor paperBulkUploadProcessor;
     
     private User currentUser;
-    private List<MemoryBuffer> fileBuffers = new ArrayList<>();
+    private List<FileBuffer> fileBuffers = new ArrayList<>();
     private Map<String, FileEntry> fileEntries = new ConcurrentHashMap<>();
     
     // UI Components
@@ -283,7 +283,7 @@ public class BulkUploadView extends Div implements BeforeEnterObserver {
     private MultiFileReceiver createMultiFileReceiver() {
         return (filename, mimeType) -> {
             // Create a new buffer for each file
-            MemoryBuffer buffer = new MemoryBuffer();
+            FileBuffer buffer = new FileBuffer();
             fileBuffers.add(buffer);
             
             // Return the receiver for this specific file

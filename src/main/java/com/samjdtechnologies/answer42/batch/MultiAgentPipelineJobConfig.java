@@ -28,17 +28,30 @@ import com.samjdtechnologies.answer42.batch.tasklets.RelatedPaperDiscoveryTaskle
  * raw PDF academic papers into comprehensively analyzed and enhanced documents with AI-powered insights.
  * Each step is implemented as a Spring Batch tasklet that wraps specialized AI agents.
  * 
- * <h2>Pipeline Flow & Database Integration</h2>
+ * <h2>Pipeline Flow & Credit Consumption</h2>
  * <pre>
- * 1. Paper Text Extraction     → papers.text_content, papers.processing_status
- * 2. Metadata Enhancement      → papers.crossref_metadata, papers.semantic_scholar_metadata
- * 3. Content Summarization     → papers.summary_brief, papers.summary_standard, papers.summary_detailed
- * 4. Concept Explanation       → papers.glossary, papers.main_concepts, papers.topics
- * 5. Perplexity Research       → papers.research_questions, papers.methodology_details
- * 6. Related Paper Discovery   → discovered_papers, discovery_results, papers.metadata
- * 7. Citation Formatting       → papers.citations, papers.references_count
- * 8. Quality Assessment        → papers.quality_feedback, papers.quality_score
+ * Step | Operation                | Credits (Basic/Pro/Scholar) | Database Updates
+ * -----|--------------------------|----------------------------|------------------
+ * 1.   | Paper Text Extraction    | 3/5/7 credits             | papers.text_content, papers.processing_status
+ * 2.   | Metadata Enhancement     | 2/3/4 credits             | papers.crossref_metadata, papers.semantic_scholar_metadata
+ * 3.   | Content Summarization    | 4/6/8 credits             | papers.summary_brief, papers.summary_standard, papers.summary_detailed
+ * 4.   | Concept Explanation      | 3/5/7 credits             | papers.glossary, papers.main_concepts, papers.topics
+ * 5.   | Perplexity Research      | 5/7/10 credits            | papers.research_questions, papers.methodology_details
+ * 6.   | Related Paper Discovery  | 5/7/10 credits            | discovered_papers, discovery_results, papers.metadata
+ * 7.   | Citation Formatting      | 2/3/4 credits             | papers.citations, papers.references_count
+ * 8.   | Quality Assessment       | 4/6/8 credits             | papers.quality_feedback, papers.quality_score
+ * -----|--------------------------|----------------------------|------------------
+ *      | TOTAL (Individual Steps) | 28/42/58 credits          | Complete pipeline processing
+ *      | BUNDLED PIPELINE         | 15/22/30 credits          | Discounted full processing
  * </pre>
+ * 
+ * <h2>Subscription Plan Compatibility</h2>
+ * <ul>
+ *   <li><strong>Free Plan (10 credits/month)</strong> - Cannot afford full pipeline; limited to 2-3 individual operations</li>
+ *   <li><strong>Basic Plan (100 credits/month)</strong> - 6-7 full pipelines or 20+ individual operations per month</li>
+ *   <li><strong>Pro Plan (200 credits/month)</strong> - 9-13 full pipelines or 28+ individual operations per month</li>
+ *   <li><strong>Scholar Plan (300 credits/month)</strong> - 10-20 full pipelines or 37+ individual operations per month</li>
+ * </ul>
  * 
  * <h2>Core vs Enhancement Agents for AI Chat Integration</h2>
  * The pipeline agents are classified as either CORE (required for chat functionality) or ENHANCEMENT (beneficial but optional):

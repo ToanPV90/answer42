@@ -41,7 +41,7 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -63,7 +63,7 @@ public class UploadPaperView extends Div implements BeforeEnterObserver {
     
     private User currentUser;
     private boolean fileUploaded = false;
-    private MemoryBuffer buffer = new MemoryBuffer();
+    private FileBuffer buffer = new FileBuffer();
     private TextField titleField;
     private TextArea abstractField;
     private DatePicker publicationDateField;

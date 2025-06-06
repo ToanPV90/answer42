@@ -35,7 +35,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -298,7 +298,7 @@ public class PapersView extends Div implements BeforeEnterObserver {
         authorsField.setWidthFull();
         
         // File upload
-        MemoryBuffer buffer = new MemoryBuffer();
+        FileBuffer buffer = new FileBuffer();
         Upload upload = new Upload(buffer);
         upload.setAcceptedFileTypes("application/pdf", ".pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         upload.setWidthFull();

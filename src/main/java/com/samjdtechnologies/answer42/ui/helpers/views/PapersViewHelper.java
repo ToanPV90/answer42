@@ -9,6 +9,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +36,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
 
@@ -283,12 +285,12 @@ public class PapersViewHelper {
     }
 
     /**
-     * Create a MultipartFile from a MemoryBuffer.
+     * Create a MultipartFile from a FileBuffer.
      * 
-     * @param buffer the MemoryBuffer containing file data
+     * @param buffer the FileBuffer containing file data
      * @return a MultipartFile implementation created from the provided buffer
      */
-    public static MultipartFile createMultipartFileFromBuffer(MemoryBuffer buffer) {
+    public static MultipartFile createMultipartFileFromBuffer(FileBuffer buffer) {
         return new MultipartFile() {
             @Override
             public String getName() {
@@ -335,13 +337,13 @@ public class PapersViewHelper {
             }
             
             @Override
-            public java.io.InputStream getInputStream() throws IOException {
+            public InputStream getInputStream() throws IOException {
                 return buffer.getInputStream();
             }
             
             @Override
-            public void transferTo(java.io.File dest) throws IOException, IllegalStateException {
-                try (java.io.FileOutputStream out = new java.io.FileOutputStream(dest)) {
+            public void transferTo(File dest) throws IOException, IllegalStateException {
+                try (FileOutputStream out = new FileOutputStream(dest)) {
                     out.write(getBytes());
                 }
             }

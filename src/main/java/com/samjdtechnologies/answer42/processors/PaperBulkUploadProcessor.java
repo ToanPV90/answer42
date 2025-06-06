@@ -22,12 +22,14 @@ import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.model.enums.FileStatus;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.ProjectService;
-import com.samjdtechnologies.answer42.ui.helpers.views.PapersViewHelper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
+import com.samjdtechnologies.answer42.ui.helpers.views.PapersViewHelper;
+
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.upload.receivers.FileBuffer;
+
 
 /**
  * Helper class for bulk paper uploads.
@@ -63,7 +65,7 @@ public class PaperBulkUploadProcessor {
      * @param updateProgressCallback callback to update progress in the UI
      */
     public void processBulkUpload(
-            List<MemoryBuffer> buffers,
+            List<FileBuffer> buffers,
             Map<String, FileEntry> fileEntries,
             List<String> authors,
             User currentUser,
@@ -84,7 +86,7 @@ public class PaperBulkUploadProcessor {
         
         // Process each file in a separate task using the Spring executor to avoid UI blocking
         taskExecutor.execute(() -> {
-            for (MemoryBuffer buffer : buffers) {
+            for (FileBuffer buffer : buffers) {
                 String fileName = buffer.getFileName();
                 FileEntry fileEntry = fileEntries.get(fileName);
                 
@@ -108,8 +110,6 @@ public class PaperBulkUploadProcessor {
                     
                     // Create MultipartFile from buffer
                     MultipartFile file = PapersViewHelper.createMultipartFileFromBuffer(buffer);
-                    
-                    // Upload the paper
                     Paper paper = paperService.uploadPaper(
                         file,
                         title,
@@ -214,15 +214,15 @@ public class PaperBulkUploadProcessor {
     }
     
     /**
-     * Convert a list of MemoryBuffers to a map of file entries.
+     * Convert a list of FileBuffers to a map of file entries.
      * 
-     * @param buffers the list of MemoryBuffers to convert
+     * @param buffers the list of FileBuffers to convert
      * @return a map of file entries where the keys are file names and values are FileEntry objects
      */
-    public Map<String, FileEntry> createFileEntriesMap(List<MemoryBuffer> buffers) {
+    public Map<String, FileEntry> createFileEntriesMap(List<FileBuffer> buffers) {
         Map<String, FileEntry> fileEntries = new ConcurrentHashMap<>();
         
-        for (MemoryBuffer buffer : buffers) {
+        for (FileBuffer buffer : buffers) {
             String fileName = buffer.getFileName();
             long fileSize = 0;
             try {

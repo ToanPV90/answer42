@@ -17,7 +17,6 @@ import com.samjdtechnologies.answer42.model.daos.Paper;
 import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.ChatMode;
-import com.samjdtechnologies.answer42.repository.ChatMessageRepository;
 import com.samjdtechnologies.answer42.repository.ChatSessionRepository;
 import com.samjdtechnologies.answer42.service.helpers.AIInteractionHelper;
 import com.samjdtechnologies.answer42.service.helpers.ChatMessageHelper;
@@ -33,7 +32,6 @@ public class ChatService {
     private static final Logger LOG = LoggerFactory.getLogger(ChatService.class);
     
     private final ChatSessionRepository sessionRepository;
-    private final ChatMessageRepository messageRepository;
     private final ChatSessionHelper sessionHelper;
     private final ChatMessageHelper messageHelper;
     private final AIInteractionHelper aiHelper;
@@ -42,18 +40,15 @@ public class ChatService {
      * Constructor for dependency injection.
      * 
      * @param sessionRepository repository for chat sessions
-     * @param messageRepository repository for chat messages
      * @param sessionHelper helper for session operations
      * @param messageHelper helper for message operations
      * @param aiHelper helper for AI interactions
      */
     public ChatService(ChatSessionRepository sessionRepository, 
-                     ChatMessageRepository messageRepository,
                      ChatSessionHelper sessionHelper,
                      ChatMessageHelper messageHelper,
                      AIInteractionHelper aiHelper) {
         this.sessionRepository = sessionRepository;
-        this.messageRepository = messageRepository;
         this.sessionHelper = sessionHelper;
         this.messageHelper = messageHelper;
         this.aiHelper = aiHelper;

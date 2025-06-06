@@ -23,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +34,7 @@ import com.samjdtechnologies.answer42.model.daos.User;
 import com.samjdtechnologies.answer42.model.enums.PipelineStatus;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
+import com.samjdtechnologies.answer42.util.FileUtil;
 
 import jakarta.transaction.Transactional;
 
@@ -43,6 +45,9 @@ import jakarta.transaction.Transactional;
  */
 @Service
 public class PaperService {
+
+    @Value("${upload.large-file-threshold}")
+    private long largeFileThreshold;
     
     private static final Logger logger = LoggerFactory.getLogger(PaperService.class);
     
@@ -51,6 +56,7 @@ public class PaperService {
     private final JobLauncher jobLauncher;
     private final Job paperProcessingJob;
     private final CreditService creditService;
+    private final FileTransferService fileTransferService;
     
     // Configure base upload directory for papers
     private final Path uploadDir = Paths.get("uploads/papers");
@@ -66,14 +72,16 @@ public class PaperService {
      * @param creditService the service for credit management and validation
      */
     public PaperService(PaperRepository paperRepository, ObjectMapper objectMapper,
-                       @Autowired(required = false) JobLauncher jobLauncher,
-                       @Autowired(required = false) Job paperProcessingJob,
-                       @Autowired(required = false) CreditService creditService) {
+                       JobLauncher jobLauncher,
+                       Job paperProcessingJob,
+                       CreditService creditService,
+                       FileTransferService fileTransferService) {
         this.paperRepository = paperRepository;
         this.objectMapper = objectMapper;
         this.jobLauncher = jobLauncher;
         this.paperProcessingJob = paperProcessingJob;
         this.creditService = creditService;
+        this.fileTransferService = fileTransferService;
         
         // Create upload directories if they don't exist
         try {
@@ -161,7 +169,20 @@ public class PaperService {
         
         // Save the file
         Path targetPath = userDir.resolve(filename);
-        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+        // Choose transfer strategy based on configured threshold
+        if (file.getSize() <= largeFileThreshold) {
+            // Small files: direct copy
+            FileUtil.copyLarge(file.getInputStream(), targetPath);
+            logger.debug("Used direct transfer for small file: {} bytes", file.getSize());
+        } else {
+            // Large files: async transfer with metrics
+            try {
+                fileTransferService.transfer(file, targetPath).join();
+                logger.info("Used async transfer for large file: {} bytes", file.getSize());
+            } catch (Exception e) {
+                throw new IOException("File transfer failed for " + targetPath + ": " + e.getMessage(), e);
+            }
+        }
         
         // Create paper record with initial pipeline status
         Paper paper = new Paper();

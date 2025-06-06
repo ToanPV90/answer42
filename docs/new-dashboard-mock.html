@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Answer42 Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem 1.5rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .header {
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        .research-insights {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .insight-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .insight-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+
+        .current-projects {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .project-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .project-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .project-status.active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .recent-activity {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-desc {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        .knowledge-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            padding: 0.25rem 0.75rem;
+            background: #f3f4f6;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #4b5563;
+        }
+
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(#667eea 0deg 252deg, #e5e7eb 252deg 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .progress-ring::before {
+            content: '';
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+        }
+
+        .progress-text {
+            position: relative;
+            z-index: 1;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .research-insights {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+
+            .current-projects {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">42</div>
+                Answer42
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Research</div>
+                <a href="#" class="nav-item active">
+                    <span>🏠</span> Dashboard
+                </a>
+                <a href="#" class="nav-item">
+                    <span>📄</span> My Papers
+                </a>
+                <a href="#" class="nav-item">
+                    <span>📁</span> Projects
+                </a>
+                <a href="#" class="nav-item">
+                    <span>💬</span> AI Chat
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Study Tools</div>
+                <a href="#" class="nav-item">
+                    <span>🃏</span> Flashcards
+                </a>
+                <a href="#" class="nav-item">
+                    <span>📝</span> Study Guides
+                </a>
+                <a href="#" class="nav-item">
+                    <span>📊</span> Concept Maps
+                </a>
+                <a href="#" class="nav-item">
+                    <span>📚</span> Citations
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Account</div>
+                <a href="#" class="nav-item">
+                    <span>👤</span> Profile
+                </a>
+                <a href="#" class="nav-item">
+                    <span>💎</span> Subscription
+                </a>
+                <a href="#" class="nav-item">
+                    <span>⚙️</span> Settings
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Welcome back, Alex! 👋</h1>
+                <p>Ready to dive into your research? Here's what's happening in your academic world.</p>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="action-btn">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">📄</div>
+                    <div>
+                        <div style="font-weight: 600;">Upload Paper</div>
+                        <div style="font-size: 0.875rem; color: #6b7280;">Add new research to analyze</div>
+                    </div>
+                </div>
+                <div class="action-btn">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #10b981, #059669);">💬</div>
+                    <div>
+                        <div style="font-weight: 600;">Start Chat</div>
+                        <div style="font-size: 0.875rem; color: #6b7280;">Ask questions about your papers</div>
+                    </div>
+                </div>
+                <div class="action-btn">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🃏</div>
+                    <div>
+                        <div style="font-weight: 600;">Create Flashcards</div>
+                        <div style="font-size: 0.875rem; color: #6b7280;">Generate study materials</div>
+                    </div>
+                </div>
+                <div class="action-btn">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">📚</div>
+                    <div>
+                        <div style="font-weight: 600;">Export Citations</div>
+                        <div style="font-size: 0.875rem; color: #6b7280;">Format your bibliography</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Research Overview Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Research Progress</div>
+                        <div class="progress-ring">
+                            <div class="progress-text">70%</div>
+                        </div>
+                    </div>
+                    <div class="stat-subtitle">15 papers read this month toward your Computer Science thesis</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Knowledge Areas</div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">🧠</div>
+                    </div>
+                    <div class="stat-value">8</div>
+                    <div class="stat-subtitle">Active research topics you're exploring</div>
+                    <div class="knowledge-tags">
+                        <div class="tag">Machine Learning</div>
+                        <div class="tag">Neural Networks</div>
+                        <div class="tag">Computer Vision</div>
+                        <div class="tag">+5 more</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Study Efficiency</div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">⚡</div>
+                    </div>
+                    <div class="stat-value">4.2x</div>
+                    <div class="stat-subtitle">Faster comprehension vs. traditional reading</div>
+                </div>
+            </div>
+
+            <!-- Research Insights -->
+            <div class="research-insights">
+                <div class="insight-card">
+                    <div class="insight-title">📈 Your Research Trends</div>
+                    <div class="chart-container">
+                        <canvas id="researchTrendsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-title">💡 Research Insights</div>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="color: #059669; font-weight: 600; margin-bottom: 0.5rem;">🎯 Focus Recommendation</div>
+                        <div style="font-size: 0.875rem; color: #4b5563; margin-bottom: 1rem;">
+                            You're reading heavily in deep learning. Consider exploring transformer architectures - they appear in 6 of your recent papers.
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="color: #7c3aed; font-weight: 600; margin-bottom: 0.5rem;">🔗 Citation Gap</div>
+                        <div style="font-size: 0.875rem; color: #4b5563;">
+                            Found 3 highly-cited papers you haven't read yet that relate to your current research focus.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Projects -->
+            <div style="margin-bottom: 2rem;">
+                <h2 style="color: white; margin-bottom: 1rem; font-size: 1.5rem;">📁 Active Projects</h2>
+                <div class="current-projects">
+                    <div class="project-card">
+                        <div class="project-header">
+                            <div class="project-title">Senior Thesis - AI Ethics</div>
+                            <div class="project-status active">Active</div>
+                        </div>
+                        <div class="project-meta">
+                            <span>📄 12 papers</span>
+                            <span>💬 8 chat sessions</span>
+                            <span>🃏 45 flashcards</span>
+                        </div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">
+                            Exploring ethical implications of AI decision-making in healthcare systems. Due: May 15th
+                        </div>
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <div class="knowledge-tags">
+                                <div class="tag">AI Ethics</div>
+                                <div class="tag">Healthcare</div>
+                                <div class="tag">Bias</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="project-card">
+                        <div class="project-header">
+                            <div class="project-title">CS 410 - Computer Vision</div>
+                            <div class="project-status active">Active</div>
+                        </div>
+                        <div class="project-meta">
+                            <span>📄 8 papers</span>
+                            <span>💬 5 chat sessions</span>
+                            <span>🃏 32 flashcards</span>
+                        </div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">
+                            Course project on object detection using CNN architectures. Next milestone: March 30th
+                        </div>
+                        <div class="knowledge-tags">
+                            <div class="tag">CNNs</div>
+                            <div class="tag">Object Detection</div>
+                            <div class="tag">PyTorch</div>
+                        </div>
+                    </div>
+
+                    <div class="project-card">
+                        <div class="project-header">
+                            <div class="project-title">Summer Internship Prep</div>
+                            <div class="project-status active">Planning</div>
+                        </div>
+                        <div class="project-meta">
+                            <span>📄 6 papers</span>
+                            <span>💬 3 chat sessions</span>
+                            <span>🃏 18 flashcards</span>
+                        </div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">
+                            Preparing for Google's ML engineering internship. Focus on production ML systems.
+                        </div>
+                        <div class="knowledge-tags">
+                            <div class="tag">MLOps</div>
+                            <div class="tag">System Design</div>
+                            <div class="tag">Scalability</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <div class="insight-title">📱 Recent Activity</div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #dbeafe; color: #1e40af;">🃏</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Flashcards created</div>
+                        <div class="activity-desc">Generated 12 flashcards from "Attention Is All You Need" paper</div>
+                    </div>
+                    <div class="activity-time">2 min ago</div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #dcfce7; color: #166534;">💬</div>
+                    <div class="activity-content">
+                        <div class="activity-title">AI Chat insights</div>
+                        <div class="activity-desc">Asked about transformer architecture differences, got detailed explanation</div>
+                    </div>
+                    <div class="activity-time">15 min ago</div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #fef3c7; color: #92400e;">📄</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Paper summarized</div>
+                        <div class="activity-desc">"BERT: Pre-training of Deep Bidirectional Transformers" - saved 45 minutes</div>
+                    </div>
+                    <div class="activity-time">1 hour ago</div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #e0e7ff; color: #5b21b6;">📚</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Citations exported</div>
+                        <div class="activity-desc">Generated APA bibliography for CS 410 project (8 papers)</div>
+                    </div>
+                    <div class="activity-time">3 hours ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Research Trends Chart - showing research focus areas over time
+        const trendsCtx = document.getElementById('researchTrendsChart').getContext('2d');
+        new Chart(trendsCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [
+                    {
+                        label: 'Machine Learning',
+                        data: [3, 5, 4, 7],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'AI Ethics',
+                        data: [1, 2, 4, 5],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Computer Vision',
+                        data: [2, 3, 2, 4],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Papers Read'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Animate progress ring
+        window.addEventListener('load', () => {
+            const progressRings = document.querySelectorAll('.progress-ring');
+            progressRings.forEach(ring => {
+                ring.style.background = 'conic-gradient(#e5e7eb 0deg 360deg)';
+                setTimeout(() => {
+                    ring.style.background = 'conic-gradient(#667eea 0deg 252deg, #e5e7eb 252deg 360deg)';
+                }, 500);
+            });
+        });
+
+        // Simulate activity updates
+        setInterval(() => {
+            const activities = document.querySelectorAll('.activity-time');
+            activities.forEach(time => {
+                if (time.textContent === '2 min ago') {
+                    time.textContent = '3 min ago';
+                } else if (time.textContent === '15 min ago') {
+                    time.textContent = '16 min ago';
+                }
+            });
+        }, 60000);
+    </script>
+</body>
+</html>

@@ -774,6 +774,53 @@ public class YourEntity {
 5. **Access the application**
    Open your browser to `http://localhost:8080`
 
+### Rapid Deployment with Replit
+
+🚀 **One-Click Cloud Deployment**: Answer42 includes a `.replit` configuration file for instant cloud deployment and development on [Replit](https://replit.com).
+
+**Features:**
+- **Zero Setup**: Pre-configured Java GraalVM 21 environment with Maven
+- **Instant Launch**: One-click deployment with automatic dependency resolution
+- **Cloud IDE**: Full development environment in your browser
+- **Live Preview**: Automatic port forwarding on port 8080
+- **Production Ready**: Optimized build and deployment pipeline
+
+**Quick Deploy Steps:**
+1. Fork the repository on GitHub
+2. Import to Replit or click "Run on Replit" 
+3. Environment automatically installs Java 21, Maven, and dependencies
+4. Application starts with `mvn clean compile spring-boot:run`
+5. Access via the provided Replit URL
+
+**Replit Configuration Details:**
+```toml
+modules = ["java-graalvm21", "web"]
+run = "mvn clean compile spring-boot:run"
+
+[deployment]
+run = ["sh", "-c", "mvn clean package -DskipTests && java -jar target/*.jar"]
+
+[env]
+MAVEN_OPTS = "-Xmx2g -XX:+UseG1GC"
+JAVA_TOOL_OPTIONS = "-Dfile.encoding=UTF-8"
+```
+
+**Perfect For:**
+- 🎓 **Academic Demos**: Quick setup for research presentations
+- 🔬 **Prototype Testing**: Rapid experimentation with AI agents
+- 👥 **Collaborative Development**: Shared development environments
+- 📚 **Educational Use**: Teaching AI integration patterns
+- 🚀 **Proof of Concepts**: Fast deployment for stakeholder reviews
+
+**Environment Variables on Replit:**
+- Set your AI API keys in Replit's "Secrets" tab:
+  - `OPENAI_API_KEY`
+  - `ANTHROPIC_API_KEY` 
+  - `PERPLEXITY_API_KEY`
+- Database will auto-configure with Replit's built-in PostgreSQL
+
+This makes Answer42 accessible to researchers and developers worldwide without any local setup requirements.
+
 ## Development
 
 ### Running in Development Mode

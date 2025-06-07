@@ -528,11 +528,7 @@ Contributors are recognized through:
 
 ## 💝 Support the Project
 
-Answer42 is an open-source project that requires significant computational resources for AI processing and infrastructure costs. Your donations help us:
-
-- 🤖 **Maintain AI API Credits** - Keep all AI agents running smoothly
-- 🚀 **Improve Infrastructure** - Scale to support more researchers
-- 📚 **Expand Features** - Add new AI providers and academic integrations
+Your donations help us:
 - 🔧 **Development Resources** - Support ongoing development and maintenance
 
 ### Bitcoin Donations

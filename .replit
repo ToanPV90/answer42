@@ -1,0 +1,21 @@
+modules = ["java-graalvm21", "web"]
+run = "mvn clean compile spring-boot:run"
+
+[nix]
+channel = "stable-24_05"
+
+[nix.packages]
+maven = "latest"
+
+[deployment]
+run = ["sh", "-c", "mvn clean package -DskipTests && java -jar target/*.jar"]
+
+[env]
+MAVEN_OPTS = "-Xmx2g -XX:+UseG1GC"
+JAVA_TOOL_OPTIONS = "-Dfile.encoding=UTF-8"
+
+# Optional: Add build command
+[[ports]]
+localPort = 8080
+externalPort = 80
+

@@ -1024,7 +1024,7 @@ spring.jpa.hibernate.ddl-auto=update
 
 ## 💝 Support the Project
 
-Answer42 is an open-source project that requires significant computational resources for AI processing and infrastructure costs. Your support helps us maintain and expand this platform for the global research community.
+Your support helps us maintain and expand this platform for the global research community.
 
 ### Why Support Answer42?
 

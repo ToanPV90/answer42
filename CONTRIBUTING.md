@@ -526,6 +526,35 @@ Contributors are recognized through:
 - **Community showcase**
 - **Maintainer invitation** for outstanding contributors
 
+## 💝 Support the Project
+
+Answer42 is an open-source project that requires significant computational resources for AI processing and infrastructure costs. Your donations help us:
+
+- 🤖 **Maintain AI API Credits** - Keep all AI agents running smoothly
+- 🚀 **Improve Infrastructure** - Scale to support more researchers
+- 📚 **Expand Features** - Add new AI providers and academic integrations
+- 🔧 **Development Resources** - Support ongoing development and maintenance
+
+### Bitcoin Donations
+
+We accept Bitcoin donations to support the project:
+
+**Bitcoin Address:** `bc1q8hgvafe6qg6z0g06y65xqn4vzf7crhnvtt505f`
+
+<img src="btc-receive.png" alt="Bitcoin Donation QR Code" width="200" height="200">
+
+*Scan the QR code above or copy the Bitcoin address to make a donation*
+
+### Other Ways to Support
+
+- ⭐ **Star the repository** on GitHub
+- 🐛 **Report bugs** and suggest improvements
+- 📖 **Improve documentation** and write tutorials
+- 💬 **Share Answer42** with your academic network
+- 🤝 **Contribute code** and new features
+
+Every contribution, whether code or financial, helps make Answer42 better for the global research community!
+
 ## 📞 Contact
 
 - **Project Lead**: Shawn (samjd-zz)

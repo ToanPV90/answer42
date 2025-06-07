@@ -590,6 +590,7 @@ The theme is activated by loading each CSS file in the AppShell class:
 Answer42 provides pre-built PostgreSQL schema files for quick database setup:
 
 #### **`answer42.schema-with-data.sql`** - Complete Database with Sample Data
+
 - **Full PostgreSQL dump** with schema structure and sample data
 - **40+ tables** including users, papers, discovery system, and AI agent infrastructure
 - **Sample papers** for testing the multi-agent pipeline
@@ -599,18 +600,21 @@ Answer42 provides pre-built PostgreSQL schema files for quick database setup:
 - **Indexes and constraints** optimized for production
 
 **Usage:**
+
 ```bash
 # Import complete database with sample data
 psql -d your_database -f answer42.schema-with-data.sql
 ```
 
 #### **`answer42.schema.sql`** - Schema Structure Only
+
 - **Database structure only** (no sample data)
 - **Clean slate** for production deployment
 - **All tables, functions, triggers, and indexes**
 - **Optimized for fresh installations**
 
 **Usage:**
+
 ```bash
 # Import schema structure only
 psql -d your_database -f answer42.schema.sql
@@ -619,6 +623,7 @@ psql -d your_database -f answer42.schema.sql
 ### Schema Highlights
 
 **Core Tables:**
+
 - `users` - User authentication and profiles
 - `papers` - Academic papers with full-text and metadata
 - `discovered_papers` - Multi-source paper discovery results
@@ -627,17 +632,20 @@ psql -d your_database -f answer42.schema.sql
 - `credit_balances` & `credit_transactions` - Credit system
 
 **AI Agent Tables:**
+
 - `tasks` - Agent task management and tracking
 - `agent_memory_store` - Agent context and memory
 - `operation_costs` - AI operation pricing by tier
 - `user_operations` - Usage tracking and analytics
 
 **Discovery System Tables:**
+
 - `discovery_results` - Discovery session tracking
 - `paper_relationships` - Citation and similarity relationships
 - `discovery_feedback` - User feedback for algorithm improvement
 
 **Advanced Features:**
+
 - **JSONB Fields** - Flexible metadata storage for papers and analysis results
 - **Full-Text Search** - GIN indexes on titles and abstracts
 - **Relationship Mapping** - Complex paper relationship tracking
@@ -779,6 +787,7 @@ public class YourEntity {
 🚀 **One-Click Cloud Deployment**: Answer42 includes a `.replit` configuration file for instant cloud deployment and development on [Replit](https://replit.com).
 
 **Features:**
+
 - **Zero Setup**: Pre-configured Java GraalVM 21 environment with Maven
 - **Instant Launch**: One-click deployment with automatic dependency resolution
 - **Cloud IDE**: Full development environment in your browser
@@ -786,6 +795,7 @@ public class YourEntity {
 - **Production Ready**: Optimized build and deployment pipeline
 
 **Quick Deploy Steps:**
+
 1. Fork the repository on GitHub
 2. Import to Replit or click "Run on Replit" 
 3. Environment automatically installs Java 21, Maven, and dependencies
@@ -793,6 +803,7 @@ public class YourEntity {
 5. Access via the provided Replit URL
 
 **Replit Configuration Details:**
+
 ```toml
 modules = ["java-graalvm21", "web"]
 run = "mvn clean compile spring-boot:run"
@@ -806,6 +817,7 @@ JAVA_TOOL_OPTIONS = "-Dfile.encoding=UTF-8"
 ```
 
 **Perfect For:**
+
 - 🎓 **Academic Demos**: Quick setup for research presentations
 - 🔬 **Prototype Testing**: Rapid experimentation with AI agents
 - 👥 **Collaborative Development**: Shared development environments
@@ -813,6 +825,7 @@ JAVA_TOOL_OPTIONS = "-Dfile.encoding=UTF-8"
 - 🚀 **Proof of Concepts**: Fast deployment for stakeholder reviews
 
 **Environment Variables on Replit:**
+
 - Set your AI API keys in Replit's "Secrets" tab:
   - `OPENAI_API_KEY`
   - `ANTHROPIC_API_KEY` 
@@ -872,6 +885,7 @@ This creates an optimized build with:
 Answer42 has comprehensive design mockups for UI components that still need implementation. Before contributing to the frontend, please review the design specifications in the `docs/design/` directory:
 
 **Available Design Mockups:**
+
 - `dashboard.png` - Main dashboard layout and widgets
 - `projects.png` - Research project management interface
 - `profile.png` - User profile and account settings
@@ -885,10 +899,12 @@ Answer42 has comprehensive design mockups for UI components that still need impl
 - `aiChat*.png` - AI chat interface variations and workflows
 
 **Design Documentation:**
+
 - `docs/design/README.md` - Complete design system documentation
 - `answer42_pitch_deck.md` - Product vision and feature overview
 
 **Contributing Guidelines:**
+
 1. Check `docs/design/` for existing mockups before starting UI work
 2. Follow the established Vaadin component patterns in existing views
 3. Ensure responsive design compatibility across devices
@@ -896,6 +912,7 @@ Answer42 has comprehensive design mockups for UI components that still need impl
 5. Add appropriate accessibility features (ARIA labels, keyboard navigation)
 
 **UI Architecture:**
+
 - **Views**: Located in `src/main/java/com/samjdtechnologies/answer42/ui/views/`
 - **Helpers**: UI helper classes in `src/main/java/com/samjdtechnologies/answer42/ui/helpers/`
 - **Themes**: CSS themes in `src/main/frontend/styles/themes/answer42/`
@@ -910,14 +927,17 @@ Contributors are encouraged to implement these designed interfaces to complete t
 The current AI chat implementation needs to be refactored to leverage the sophisticated agent system:
 
 **Current Architecture Issues:**
+
 - Chat helper classes should be refactored to proper chat controllers
 - Direct AI provider calls should be replaced with enterprise-grade agent implementations
 - Missing integration with the retry policy, rate limiting, and circuit breaker systems
 
 **Recommended Refactoring:**
+
 1. **Migrate to Agent-Based Architecture**: Replace direct AI provider calls with the comprehensive agent implementations in `src/main/java/com/samjdtechnologies/answer42/service/agent/`
 
 2. **Available Agent Classes for Integration**:
+   
    - `AbstractConfigurableAgent.java` - Base class with retry policies, rate limiting, and circuit breakers
    - `AnthropicBasedAgent.java` - Optimized for Anthropic Claude interactions
    - `OpenAIBasedAgent.java` - Optimized for OpenAI GPT-4 interactions  
@@ -927,6 +947,7 @@ The current AI chat implementation needs to be refactored to leverage the sophis
    - `QualityCheckerAgent.java` - Comprehensive quality assessment and bias detection
 
 3. **Benefits of Migration**:
+   
    - ✅ Enterprise-grade error handling and retry mechanisms
    - ✅ Built-in rate limiting and circuit breaker protection
    - ✅ Comprehensive metrics and monitoring
@@ -935,11 +956,13 @@ The current AI chat implementation needs to be refactored to leverage the sophis
    - ✅ Consistent logging and debugging support
 
 4. **Implementation Priority**:
+   
    - **High**: Paper Chat (Anthropic) → Use `AnthropicBasedAgent` + `ContentSummarizerAgent`
    - **High**: Cross-Reference Chat (OpenAI) → Use `OpenAIBasedAgent` + `QualityCheckerAgent`  
    - **Medium**: Research Explorer (Perplexity) → Use `PerplexityBasedAgent` + `PerplexityResearchAgent`
 
 **Chat Controller Architecture:**
+
 - Move from helper classes to proper Spring MVC controllers
 - Implement RESTful endpoints for chat interactions
 - Add WebSocket support for real-time streaming responses
@@ -999,11 +1022,47 @@ spring.jpa.properties.hibernate.default_schema=answer42
 spring.jpa.hibernate.ddl-auto=update
 ```
 
+## 💝 Support the Project
+
+Answer42 is an open-source project that requires significant computational resources for AI processing and infrastructure costs. Your support helps us maintain and expand this platform for the global research community.
+
+### Why Support Answer42?
+
+Your donations directly support:
+
+- 🤖 **AI API Credits** - Keeping all 8 specialized agents running smoothly
+- 🚀 **Infrastructure Scaling** - Supporting more researchers worldwide
+- 📚 **Feature Development** - Adding new AI providers and academic integrations
+- 🔧 **Maintenance & Updates** - Ongoing development and bug fixes
+- 🎓 **Educational Access** - Keeping the platform free for students and researchers
+
+### Bitcoin Donations
+
+We accept Bitcoin donations to support the project:
+
+**Bitcoin Address:** `bc1q8hgvafe6qg6z0g06y65xqn4vzf7crhnvtt505f`
+
+<img src="btc-receive.png" alt="Bitcoin Donation QR Code" width="200" height="200">
+
+*Scan the QR code above or copy the Bitcoin address to make a donation*
+
+### Other Ways to Support
+
+- ⭐ **Star the repository** on GitHub
+- 🐛 **Report bugs** and suggest improvements
+- 📖 **Contribute documentation** and tutorials
+- 💬 **Share Answer42** with your academic network
+- 🤝 **Contribute code** and new features
+- 🎓 **Use Answer42** for your research and provide feedback
+
+Every contribution, whether financial or community-based, helps make Answer42 better for researchers worldwide!
+
 ## License
 
 Answer42 is licensed under the **Apache License 2.0** - a permissive open source license that allows both personal and commercial use.
 
 This license allows you to:
+
 - ✅ **Use** the software for any purpose (personal, academic, commercial)
 - ✅ **Modify** the source code to fit your needs
 - ✅ **Distribute** copies of the original or modified software
@@ -1011,6 +1070,7 @@ This license allows you to:
 - ✅ **Sublicense** and create derivative works
 
 **Requirements:**
+
 - 📄 Include the original copyright notice and license text
 - 📝 State any significant changes made to the code
 - 🔗 Provide attribution to the original project
@@ -1020,6 +1080,7 @@ For complete license terms, see the [LICENSE](./LICENSE) file in the project roo
 **Why Apache License 2.0?**
 
 We chose Apache License 2.0 because it:
+
 - **Encourages Collaboration**: Permissive terms foster community contributions and innovation
 - **Enterprise Friendly**: Companies can integrate and build upon Answer42 without restrictive copyleft requirements
 - **Patent Protection**: Explicit patent grant protects users from patent litigation
@@ -1028,6 +1089,7 @@ We chose Apache License 2.0 because it:
 - **Clear Terms**: Well-understood legal framework reduces licensing uncertainty
 
 **Data Privacy & AI Models:**
+
 - 🔒 Your research content remains private and secure
 - 🚫 We never use your data to train AI models
 - 🎯 AI processing is performed through external APIs (OpenAI, Anthropic, Perplexity) per their terms
@@ -1035,6 +1097,7 @@ We chose Apache License 2.0 because it:
 
 **Commercial Use:**
 This software is free for commercial use under Apache License 2.0. If you build a business using Answer42, please consider:
+
 - Contributing improvements back to the community
 - Sponsoring the project development
 - Providing attribution in your product documentation

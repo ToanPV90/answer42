@@ -1104,6 +1104,15 @@ This software is free for commercial use under Apache License 2.0. If you build 
 
 For questions about licensing, contributions, or commercial partnerships, please open an issue or contact the maintainers.
 
+## 📞 Contact
+
+- **Project Lead**: Shawn (samjd-zz)
+- **Email**: shawn@samjdtechnologies.com
+- **LinkedIn Profile**: https://www.linkedin.com/in/shawn-jackson-dyck-52aa74358
+- **LinkedIn Group**: https://www.linkedin.com/groups/13285008/ (AI-TDD Community)
+- **GitHub Issues**: For bug reports and feature requests
+- **Repository**: https://github.com/samjd-zz/answer42
+
 ---
 
 **Answer42** - Making academic research more intelligent, one paper at a time. 🚀📚

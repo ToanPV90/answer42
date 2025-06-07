@@ -555,6 +555,8 @@ Every contribution, whether code or financial, helps make Answer42 better for th
 
 - **Project Lead**: Shawn (samjd-zz)
 - **Email**: shawn@samjdtechnologies.com
+- **LinkedIn Profile**: https://www.linkedin.com/in/shawn-jackson-dyck-52aa74358
+- **LinkedIn Group**: https://www.linkedin.com/groups/13285008/ (AI-TDD Community)
 - **GitHub Issues**: For bug reports and feature requests
 - **Repository**: https://github.com/samjd-zz/answer42
 

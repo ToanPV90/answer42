@@ -33,6 +33,10 @@ Answer42 is a comprehensive research assistant that helps academics work with sc
 - **Project Organization**: Group papers into research projects for better organization
 - **Credit-Based System**: Subscription model with credit management for AI operations
 
+## 🚀 Project Links
+
+- **Deep Funding RFP**: [Port Answer 42 to SingularityNET](https://deepfunding.ai/rfp_ideation/port-answer-42-to-snet/) - Proposal for integrating Answer42 with the SingularityNET ecosystem
+
 ## Technology Stack
 
 ### Backend

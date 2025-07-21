@@ -198,6 +198,16 @@ public class PapersView extends Div implements BeforeEnterObserver {
         // Apply custom class for compact buttons
         viewButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
+        // Process with AI button - only show for papers ready to be processed
+        Button processButton = null;
+        if (shouldShowProcessButton(paper)) {
+            processButton = new Button(new Icon(VaadinIcon.COG));
+            processButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+            processButton.addClickListener(e -> startPaperProcessing(paper));
+            processButton.getElement().setAttribute("title", "Process with AI");
+            processButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
+        }
+
         // Related Papers button
         Button relatedPapersButton = new Button(new Icon(VaadinIcon.CONNECT));
         relatedPapersButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
@@ -243,8 +253,16 @@ public class PapersView extends Div implements BeforeEnterObserver {
         deleteButton.getElement().setAttribute("title", "Delete paper");
         deleteButton.addClassName(UIConstants.CSS_PAPERS_ACTION_BUTTON);
 
-        // Create a more compact layout - now includes related papers button
-        HorizontalLayout actions = new HorizontalLayout(downloadButton, viewButton, relatedPapersButton, editButton, deleteButton);
+        // Create a more compact layout - conditionally include process button
+        HorizontalLayout actions = new HorizontalLayout();
+        actions.add(downloadButton, viewButton);
+        
+        // Add process button if it should be shown
+        if (processButton != null) {
+            actions.add(processButton);
+        }
+        
+        actions.add(relatedPapersButton, editButton, deleteButton);
         actions.setSpacing(false);
         actions.setMargin(false);
         actions.setPadding(false);
@@ -533,6 +551,69 @@ public class PapersView extends Div implements BeforeEnterObserver {
     private void downloadPaper(Paper paper) {
         // Delegate to helper method to handle download functionality
         getUI().ifPresent(ui -> PapersViewHelper.downloadPaper(paper, ui, this));
+    }
+    
+    /**
+     * Determines if the "Process with AI" button should be shown for a paper.
+     * Only show for papers that are ready to be processed.
+     */
+    private boolean shouldShowProcessButton(Paper paper) {
+        if (paper == null || paper.getProcessingStatus() == null) {
+            return false;
+        }
+        
+        String processingStatus = paper.getProcessingStatus();
+        
+        // Debug logging to see what status we're getting
+        LoggingUtil.debug(LOG, "shouldShowProcessButton", 
+            "Paper %s has processing status: '%s'", 
+            paper.getId(), processingStatus);
+        
+        // Show button for papers that are ready to process or failed and can be retried
+        boolean shouldShow = "Ready to process".equals(processingStatus) ||
+                            "Pending credits".equals(processingStatus) ||
+                            "Failed".equals(processingStatus);
+                            
+        LoggingUtil.debug(LOG, "shouldShowProcessButton", 
+            "Paper %s shouldShow process button: %s", 
+            paper.getId(), shouldShow);
+            
+        return shouldShow;
+    }
+    
+    /**
+     * Starts pipeline processing for a paper when user clicks "Process with AI".
+     */
+    private void startPaperProcessing(Paper paper) {
+        LoggingUtil.info(LOG, "startPaperProcessing", "User requested processing for paper: %s", paper.getId());
+        
+        try {
+            boolean started = paperService.startPipelineProcessing(paper.getId(), currentUser);
+            
+            if (started) {
+                // Refresh the grid to show updated status
+                updateList();
+                
+                Notification.show("Processing started! Your paper will be analyzed by our AI agents.", 
+                    5000, Notification.Position.BOTTOM_START)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    
+                LoggingUtil.info(LOG, "startPaperProcessing", "Processing started successfully for paper: %s", paper.getId());
+            } else {
+                Notification.show("Failed to start processing. Please check your credits or try again later.", 
+                    5000, Notification.Position.BOTTOM_START)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    
+                LoggingUtil.warn(LOG, "startPaperProcessing", "Failed to start processing for paper: %s", paper.getId());
+            }
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "startPaperProcessing", "Error starting processing for paper: " + paper.getId(), e);
+            
+            Notification.show("An error occurred while starting processing: " + e.getMessage(), 
+                5000, Notification.Position.BOTTOM_START)
+                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
     
     /**

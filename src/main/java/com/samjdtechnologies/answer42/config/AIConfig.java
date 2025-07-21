@@ -345,7 +345,8 @@ public class AIConfig {
             .observationHandler(new ObservationHandler<Observation.Context>() {
                 @Override
                 public boolean supportsContext(Observation.Context context) {
-                    return context.getName().contains("spring.ai");
+                    String name = context.getName();
+                    return name != null && name.contains("spring.ai");
                 }
                 
                 @Override

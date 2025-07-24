@@ -2,7 +2,7 @@ Answer42 - AI-Powered Academic Research Platform
 
 [](https://github.com/samjd-zz/answer42#answer42---ai-powered-academic-research-platform)
 
-[![Answer42 Logo](https://github.com/samjd-zz/answer42/raw/main/src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)](https://github.com/samjd-zz/answer42/blob/main/src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)
+[![Answer42 Logo](https://github.com/samjd-zz/answer42/raw/main/src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)](https://github.com/samjd-zz/answer42/blob/main/src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)
 
 Answer42 is a sophisticated AI-powered platform for academic researchers, students, and scholars to upload, analyze, and interact with research papers using multiple AI providers. The platform combines advanced paper processing with intelligent chat capabilities and a revolutionary multi-agent processing pipeline to make academic research more efficient and insightful.Table of Contents
 

@@ -9,10 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
 
-import com.samjdtechnologies.answer42.model.daos.CreditBalance;
-import com.samjdtechnologies.answer42.model.daos.CreditTransaction;
-import com.samjdtechnologies.answer42.model.daos.CreditTransaction.TransactionType;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.CreditBalance;
+import com.samjdtechnologies.answer42.model.db.CreditTransaction;
+import com.samjdtechnologies.answer42.model.db.User;
+import com.samjdtechnologies.answer42.model.db.CreditTransaction.TransactionType;
 import com.samjdtechnologies.answer42.service.CreditService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.layout.MainLayout;

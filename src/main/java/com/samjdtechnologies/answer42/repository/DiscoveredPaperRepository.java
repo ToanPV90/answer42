@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.samjdtechnologies.answer42.model.daos.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.db.DiscoveredPaper;
 
 /**
  * Repository interface for DiscoveredPaper entities.

@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.samjdtechnologies.answer42.model.daos.DiscoveredPaper;
-import com.samjdtechnologies.answer42.model.daos.PaperBookmark;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.db.PaperBookmark;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.repository.DiscoveredPaperRepository;
 import com.samjdtechnologies.answer42.repository.PaperBookmarkRepository;
 import com.samjdtechnologies.answer42.util.LoggingUtil;

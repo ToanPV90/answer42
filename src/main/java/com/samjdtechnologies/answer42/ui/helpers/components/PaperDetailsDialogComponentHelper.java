@@ -6,7 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.samjdtechnologies.answer42.model.daos.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.db.DiscoveredPaper;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;

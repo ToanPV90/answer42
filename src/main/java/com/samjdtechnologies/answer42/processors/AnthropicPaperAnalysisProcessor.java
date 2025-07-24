@@ -11,9 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.samjdtechnologies.answer42.model.daos.AnalysisResult;
-import com.samjdtechnologies.answer42.model.daos.ChatSession;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.AnalysisResult;
+import com.samjdtechnologies.answer42.model.db.ChatSession;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.model.enums.AnalysisType;
 import com.samjdtechnologies.answer42.service.ChatService;
 import com.samjdtechnologies.answer42.service.PaperAnalysisService;

@@ -3,7 +3,7 @@ package com.samjdtechnologies.answer42.ui.components;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.samjdtechnologies.answer42.model.daos.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.db.DiscoveredPaper;
 import com.samjdtechnologies.answer42.repository.DiscoveredPaperRepository;
 import com.samjdtechnologies.answer42.ui.helpers.components.PaperDetailsDialogComponentHelper;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;

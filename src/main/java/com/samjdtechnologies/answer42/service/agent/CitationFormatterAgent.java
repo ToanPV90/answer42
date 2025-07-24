@@ -25,7 +25,7 @@ import com.samjdtechnologies.answer42.model.citation.CitationResult;
 import com.samjdtechnologies.answer42.model.citation.FormattedBibliography;
 import com.samjdtechnologies.answer42.model.citation.RawCitation;
 import com.samjdtechnologies.answer42.model.citation.StructuredCitation;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.enums.CitationStyle;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;

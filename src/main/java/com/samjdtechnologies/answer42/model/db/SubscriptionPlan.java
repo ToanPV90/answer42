@@ -1,4 +1,4 @@
-package com.samjdtechnologies.answer42.model.daos;
+package com.samjdtechnologies.answer42.model.db;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;

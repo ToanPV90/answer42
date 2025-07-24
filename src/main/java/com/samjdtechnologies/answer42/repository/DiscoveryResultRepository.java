@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.samjdtechnologies.answer42.model.daos.DiscoveryResult;
+import com.samjdtechnologies.answer42.model.db.DiscoveryResult;
 
 /**
  * Repository for managing discovery result persistence and retrieval.

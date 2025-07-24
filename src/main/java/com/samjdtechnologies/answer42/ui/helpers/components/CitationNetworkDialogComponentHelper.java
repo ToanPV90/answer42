@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.samjdtechnologies.answer42.model.daos.DiscoveredPaper;
-import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.db.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.db.Paper;
 import com.samjdtechnologies.answer42.model.enums.RelationshipType;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 import com.vaadin.flow.component.UI;

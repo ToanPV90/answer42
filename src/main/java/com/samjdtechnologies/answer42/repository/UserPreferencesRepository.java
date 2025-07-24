@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.samjdtechnologies.answer42.model.daos.UserPreferences;
+import com.samjdtechnologies.answer42.model.db.UserPreferences;
 
 /**
  * Repository for managing UserPreferences entities.

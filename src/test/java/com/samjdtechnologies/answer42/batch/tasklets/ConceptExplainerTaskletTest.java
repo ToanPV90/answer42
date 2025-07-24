@@ -24,7 +24,7 @@ import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.concept.ConceptExplanationResult;
 import com.samjdtechnologies.answer42.model.concept.ConceptExplanations;
 import com.samjdtechnologies.answer42.model.concept.ConceptRelationshipMap;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.EducationLevel;
 import com.samjdtechnologies.answer42.service.agent.ConceptExplainerAgent;
 

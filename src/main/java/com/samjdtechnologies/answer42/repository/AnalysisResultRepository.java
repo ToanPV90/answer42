@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.samjdtechnologies.answer42.model.daos.AnalysisResult;
+import com.samjdtechnologies.answer42.model.db.AnalysisResult;
 import com.samjdtechnologies.answer42.model.enums.AnalysisType;
 
 /**

@@ -13,7 +13,7 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.stereotype.Component;
 
 import com.samjdtechnologies.answer42.config.AIConfig;
-import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.db.Paper;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.ChatMode;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -225,7 +225,7 @@ public class AIInteractionHelper {
      * @param systemPrompt the system prompt to prepend
      * @return list of Spring AI messages
      */
-    public List<Message> convertToAIMessages(List<com.samjdtechnologies.answer42.model.daos.ChatMessage> messages, 
+    public List<Message> convertToAIMessages(List<com.samjdtechnologies.answer42.model.db.ChatMessage> messages, 
                                           String systemPrompt) {
         List<Message> aiMessages = new ArrayList<>();
         
@@ -233,7 +233,7 @@ public class AIInteractionHelper {
         aiMessages.add(new SystemMessage(systemPrompt));
         
         // Add previous messages
-        for (com.samjdtechnologies.answer42.model.daos.ChatMessage message : messages) {
+        for (com.samjdtechnologies.answer42.model.db.ChatMessage message : messages) {
             if ("user".equals(message.getRole())) {
                 aiMessages.add(new UserMessage(message.getContent()));
             } else if ("assistant".equals(message.getRole())) {

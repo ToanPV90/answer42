@@ -10,11 +10,11 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.samjdtechnologies.answer42.model.daos.AnalysisResult;
-import com.samjdtechnologies.answer42.model.daos.ChatMessage;
-import com.samjdtechnologies.answer42.model.daos.ChatSession;
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.AnalysisResult;
+import com.samjdtechnologies.answer42.model.db.ChatMessage;
+import com.samjdtechnologies.answer42.model.db.ChatSession;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.ChatMode;
 import com.samjdtechnologies.answer42.repository.ChatSessionRepository;

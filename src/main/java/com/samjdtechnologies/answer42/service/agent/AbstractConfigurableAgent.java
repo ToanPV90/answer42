@@ -16,7 +16,7 @@ import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.agent.ProcessingMetrics;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.LoadStatus;
 import com.samjdtechnologies.answer42.model.interfaces.AIAgent;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;

@@ -8,8 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.samjdtechnologies.answer42.model.daos.User;
-import com.samjdtechnologies.answer42.model.daos.UserRole;
+import com.samjdtechnologies.answer42.model.db.User;
+import com.samjdtechnologies.answer42.model.db.UserRole;
 import com.samjdtechnologies.answer42.repository.UserRepository;
 import com.samjdtechnologies.answer42.repository.UserRoleRepository;
 

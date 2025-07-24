@@ -22,8 +22,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.retry.support.RetryTemplate;
 
-import com.samjdtechnologies.answer42.model.daos.User;
-import com.samjdtechnologies.answer42.model.daos.UserPreferences;
+import com.samjdtechnologies.answer42.model.db.User;
+import com.samjdtechnologies.answer42.model.db.UserPreferences;
 import com.samjdtechnologies.answer42.service.UserPreferencesService;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 

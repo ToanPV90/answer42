@@ -7,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
 
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.repository.DiscoveredPaperRepository;
 import com.samjdtechnologies.answer42.service.DiscoveryFeedbackService;
 import com.samjdtechnologies.answer42.service.PaperBookmarkService;

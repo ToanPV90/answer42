@@ -1,4 +1,4 @@
-package com.samjdtechnologies.answer42.model.daos;
+package com.samjdtechnologies.answer42.model.db;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;

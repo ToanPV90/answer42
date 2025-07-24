@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.samjdtechnologies.answer42.model.daos.UserRole;
+import com.samjdtechnologies.answer42.model.db.UserRole;
 
 /**
  * Repository interface for managing UserRole entities in the database.

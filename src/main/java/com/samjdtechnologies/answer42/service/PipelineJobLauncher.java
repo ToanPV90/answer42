@@ -1,7 +1,6 @@
 package com.samjdtechnologies.answer42.service;
 
 import java.util.Date;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import com.samjdtechnologies.answer42.model.daos.Paper;
 import com.samjdtechnologies.answer42.model.daos.User;
-import com.samjdtechnologies.answer42.model.enums.PipelineStatus;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
@@ -68,7 +66,7 @@ public class PipelineJobLauncher {
                 .addString("paperId", paper.getId().toString())
                 .addString("userId", user.getId().toString())
                 .addDate("startTime", new Date())
-                .addString("processingMode", "FULL_ANALYSIS")
+                .addString("processingMode", "COMPREHENSIVE")
                 .toJobParameters();
             
             // Launch Spring Batch job

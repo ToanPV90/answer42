@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.model.agent;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -15,10 +16,12 @@ import lombok.Data;
 /**
  * Result wrapper for agent processing operations.
  * Contains both success/failure status and structured data.
+ * Implements Serializable for Spring Batch compatibility.
  */
 @Data
 @Builder
-public class AgentResult {
+public class AgentResult implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String taskId;
     private final boolean success;
     private final String errorMessage;

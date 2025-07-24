@@ -4,17 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -210,11 +207,14 @@ public class PaperService {
      * Start pipeline processing for a paper when user chooses to process it.
      * This is the public method called from the UI when user clicks "Process with AI".
      * 
+     * Note: @Transactional removed to avoid conflicts with Spring Batch JobRepository
+     * which manages its own transactions. The individual database operations within
+     * this method are handled by their own transactional contexts.
+     * 
      * @param paperId The paper ID to process
      * @param user The user who owns the paper
      * @return true if processing was started successfully, false otherwise
      */
-    @Transactional
     public boolean startPipelineProcessing(UUID paperId, User user) {
         LoggingUtil.info(logger, "startPipelineProcessing", 
             "User %s requested pipeline processing for paper %s", user.getId(), paperId);
@@ -238,7 +238,8 @@ public class PaperService {
         
         // Check if paper is in the right state for processing
         PipelineStatus currentStatus = getPipelineStatus(paperId);
-        if (!currentStatus.equals(PipelineStatus.PENDING_USER_CHOICE) && 
+        if (!currentStatus.equals(PipelineStatus.PENDING) &&
+            !currentStatus.equals(PipelineStatus.PENDING_USER_CHOICE) && 
             !currentStatus.equals(PipelineStatus.PENDING_CREDITS) &&
             !currentStatus.equals(PipelineStatus.FAILED)) {
             LoggingUtil.warn(logger, "startPipelineProcessing", 

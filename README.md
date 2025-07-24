@@ -4,7 +4,9 @@ Answer42 - AI-Powered Academic Research Platform
 
 [![Answer42 Logo](https://github.com/samjd-zz/answer42/raw/main/src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)](https://github.com/samjd-zz/answer42/blob/main/src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)
 
-Answer42 is a sophisticated AI-powered platform for academic researchers, students, and scholars to upload, analyze, and interact with research papers using multiple AI providers. The platform combines advanced paper processing with intelligent chat capabilities and a revolutionary multi-agent processing pipeline to make academic research more efficient and insightful.Table of Contents
+Answer42 is a sophisticated AI-powered platform for academic researchers, students, and scholars to upload, analyze, and interact with research papers using multiple AI providers. The platform combines advanced paper processing with intelligent chat capabilities and a revolutionary multi-agent processing pipeline to make academic research more efficient and insightful.
+
+Table of Contents
 
 [](https://github.com/samjd-zz/answer42#table-of-contents)
 
@@ -41,7 +43,7 @@ Answer42 is a comprehensive research assistant that helps academics work with sc
 
 [](https://github.com/samjd-zz/answer42#-project-links)
 
-* **Deep Funding RFP**: [Port Answer 42 to SingularityNET](https://deepfunding.ai/rfp_ideation/port-answer-42-to-snet/) - Proposal for integrating Answer42 with the SingularityNET ecosystem
+* **Deep Funding RFP**: [Port Answer 42 to SingularityNET](https://deepfunding.ai/rfp_ideation/port-answer-42-to-snet/) - Proposal for integrating Answer42 with the SingularityNET ecosystem
 
 Technology Stack
 
@@ -51,65 +53,173 @@ Technology Stack
 
 [](https://github.com/samjd-zz/answer42#backend)
 
-* **Java 21** - Modern Java with latest features
-* **Spring Boot 3.4.5** - Enterprise application framework
-* **Spring Batch** - Enterprise-grade job processing and workflow orchestration
-* **Spring Security** - Authentication and authorization
-* **Spring Data JPA** - Database access with Hibernate
-* **Spring AI** - Unified AI provider integration
-* **PostgreSQL** - Primary database with JSONB support
-* **JWT** - Stateless authentication tokens
-* **Lombok** - Reduced boilerplate code
+* **Java 21** - Modern Java with latest features
+* **Spring Boot 3.4.5** - Enterprise application framework
+* **Spring Batch** - Enterprise-grade job processing and workflow orchestration
+* **Spring Security** - Authentication and authorization
+* **Spring Data JPA** - Database access with Hibernate
+* **Spring AI** - Unified AI provider integration
+* **PostgreSQL** - Primary database with JSONB support
+* **JWT** - Stateless authentication tokens
+* **Lombok** - Reduced boilerplate code
 
 ### Frontend
 
 [](https://github.com/samjd-zz/answer42#frontend)
 
-* **Vaadin 24.7.3** - Full-stack Java web framework
-* **Custom CSS Themes** - Responsive design with dark mode support
-* **Progressive Web App** - Offline capabilities and mobile support
+* **Vaadin 24.7.3** - Full-stack Java web framework
+* **Custom CSS Themes** - Responsive design with dark mode support
+* **Progressive Web App** - Offline capabilities and mobile support
 
 ### AI Providers
 
 [](https://github.com/samjd-zz/answer42#ai-providers)
 
-* **Anthropic Claude** - Paper-specific analysis and chat
-* **OpenAI GPT-4** - Cross-reference analysis and general chat
-* **Perplexity** - Research exploration and external knowledge
+* **Anthropic Claude** - Paper-specific analysis and chat
+* **OpenAI GPT-4** - Cross-reference analysis and general chat
+* **Perplexity** - Research exploration and external knowledge
 
 ### External APIs
 
 [](https://github.com/samjd-zz/answer42#external-apis)
 
-* **Crossref API** - Citation network analysis and bibliographic discovery
-* **Semantic Scholar API** - Semantic similarity and influence analysis
-* **Perplexity API** - Real-time research trends and open access discovery
+* **Crossref API** - Citation network analysis and bibliographic discovery
+* **Semantic Scholar API** - Semantic similarity and influence analysis
+* **Perplexity API** - Real-time research trends and open access discovery
 
 ### Development Tools
 
 [](https://github.com/samjd-zz/answer42#development-tools)
 
-* **Maven** - Build automation and dependency management
-* **Checkstyle, PMD, SpotBugs** - Code quality and static analysis
-* **Spring Boot DevTools** - Development hot-reload
+* **Maven** - Build automation and dependency management
+* **Checkstyle, PMD, SpotBugs** - Code quality and static analysis
+* **Spring Boot DevTools** - Development hot-reload
 
 Architecture Overview
 
 [](https://github.com/samjd-zz/answer42#architecture-overview)
 
-Answer42 follows a clean layered architecture with a sophisticated multi-agent processing system and intelligent discovery capabilities: ┌─────────────────────┐ │ Vaadin Views │ User Interface Layer ├─────────────────────┤ │ Controllers │ REST API Layer ├─────────────────────┤ │ Services │ Business Logic Layer ├─────────────────────┤ │ Multi-Agent │ AI Processing Layer (🆕 NEW!) │ Pipeline System │ Eight Specialized Agents ├─────────────────────┤ │ Discovery System │ Multi-Source Paper Discovery (🆕 NEW!) │ (Crossref, S2, AI) │ Citation Networks & Semantic Analysis ├─────────────────────┤ │ Repositories │ Data Access Layer ├─────────────────────┤ │ PostgreSQL │ Database Layer └─────────────────────┘
+Answer42 follows a clean layered architecture with a sophisticated multi-agent processing system and intelligent discovery capabilities:
+
+```mermaid
+graph TB
+    subgraph "User Interface Layer"
+        UI[Vaadin Views]
+        PWA[Progressive Web App]
+    end
+    
+    subgraph "REST API Layer"
+        CTRL[Controllers]
+        WS[WebSocket Endpoints]
+    end
+    
+    subgraph "Business Logic Layer"
+        PS[Paper Service]
+        CS[Chat Service]
+        US[User Service]
+        SS[Subscription Service]
+    end
+    
+    subgraph "AI Processing Layer 🆕"
+        direction TB
+        SB[Spring Batch Job Launcher]
+        
+        subgraph "Multi-Agent Pipeline"
+            A1[🔧 Paper Processor]
+            A2[📚 Metadata Enhancement]
+            A3[📝 Content Summarizer]
+            A4[🧠 Concept Explainer]
+            A5[✅ Quality Checker]
+            A6[📖 Citation Formatter]
+            A7[🔍 Related Paper Discovery]
+            A8[🔬 Perplexity Research]
+        end
+    end
+    
+    subgraph "Discovery System Layer 🆕"
+        DS[Discovery Orchestrator]
+        CR[Crossref API]
+        S2[Semantic Scholar API]
+        PX[Perplexity API]
+        AI[AI Synthesis Engine]
+    end
+    
+    subgraph "Data Access Layer"
+        REPO[Repositories]
+        CACHE[Redis Cache]
+    end
+    
+    subgraph "Database Layer"
+        PG[(PostgreSQL)]
+        BATCH[(Spring Batch Tables)]
+        DISCO[(Discovery Tables)]
+    end
+    
+    subgraph "External AI Providers"
+        CLAUDE[Anthropic Claude]
+        GPT[OpenAI GPT-4]
+        PERP[Perplexity AI]
+    end
+    
+    UI --> CTRL
+    PWA --> WS
+    CTRL --> PS
+    CTRL --> CS
+    WS --> PS
+    
+    PS --> SB
+    SB --> A1
+    A1 --> A2
+    A2 --> A3
+    A3 --> A4
+    A4 --> A5
+    A5 --> A6
+    A6 --> A7
+    A7 --> A8
+    
+    PS --> DS
+    DS --> CR
+    DS --> S2
+    DS --> PX
+    DS --> AI
+    
+    A1 --> GPT
+    A2 --> GPT
+    A3 --> CLAUDE
+    A4 --> GPT
+    A5 --> CLAUDE
+    A6 --> GPT
+    A7 --> CLAUDE
+    A7 --> PERP
+    A8 --> PERP
+    
+    AI --> CLAUDE
+    
+    PS --> REPO
+    CS --> REPO
+    US --> REPO
+    SS --> REPO
+    
+    REPO --> PG
+    SB --> BATCH
+    DS --> DISCO
+    BATCH --> PG
+    DISCO --> PG
+    
+    REPO --> CACHE
+```
 
 ### Key Design Patterns
 
 [](https://github.com/samjd-zz/answer42#key-design-patterns)
 
-* **MVC Architecture** - Clear separation of concerns
-* **Multi-Agent Pattern** - Specialized AI agents for different tasks (🆕 **NEW!**)
-* **Multi-Source Discovery Pattern** - Intelligent paper discovery from multiple APIs (🆕 **NEW!**)
-* **Repository Pattern** - Data access abstraction
-* **Service Layer** - Business logic encapsulation
-* **Dependency Injection** - Loose coupling via Spring IoC
-* **Component-Based UI** - Reusable Vaadin components
+* **MVC Architecture** - Clear separation of concerns
+* **Multi-Agent Pattern** - Specialized AI agents for different tasks (🆕 **NEW!**)
+* **Multi-Source Discovery Pattern** - Intelligent paper discovery from multiple APIs (🆕 **NEW!**)
+* **Repository Pattern** - Data access abstraction
+* **Service Layer** - Business logic encapsulation
+* **Dependency Injection** - Loose coupling via Spring IoC
+* **Component-Based UI** - Reusable Vaadin components
 
 Core Features
 
@@ -120,13 +230,13 @@ Core Features
 [](https://github.com/samjd-zz/answer42#-paper-management)
 
 * **PDF Upload & Processing**: Extract text content and metadata from academic papers
-* **Real-time Pipeline Processing**: Live progress tracking during multi-agent analysis (🆕 **NEW!**)
+* **Real-time Pipeline Processing**: Live progress tracking during multi-agent analysis (🆕 **NEW!**)
 * **Metadata Enhancement**: Automatic enrichment via Crossref and Semantic Scholar APIs
 * **Comprehensive Storage**: Store papers with full text, abstracts, authors, citations, and analysis results
 * **Organization**: Group papers into research projects for better management
 * **Bulk Upload**: Process multiple papers simultaneously with parallel pipeline processing
 
-### 🔍 Related Papers Discovery (🆕 **NEW!**)
+### 🔍 Related Papers Discovery (🆕 **NEW!**)
 
 [](https://github.com/samjd-zz/answer42#-related-papers-discovery--new)
 
@@ -208,61 +318,181 @@ Multi-Agent Processing Pipeline
 
 [](https://github.com/samjd-zz/answer42#multi-agent-processing-pipeline)
 
-🆕 **NEW FEATURE**: Answer42 now features a sophisticated multi-agent processing pipeline powered by **Spring Batch** that automatically analyzes papers using eight specialized AI agents.
+🆕 **NEW FEATURE**: Answer42 now features a sophisticated multi-agent processing pipeline powered by **Spring Batch** that automatically analyzes papers using eight specialized AI agents.
 
 ### Pipeline Architecture
 
 [](https://github.com/samjd-zz/answer42#pipeline-architecture)
 
-The multi-agent system uses **Spring Batch** for enterprise-grade job processing and workflow orchestration, processing papers through coordinated AI agents in a sequential 8-step pipeline:
+The multi-agent system uses **Spring Batch** for enterprise-grade job processing and workflow orchestration, processing papers through coordinated AI agents in a sequential 8-step pipeline:
+
+```mermaid
+flowchart TD
+    START([Paper Upload]) --> VALIDATE{Paper Valid?}
+    VALIDATE -->|No| ERROR([Processing Failed])
+    VALIDATE -->|Yes| BATCH[Spring Batch Job Launch]
+    
+    BATCH --> A1[🔧 Paper Processor Agent<br/>OpenAI GPT-4]
+    A1 --> A1_RESULT{Success?}
+    A1_RESULT -->|No| RETRY1[Retry with Fallback]
+    A1_RESULT -->|Yes| A2[📚 Metadata Enhancement Agent<br/>OpenAI GPT-4]
+    RETRY1 --> A2
+    
+    A2 --> A2_RESULT{Success?}
+    A2_RESULT -->|No| RETRY2[Retry with Fallback]
+    A2_RESULT -->|Yes| A3[📝 Content Summarizer Agent<br/>Anthropic Claude]
+    RETRY2 --> A3
+    
+    A3 --> A3_RESULT{Success?}
+    A3_RESULT -->|No| RETRY3[Retry with Fallback]
+    A3_RESULT -->|Yes| A4[🧠 Concept Explainer Agent<br/>OpenAI GPT-4]
+    RETRY3 --> A4
+    
+    A4 --> A4_RESULT{Success?}
+    A4_RESULT -->|No| RETRY4[Retry with Fallback]
+    A4_RESULT -->|Yes| A5[✅ Quality Checker Agent<br/>Anthropic Claude]
+    RETRY4 --> A5
+    
+    A5 --> A5_RESULT{Success?}
+    A5_RESULT -->|No| RETRY5[Retry with Fallback]
+    A5_RESULT -->|Yes| A6[📖 Citation Formatter Agent<br/>OpenAI GPT-4]
+    RETRY5 --> A6
+    
+    A6 --> A6_RESULT{Success?}
+    A6_RESULT -->|No| RETRY6[Retry with Fallback]
+    A6_RESULT -->|Yes| A7[🔍 Related Paper Discovery Agent<br/>Claude + Perplexity]
+    RETRY6 --> A7
+    
+    A7 --> A7_RESULT{Success?}
+    A7_RESULT -->|No| RETRY7[Retry with Fallback]
+    A7_RESULT -->|Yes| A8[🔬 Perplexity Research Agent<br/>Perplexity API]
+    RETRY7 --> A8
+    
+    A8 --> A8_RESULT{Success?}
+    A8_RESULT -->|No| RETRY8[Retry with Fallback]
+    A8_RESULT -->|Yes| COMPLETE([Processing Complete])
+    RETRY8 --> COMPLETE
+    
+    subgraph "External APIs"
+        CROSSREF[Crossref API]
+        SCHOLAR[Semantic Scholar API]
+        PERPLEXITY[Perplexity API]
+    end
+    
+    subgraph "AI Providers"
+        OPENAI[OpenAI GPT-4]
+        CLAUDE[Anthropic Claude]
+        PERP[Perplexity AI]
+    end
+    
+    subgraph "Database Storage"
+        PAPERS[(Papers Table)]
+        TASKS[(Tasks Table)]
+        MEMORY[(Agent Memory)]
+        BATCH_DB[(Spring Batch Tables)]
+    end
+    
+    A1 -.-> OPENAI
+    A2 -.-> OPENAI
+    A2 -.-> CROSSREF
+    A2 -.-> SCHOLAR
+    A3 -.-> CLAUDE
+    A4 -.-> OPENAI
+    A5 -.-> CLAUDE
+    A6 -.-> OPENAI
+    A7 -.-> CLAUDE
+    A7 -.-> PERPLEXITY
+    A8 -.-> PERP
+    
+    BATCH -.-> BATCH_DB
+    A1 -.-> PAPERS
+    A2 -.-> PAPERS
+    A3 -.-> PAPERS
+    A4 -.-> PAPERS
+    A5 -.-> PAPERS
+    A6 -.-> PAPERS
+    A7 -.-> PAPERS
+    A8 -.-> PAPERS
+    
+    A1 -.-> TASKS
+    A2 -.-> TASKS
+    A3 -.-> TASKS
+    A4 -.-> TASKS
+    A5 -.-> TASKS
+    A6 -.-> TASKS
+    A7 -.-> TASKS
+    A8 -.-> TASKS
+    
+    A1 -.-> MEMORY
+    A2 -.-> MEMORY
+    A3 -.-> MEMORY
+    A4 -.-> MEMORY
+    A5 -.-> MEMORY
+    A6 -.-> MEMORY
+    A7 -.-> MEMORY
+    A8 -.-> MEMORY
+    
+    style START fill:#e1f5fe
+    style COMPLETE fill:#e8f5e8
+    style ERROR fill:#ffebee
+    style BATCH fill:#fff3e0
+    style A1 fill:#e3f2fd
+    style A2 fill:#e3f2fd
+    style A3 fill:#f3e5f5
+    style A4 fill:#e3f2fd
+    style A5 fill:#f3e5f5
+    style A6 fill:#e3f2fd
+    style A7 fill:#f3e5f5
+    style A8 fill:#fff8e1
+```
 
 ### Specialized AI Agents
 
 [](https://github.com/samjd-zz/answer42#specialized-ai-agents)
 
-**🔧 Paper Processor Agent** (OpenAI GPT-4)
+**🔧 Paper Processor Agent** (OpenAI GPT-4)
 
 * PDF text extraction and structure analysis
 * Section identification (introduction, methods, results, etc.)
 * Table and figure recognition
 * Mathematical notation processing
 
-**📚 Metadata Enhancement Agent** (OpenAI GPT-4)
+**📚 Metadata Enhancement Agent** (OpenAI GPT-4)
 
 * Crossref API integration for bibliographic data
 * Semantic Scholar API integration for citation metrics
 * DOI resolution and validation
 * Author disambiguation and affiliation resolution
 
-**📝 Content Summarizer Agent** (Anthropic Claude)
+**📝 Content Summarizer Agent** (Anthropic Claude)
 
 * Multi-level summary generation (brief, standard, detailed)
 * Executive summaries for non-specialists
 * Technical summaries for domain experts
 * Key findings extraction with confidence scoring
 
-**🧠 Concept Explainer Agent** (OpenAI GPT-4)
+**🧠 Concept Explainer Agent** (OpenAI GPT-4)
 
 * Technical term identification and explanation
 * Concept relationship mapping
 * Education level-appropriate explanations
 * Real-world analogies for complex concepts
 
-**✅ Quality Checker Agent** (Anthropic Claude)
+**✅ Quality Checker Agent** (Anthropic Claude)
 
 * Multi-dimensional accuracy verification
 * Hallucination detection and fact-checking
 * Content consistency analysis
 * Bias detection and quality scoring
 
-**📖 Citation Formatter Agent** (OpenAI GPT-4)
+**📖 Citation Formatter Agent** (OpenAI GPT-4)
 
 * Reference list parsing and structuring
 * Multiple citation style formatting (APA, MLA, Chicago, IEEE)
 * DOI validation and metadata enrichment
 * Bibliography generation with quality assessment
 
-**🔍 Related Paper Discovery Agent** (🆕 **NEW!**) (Anthropic Claude + Perplexity API)
+**🔍 Related Paper Discovery Agent** (🆕 **NEW!**) (Anthropic Claude + Perplexity API)
 
 * Multi-source paper discovery coordination (Crossref, Semantic Scholar, Perplexity)
 * AI-powered relevance score enhancement using Anthropic Claude
@@ -270,7 +500,7 @@ The multi-agent system uses **Spring Batch** for enterprise-grade job processi
 * Result synthesis and deduplication across all sources
 * Discovery metadata tracking and storage
 
-**🔬 Perplexity Research Agent** (🆕 **NEW!**) (Perplexity API)
+**🔬 Perplexity Research Agent** (🆕 **NEW!**) (Perplexity API)
 
 * External research and fact verification
 * Real-time web search and research synthesis
@@ -314,9 +544,9 @@ The multi-agent pipeline produces data that directly powers Answer42's three AI 
 
 **CORE REQUIRED (Essential for functionality):**
 
-* 🔧 **Paper Processor** → `papers.text_content` (raw paper content)
-* 📝 **Content Summarizer** → `papers.summary_brief/standard/detailed`, `papers.key_findings`
-* 🧠 **Concept Explainer** → `papers.glossary`, `papers.main_concepts`
+* 🔧 **Paper Processor** → `papers.text_content` (raw paper content)
+* 📝 **Content Summarizer** → `papers.summary_brief/standard/detailed`, `papers.key_findings`
+* 🧠 **Concept Explainer** → `papers.glossary`, `papers.main_concepts`
 
 **ENHANCEMENT (Beneficial but optional):**
 
@@ -328,10 +558,10 @@ The multi-agent pipeline produces data that directly powers Answer42's three AI 
 
 **CORE REQUIRED (Essential for functionality):**
 
-* 🔧 **Paper Processor** → `papers.text_content` (raw paper content)
-* 📝 **Content Summarizer** → `papers.summary_brief/standard/detailed`, `papers.key_findings`
-* 📖 **Citation Formatter** → `papers.citations` (for reference comparisons)
-* ✅ **Quality Checker** → `papers.quality_feedback`, `papers.quality_score` (reliability assessment)
+* 🔧 **Paper Processor** → `papers.text_content` (raw paper content)
+* 📝 **Content Summarizer** → `papers.summary_brief/standard/detailed`, `papers.key_findings`
+* 📖 **Citation Formatter** → `papers.citations` (for reference comparisons)
+* ✅ **Quality Checker** → `papers.quality_feedback`, `papers.quality_score` (reliability assessment)
 
 **ENHANCEMENT (Beneficial but optional):**
 
@@ -343,25 +573,109 @@ The multi-agent pipeline produces data that directly powers Answer42's three AI 
 
 **CORE REQUIRED (Essential for functionality):**
 
-* 🔧 **Paper Processor** → `papers.text_content` (raw paper content)
-* 🔬 **Perplexity Research** → `papers.research_questions`, `papers.methodology_details`
-* 🔍 **Related Paper Discovery** → `discovered_papers`, `papers.metadata.research_context`
+* 🔧 **Paper Processor** → `papers.text_content` (raw paper content)
+* 🔬 **Perplexity Research** → `papers.research_questions`, `papers.methodology_details`
+* 🔍 **Related Paper Discovery** → `discovered_papers`, `papers.metadata.research_context`
 
 **ENHANCEMENT (Beneficial but optional):**
 
 * Metadata Enhancement, Content Summarizer, Concept Explainer, Citation Formatting, Quality Assessment
 
-**Database Integration:** The AI chat clients automatically access the appropriate database tables populated by these core agents, enabling contextual conversations about papers with rich, pre-processed information.Related Papers Discovery System
+**Database Integration:** The AI chat clients automatically access the appropriate database tables populated by these core agents, enabling contextual conversations about papers with rich, pre-processed information.
+
+Related Papers Discovery System
 
 [](https://github.com/samjd-zz/answer42#related-papers-discovery-system)
 
-🆕 **NEW FEATURE**: Answer42's Related Papers Discovery System provides comprehensive research landscape exploration through multi-source intelligent discovery.
+🆕 **NEW FEATURE**: Answer42's Related Papers Discovery System provides comprehensive research landscape exploration through multi-source intelligent discovery.
 
 ### Discovery Architecture
 
 [](https://github.com/samjd-zz/answer42#discovery-architecture)
 
 The system combines multiple academic APIs with AI synthesis for comprehensive paper discovery:
+
+```mermaid
+flowchart TD
+    INPUT[Source Paper] --> ORCHESTRATOR[Discovery Orchestrator]
+    
+    ORCHESTRATOR --> CROSSREF_TASK[Crossref Discovery Task]
+    ORCHESTRATOR --> SCHOLAR_TASK[Semantic Scholar Discovery Task]
+    ORCHESTRATOR --> PERPLEXITY_TASK[Perplexity Discovery Task]
+    
+    subgraph "Crossref Discovery"
+        CROSSREF_TASK --> CROSSREF_API[Crossref API<br/>45 req/sec]
+        CROSSREF_API --> CROSSREF_CITATIONS[Citation Network Analysis]
+        CROSSREF_API --> CROSSREF_AUTHORS[Author Network Discovery]
+        CROSSREF_API --> CROSSREF_VENUES[Publication Venue Analysis]
+        CROSSREF_CITATIONS --> CROSSREF_RESULTS[Crossref Results]
+        CROSSREF_AUTHORS --> CROSSREF_RESULTS
+        CROSSREF_VENUES --> CROSSREF_RESULTS
+    end
+    
+    subgraph "Semantic Scholar Discovery"
+        SCHOLAR_TASK --> SCHOLAR_API[Semantic Scholar API<br/>100 req/min]
+        SCHOLAR_API --> SCHOLAR_SIMILARITY[Semantic Similarity Analysis]
+        SCHOLAR_API --> SCHOLAR_INFLUENCE[Influence Metrics Assessment]
+        SCHOLAR_API --> SCHOLAR_FIELDS[Research Field Classification]
+        SCHOLAR_SIMILARITY --> SCHOLAR_RESULTS[Semantic Scholar Results]
+        SCHOLAR_INFLUENCE --> SCHOLAR_RESULTS
+        SCHOLAR_FIELDS --> SCHOLAR_RESULTS
+    end
+    
+    subgraph "Perplexity Discovery"
+        PERPLEXITY_TASK --> PERPLEXITY_API[Perplexity API<br/>10 req/min]
+        PERPLEXITY_API --> PERPLEXITY_TRENDS[Research Trend Analysis]
+        PERPLEXITY_API --> PERPLEXITY_DISCUSSIONS[Academic Discussions]
+        PERPLEXITY_API --> PERPLEXITY_OPENACCESS[Open Access Discovery]
+        PERPLEXITY_TRENDS --> PERPLEXITY_RESULTS[Perplexity Results]
+        PERPLEXITY_DISCUSSIONS --> PERPLEXITY_RESULTS
+        PERPLEXITY_OPENACCESS --> PERPLEXITY_RESULTS
+    end
+    
+    CROSSREF_RESULTS --> SYNTHESIS[AI Synthesis Engine<br/>Anthropic Claude]
+    SCHOLAR_RESULTS --> SYNTHESIS
+    PERPLEXITY_RESULTS --> SYNTHESIS
+    
+    SYNTHESIS --> DEDUPLICATION[Multi-source Deduplication<br/>DOI, Title, Author Matching]
+    DEDUPLICATION --> RELEVANCE[AI-Powered Relevance Scoring<br/>5-Factor Algorithm]
+    RELEVANCE --> QUALITY[Quality Filtering<br/>Configurable Thresholds]
+    QUALITY --> RANKING[Advanced Ranking Algorithm]
+    
+    RANKING --> STORAGE[Database Storage]
+    
+    subgraph "Database Tables"
+        STORAGE --> DISCOVERED_PAPERS[(discovered_papers<br/>38 columns)]
+        STORAGE --> PAPER_RELATIONSHIPS[(paper_relationships<br/>13 columns)]
+        STORAGE --> DISCOVERY_RESULTS[(discovery_results<br/>26 columns)]
+        STORAGE --> DISCOVERY_FEEDBACK[(discovery_feedback<br/>20 columns)]
+    end
+    
+    STORAGE --> UI[Discovery UI Components]
+    
+    subgraph "User Interface"
+        UI --> RELATED_PAPERS[RelatedPapersSection<br/>Main Results & Filtering]
+        UI --> CITATION_NETWORK[CitationNetworkDialog<br/>Interactive Visualization]
+        UI --> PAPER_DETAILS[PaperDetailsDialog<br/>Comprehensive Information]
+        UI --> FEEDBACK_DIALOG[DiscoveryFeedbackDialog<br/>User Feedback Collection]
+    end
+    
+    FEEDBACK_DIALOG --> FEEDBACK_LOOP[Algorithm Improvement]
+    FEEDBACK_LOOP --> SYNTHESIS
+    
+    style INPUT fill:#e1f5fe
+    style ORCHESTRATOR fill:#fff3e0
+    style SYNTHESIS fill:#f3e5f5
+    style STORAGE fill:#e8f5e8
+    style UI fill:#e3f2fd
+    style CROSSREF_TASK fill:#ffebee
+    style SCHOLAR_TASK fill:#e8eaf6
+    style PERPLEXITY_TASK fill:#fff8e1
+    style DEDUPLICATION fill:#f1f8e9
+    style RELEVANCE fill:#fce4ec
+    style QUALITY fill:#e0f2f1
+    style RANKING fill:#e8f5e8
+```
 
 ### Discovery Sources
 
@@ -1087,4 +1401,3 @@ For questions about licensing, contributions, or commercial partnerships, please
 * * *
 
 **Answer42** - Making academic research more intelligent, one paper at a time. 🚀📚Answer42 - AI-Powered Academic Research Platform
-

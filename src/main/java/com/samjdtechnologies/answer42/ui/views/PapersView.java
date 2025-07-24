@@ -570,7 +570,8 @@ public class PapersView extends Div implements BeforeEnterObserver {
             paper.getId(), processingStatus);
         
         // Show button for papers that are ready to process or failed and can be retried
-        boolean shouldShow = "Ready to process".equals(processingStatus) ||
+        boolean shouldShow = "Pending execution".equals(processingStatus) ||
+                            "Ready to process".equals(processingStatus) ||
                             "Pending credits".equals(processingStatus) ||
                             "Failed".equals(processingStatus);
                             

@@ -69,11 +69,11 @@ public class EnvironmentConfig {
      */
     @PostConstruct
     public void init() {
-        // Load .env file manually if PropertySource wasn't able to
-        if (anthropicApiKey == null && perplexityApiKey == null && openaiApiKey == null) {
-            loadEnvironmentVariables();
-        }
-
+        // Always try to load .env file to ensure environment variables are set as system properties
+        loadEnvironmentVariables();
+        
+        // Log the final state after loading
+        LOG.info("Environment initialization complete");
     }
 
     private void loadEnvironmentVariables() {

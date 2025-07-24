@@ -6,23 +6,22 @@ Answer42 - AI-Powered Academic Research Platform
 
 Answer42 is a sophisticated AI-powered platform for academic researchers, students, and scholars to upload, analyze, and interact with research papers using multiple AI providers. The platform combines advanced paper processing with intelligent chat capabilities and a revolutionary multi-agent processing pipeline to make academic research more efficient and insightful.
 
-Table of Contents
+## Table of Contents
 
-[](https://github.com/samjd-zz/answer42#table-of-contents)
-
-* [What is Answer42?](https://github.com/samjd-zz/answer42#what-is-answer42)
-* [Technology Stack](https://github.com/samjd-zz/answer42#technology-stack)
-* [Architecture Overview](https://github.com/samjd-zz/answer42#architecture-overview)
-* [Project Structure](https://github.com/samjd-zz/answer42#project-structure)
-* [Core Features](https://github.com/samjd-zz/answer42#core-features)
-* [Multi-Agent Processing Pipeline](https://github.com/samjd-zz/answer42#multi-agent-processing-pipeline)
-* [Related Papers Discovery System](https://github.com/samjd-zz/answer42#related-papers-discovery-system)
-* [AI Integration](https://github.com/samjd-zz/answer42#ai-integration)
-* [Database Design](https://github.com/samjd-zz/answer42#database-design)
-* [Getting Started](https://github.com/samjd-zz/answer42#getting-started)
-* [Development](https://github.com/samjd-zz/answer42#development)
-* [Configuration](https://github.com/samjd-zz/answer42#configuration)
-* [License](https://github.com/samjd-zz/answer42#license)
+* [What is Answer42?](#what-is-answer42)
+* [Technology Stack](#technology-stack)
+* [Architecture Overview](#architecture-overview)
+* [Core Features](#core-features)
+* [Multi-Agent Processing Pipeline](#multi-agent-processing-pipeline)
+* [Related Papers Discovery System](#related-papers-discovery-system)
+* [AI Integration](#ai-integration)
+* [Database Design](#database-design)
+* [Getting Started](#getting-started)
+* [Development](#development)
+* [Configuration](#configuration)
+* [Support the Project](#-support-the-project)
+* [License](#license)
+* [Contact](#-contact)
 
 What is Answer42?
 

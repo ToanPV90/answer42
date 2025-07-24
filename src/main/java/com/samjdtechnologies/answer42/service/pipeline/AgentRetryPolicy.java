@@ -365,59 +365,135 @@ public class AgentRetryPolicy {
     }
     
     /**
-     * Determine if an exception is retryable.
+     * Determine if an exception is retryable by checking the entire exception chain.
      */
     private boolean isRetryableException(Throwable throwable) {
         if (throwable == null) {
             return false;
         }
         
-        String message = throwable.getMessage();
-        if (message == null) {
-            message = "";
+        // Check the entire exception chain for retryable conditions
+        Throwable current = throwable;
+        while (current != null) {
+            if (isRetryableExceptionType(current)) {
+                LoggingUtil.debug(LOG, "isRetryableException", 
+                    "Found retryable exception in chain: %s", current.getClass().getSimpleName());
+                return true;
+            }
+            
+            String message = current.getMessage();
+            if (message != null && isRetryableMessage(message)) {
+                LoggingUtil.debug(LOG, "isRetryableException", 
+                    "Found retryable message in chain: %s", message);
+                return true;
+            }
+            
+            current = current.getCause();
         }
         
+        // Check for non-retryable conditions in the entire chain
+        current = throwable;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null && isNonRetryableMessage(message)) {
+                LoggingUtil.debug(LOG, "isRetryableException", 
+                    "Found non-retryable message in chain: %s", message);
+                return false;
+            }
+            
+            if (current instanceof AgentCircuitBreaker.CircuitBreakerOpenException) {
+                return false;
+            }
+            
+            current = current.getCause();
+        }
+        
+        // Default: don't retry unknown exceptions
+        LoggingUtil.debug(LOG, "isRetryableException", 
+            "Exception not identified as retryable: %s", throwable.getClass().getSimpleName());
+        return false;
+    }
+    
+    /**
+     * Check if exception type is retryable.
+     */
+    private boolean isRetryableExceptionType(Throwable throwable) {
         // Network-related errors that are typically transient
         if (throwable instanceof java.net.SocketTimeoutException ||
             throwable instanceof java.net.ConnectException ||
-            throwable instanceof java.io.IOException) {
+            throwable instanceof java.io.IOException ||
+            throwable instanceof io.netty.handler.timeout.ReadTimeoutException ||
+            throwable instanceof io.netty.handler.timeout.WriteTimeoutException ||
+            throwable instanceof java.net.SocketException ||
+            throwable instanceof java.net.UnknownHostException) {
             return true;
         }
         
+        // Spring web client exceptions
+        if (throwable instanceof org.springframework.web.client.ResourceAccessException ||
+            throwable instanceof org.springframework.web.client.HttpServerErrorException) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check if exception message indicates a retryable condition.
+     */
+    private boolean isRetryableMessage(String message) {
+        String lowerMessage = message.toLowerCase();
+        
         // HTTP client errors that might be transient
-        if (message.contains("timeout") ||
-            message.contains("connection") ||
-            message.contains("503") ||
-            message.contains("502") ||
-            message.contains("504") ||
-            message.contains("rate limit") ||
-            message.contains("throttle")) {
+        if (lowerMessage.contains("timeout") ||
+            lowerMessage.contains("connection") ||
+            lowerMessage.contains("503") ||
+            lowerMessage.contains("502") ||
+            lowerMessage.contains("504") ||
+            lowerMessage.contains("rate limit") ||
+            lowerMessage.contains("throttle") ||
+            lowerMessage.contains("i/o error")) {
             return true;
         }
         
         // AI provider specific errors
-        if (message.contains("quota") ||
-            message.contains("overloaded") ||
-            message.contains("capacity") ||
-            message.contains("temporarily unavailable")) {
+        if (lowerMessage.contains("quota") ||
+            lowerMessage.contains("overloaded") ||
+            lowerMessage.contains("capacity") ||
+            lowerMessage.contains("temporarily unavailable") ||
+            lowerMessage.contains("service unavailable") ||
+            lowerMessage.contains("internal server error")) {
             return true;
         }
         
-        // Circuit breaker open is not retryable (handled at circuit breaker level)
-        if (throwable instanceof AgentCircuitBreaker.CircuitBreakerOpenException) {
-            return false;
-        }
+        return false;
+    }
+    
+    /**
+     * Check if exception message indicates a non-retryable condition.
+     */
+    private boolean isNonRetryableMessage(String message) {
+        String lowerMessage = message.toLowerCase();
         
         // Authentication/authorization errors are not retryable
-        if (message.contains("401") ||
-            message.contains("403") ||
-            message.contains("unauthorized") ||
-            message.contains("forbidden") ||
-            message.contains("invalid_api_key")) {
-            return false;
+        if (lowerMessage.contains("401") ||
+            lowerMessage.contains("403") ||
+            lowerMessage.contains("unauthorized") ||
+            lowerMessage.contains("forbidden") ||
+            lowerMessage.contains("invalid_api_key") ||
+            lowerMessage.contains("authentication failed") ||
+            lowerMessage.contains("access denied")) {
+            return true;
         }
         
-        // Default: don't retry unknown exceptions
+        // Client errors that won't be fixed by retrying
+        if (lowerMessage.contains("400") ||
+            lowerMessage.contains("bad request") ||
+            lowerMessage.contains("malformed") ||
+            lowerMessage.contains("invalid request")) {
+            return true;
+        }
+        
         return false;
     }
     

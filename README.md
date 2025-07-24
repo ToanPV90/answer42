@@ -1043,7 +1043,7 @@ Getting Started
 
 1. **Clone the repository**
   
-      git clone https://github.com/yourusername/answer42.git
+      git clone https://github.com/samjd-zz/answer42.git
       cd answer42
   
 2. **Configure environment variables** Create a `.env` file in the project root:

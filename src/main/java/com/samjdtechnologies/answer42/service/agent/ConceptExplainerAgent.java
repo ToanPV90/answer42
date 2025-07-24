@@ -128,7 +128,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
     }
     
     private List<TechnicalTerm> extractAndPrioritizeTerms(String content) {
-        Prompt extractionPrompt = optimizePromptForOpenAI("""
+        String templateString = """
             Extract technical terms from this academic content that would benefit from explanation.
             
             Content: {content}
@@ -142,12 +142,16 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             Focus on technical/scientific concepts, acronyms, mathematical terms, methodologies, and tools.
             Exclude common words and basic terms.
             
-            Return as JSON array:
-            [{"term": "neural network", "type": "concept", "complexity": 0.7, "context": "context sentence"}]
-            """, Map.of("content", truncateContent(content, 4000)));
+            Return as JSON array where each object has fields: term, type, complexity, context
+            """;
+        
+        // Clean the content to avoid template parsing issues
+        String cleanContent = cleanContentForTemplate(content);
+        Prompt extractionPrompt = optimizePromptForOpenAI(templateString, 
+            Map.of("content", truncateContent(cleanContent, 4000)));
         
         try {
-            ChatResponse response = executePrompt(extractionPrompt);
+            ChatResponse response = executePromptWithRetry(extractionPrompt).join();
             String responseContent = response.getResult().getOutput().getText();
             
             List<TechnicalTerm> terms = responseParser.parseTermsFromResponse(responseContent);
@@ -192,7 +196,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             .map(TechnicalTerm::getTerm)
             .collect(Collectors.joining(", "));
         
-        Prompt explanationPrompt = optimizePromptForOpenAI("""
+        String templateString = """
             Explain these technical concepts for a {level} education level audience:
             
             Paper Context: {context}
@@ -208,27 +212,24 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             
             Guidelines for {level} level: {guidelines}
             
-            Return as JSON object with each term as a key:
-            {
-              "term_name": {
-                "definition": "clear definition",
-                "analogy": "helpful analogy or empty string",
-                "importance": "why important in this context",
-                "relatedConcepts": ["concept1", "concept2"],
-                "commonMisconceptions": ["misconception1"],
-                "prerequisites": ["prereq1", "prereq2"],
-                "confidence": 0.85
-              }
-            }
-            """, Map.of(
+            Return as JSON object with each term as a key. Each term should have fields:
+            definition, analogy, importance, relatedConcepts (array), commonMisconceptions (array), prerequisites (array), confidence (number)
+            """;
+        
+        // Clean inputs to avoid template parsing issues
+        String cleanContext = cleanContentForTemplate(content);
+        String cleanTerms = cleanContentForTemplate(termsList);
+        String cleanGuidelines = cleanContentForTemplate(getGuidelinesForLevel(level));
+        
+        Prompt explanationPrompt = optimizePromptForOpenAI(templateString, Map.of(
                 "level", level.getDisplayName(),
-                "context", truncateContent(content, 2000),
-                "terms", termsList,
-                "guidelines", getGuidelinesForLevel(level)
+                "context", truncateContent(cleanContext, 2000),
+                "terms", cleanTerms,
+                "guidelines", cleanGuidelines
             ));
         
         try {
-            ChatResponse response = executePrompt(explanationPrompt);
+            ChatResponse response = executePromptWithRetry(explanationPrompt).join();
             String responseContent = response.getResult().getOutput().getText();
             
             return responseParser.parseExplanationsFromResponse(responseContent, level);
@@ -247,7 +248,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             .map(TechnicalTerm::getTerm)
             .collect(Collectors.joining(", "));
         
-        Prompt relationshipPrompt = optimizePromptForOpenAI("""
+        String templateString = """
             Analyze the relationships between these technical concepts in this research context:
             
             Paper Context: {context}
@@ -255,25 +256,20 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             
             Identify relationships: HIERARCHICAL, CAUSAL, DEPENDENCY, SIMILARITY, OPPOSITION, TEMPORAL, COMPONENT
             
-            Return as JSON:
-            {
-              "nodes": [
-                {"concept": "concept_name", "description": "brief description", "importance": 0.8}
-              ],
-              "edges": [
-                {
-                  "fromConcept": "concept1", "toConcept": "concept2", 
-                  "type": "HIERARCHICAL", "description": "relationship description", "strength": 0.9
-                }
-              ]
-            }
-            """, Map.of(
-                "context", truncateContent(content, 2000),
-                "terms", termsList
+            Return as JSON with nodes array (concept, description, importance) and edges array (fromConcept, toConcept, type, description, strength)
+            """;
+        
+        // Clean inputs to avoid template parsing issues
+        String cleanContext = cleanContentForTemplate(content);
+        String cleanTerms = cleanContentForTemplate(termsList);
+        
+        Prompt relationshipPrompt = optimizePromptForOpenAI(templateString, Map.of(
+                "context", truncateContent(cleanContext, 2000),
+                "terms", cleanTerms
             ));
         
         try {
-            ChatResponse response = executePrompt(relationshipPrompt);
+            ChatResponse response = executePromptWithRetry(relationshipPrompt).join();
             String responseContent = response.getResult().getOutput().getText();
             
             return responseParser.parseRelationshipMapFromResponse(responseContent);
@@ -330,6 +326,25 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             case GRADUATE -> "Detailed explanations, technical accuracy, advanced concepts";
             case EXPERT -> "Comprehensive explanations, full technical depth, nuanced understanding";
         };
+    }
+    
+    /**
+     * Clean content to avoid template parsing issues with special characters.
+     */
+    private String cleanContentForTemplate(String content) {
+        if (content == null) {
+            return "";
+        }
+        
+        // Remove or escape characters that might cause template parsing issues
+        return content
+            .replace("\\", "\\\\")  // Escape backslashes
+            .replace("\"", "\\\"")  // Escape quotes
+            .replace("\n", " ")     // Replace newlines with spaces
+            .replace("\r", " ")     // Replace carriage returns with spaces
+            .replace("\t", " ")     // Replace tabs with spaces
+            .replaceAll("\\s+", " ") // Normalize whitespace
+            .trim();
     }
     
     private static <T> List<List<T>> partitionList(List<T> list, int batchSize) {

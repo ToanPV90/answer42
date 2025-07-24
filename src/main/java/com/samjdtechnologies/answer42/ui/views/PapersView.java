@@ -564,10 +564,6 @@ public class PapersView extends Div implements BeforeEnterObserver {
         
         String processingStatus = paper.getProcessingStatus();
         
-        // Debug logging to see what status we're getting
-        LoggingUtil.debug(LOG, "shouldShowProcessButton", 
-            "Paper %s has processing status: '%s'", 
-            paper.getId(), processingStatus);
         
         // Show button for papers that are ready to process or failed and can be retried
         boolean shouldShow = "Pending execution".equals(processingStatus) ||
@@ -575,9 +571,6 @@ public class PapersView extends Div implements BeforeEnterObserver {
                             "Pending credits".equals(processingStatus) ||
                             "Failed".equals(processingStatus);
                             
-        LoggingUtil.debug(LOG, "shouldShowProcessButton", 
-            "Paper %s shouldShow process button: %s", 
-            paper.getId(), shouldShow);
             
         return shouldShow;
     }

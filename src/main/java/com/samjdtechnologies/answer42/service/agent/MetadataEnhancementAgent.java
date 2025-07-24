@@ -239,12 +239,17 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     private EnhancementResult synthesizeMetadataWithAI(String title, String doi, List<MetadataSource> sources) {
         LoggingUtil.info(LOG, "synthesizeMetadataWithAI", "Synthesizing metadata from %d sources", sources.size());
         
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("title", title);
-        variables.put("doi", doi != null ? doi : "Not available");
-        variables.put("sources", sources.stream()
+        // Clean inputs to avoid template parsing issues
+        String cleanTitle = cleanContentForTemplate(title);
+        String cleanDoi = cleanContentForTemplate(doi != null ? doi : "Not available");
+        String cleanSources = cleanContentForTemplate(sources.stream()
             .map(MetadataSource::getDetailedDescription)
             .collect(Collectors.joining("\n\n")));
+        
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("title", cleanTitle);
+        variables.put("doi", cleanDoi);
+        variables.put("sources", cleanSources);
         
         String synthesisPrompt = """
             Synthesize the following metadata from multiple sources into a coherent, authoritative record.
@@ -256,35 +261,28 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             Metadata Sources:
             {sources}
             
-            Return a JSON object with the following structure:
-            {
-              "title": "synthesized title",
-              "doi": "synthesized doi",
-              "year": "publication year",
-              "journal": "journal name",
-              "publisher": "publisher name",
-              "volume": "volume number",
-              "issue": "issue number",
-              "pages": "page range",
-              "authors": ["author1", "author2"],
-              "citationCount": number,
-              "publicationType": "journal-article",
-              "confidence": {
-                "title": 0.95,
-                "doi": 0.98,
-                "year": 0.90,
-                "journal": 0.85,
-                "overall": 0.92
-              },
-              "conflicts": ["list of any conflicts found"],
-              "sources": ["list of sources used"]
-            }
+            Return a JSON object with these fields:
+            - title: the synthesized paper title
+            - doi: the synthesized DOI
+            - year: publication year as number
+            - journal: journal name
+            - publisher: publisher name
+            - volume: volume number
+            - issue: issue number
+            - pages: page range
+            - authors: array of author names
+            - citationCount: number of citations
+            - publicationType: type of publication
+            - confidence: object with title, doi, year, journal, and overall confidence scores
+            - conflicts: array of any conflicts found
+            - sources: array of sources used
             
             Ensure all numeric values are properly formatted and all text fields are cleaned.
+            Return only valid JSON without any additional text or formatting.
             """;
         
         Prompt prompt = optimizePromptForOpenAI(synthesisPrompt, variables);
-        ChatResponse response = executePrompt(prompt);
+        ChatResponse response = executePromptWithRetry(prompt).join();
         
         String aiResponse = response.getResult().getOutput().toString();
         
@@ -670,7 +668,9 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     /**
      * Data class for metadata sources.
      */
-    public static class MetadataSource {
+    public static class MetadataSource implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
+        
         private final String name;
         private final Map<String, Object> data;
         private final double confidence;
@@ -733,5 +733,24 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             
             public EnhancementResult build() { return new EnhancementResult(this); }
         }
+    }
+    
+    /**
+     * Clean content to avoid template parsing issues with special characters.
+     */
+    private String cleanContentForTemplate(String content) {
+        if (content == null) {
+            return "";
+        }
+        
+        // Remove or escape characters that might cause template parsing issues
+        return content
+            .replace("\\", "\\\\")  // Escape backslashes
+            .replace("\"", "\\\"")  // Escape quotes
+            .replace("\n", " ")     // Replace newlines with spaces
+            .replace("\r", " ")     // Replace carriage returns with spaces
+            .replace("\t", " ")     // Replace tabs with spaces
+            .replaceAll("\\s+", " ") // Normalize whitespace
+            .trim();
     }
 }

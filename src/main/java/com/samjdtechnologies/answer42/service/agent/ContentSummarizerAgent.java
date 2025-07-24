@@ -100,15 +100,18 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
     private SummaryResult generateSummary(String content, String summaryType, String paperId) {
         LoggingUtil.info(LOG, "generateSummary", "Generating %s summary for paper %s", summaryType, paperId);
         
+        // Clean content to avoid template parsing issues
+        String cleanContent = cleanContentForTemplate(content);
+        
         Map<String, Object> variables = new HashMap<>();
-        variables.put("content", content);
+        variables.put("content", cleanContent);
         variables.put("paperId", paperId);
         variables.put("summaryType", summaryType);
         
-        String summaryPrompt = buildSummaryPrompt(summaryType, content);
+        String summaryPrompt = buildSummaryPrompt(summaryType, cleanContent);
         
         Prompt prompt = optimizePromptForAnthropic(summaryPrompt, variables);
-        ChatResponse response = executePrompt(prompt);
+        ChatResponse response = executePromptWithRetry(prompt).join();
         
         String aiResponse = response.getResult().getOutput().getText();
         
@@ -316,6 +319,25 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
         }
         
         return Duration.ofMinutes(3);
+    }
+    
+    /**
+     * Clean content to avoid template parsing issues with special characters.
+     */
+    private String cleanContentForTemplate(String content) {
+        if (content == null) {
+            return "";
+        }
+        
+        // Remove or escape characters that might cause template parsing issues
+        return content
+            .replace("\\", "\\\\")  // Escape backslashes
+            .replace("\"", "\\\"")  // Escape quotes
+            .replace("\n", " ")     // Replace newlines with spaces
+            .replace("\r", " ")     // Replace carriage returns with spaces
+            .replace("\t", " ")     // Replace tabs with spaces
+            .replaceAll("\\s+", " ") // Normalize whitespace
+            .trim();
     }
     
 }

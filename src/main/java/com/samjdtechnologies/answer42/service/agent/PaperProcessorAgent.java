@@ -113,7 +113,7 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
             Prompt prompt = optimizePromptForOpenAI(structurePromptTemplate, variables);
             
             // Use executePrompt method from AbstractConfigurableAgent (includes retry and rate limiting)
-            ChatResponse response = executePrompt(prompt);
+            ChatResponse response = executePromptWithRetry(prompt).join();
             
             // Extract content from response - using correct Spring AI API
             String aiResponse = response.getResult().getOutput().getText();

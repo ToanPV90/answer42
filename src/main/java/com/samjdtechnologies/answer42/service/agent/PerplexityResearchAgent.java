@@ -557,7 +557,7 @@ public class PerplexityResearchAgent extends PerplexityBasedAgent {
             Prompt researchPrompt = buildPerplexityPrompt(query);
 
             // Execute query using Perplexity chat client
-            ChatResponse response = executePrompt(researchPrompt);
+            ChatResponse response = executePromptWithRetry(researchPrompt).join();
 
             // Parse response based on query type
             ResearchResult result = parseQueryResponse(response, query);
@@ -619,7 +619,7 @@ public class PerplexityResearchAgent extends PerplexityBasedAgent {
                 "Synthesize these research findings:\n%s\n\nProvide overall summary and key insights.", 
                 synthesisContent));
 
-            ChatResponse synthesisResponse = executePrompt(synthesisPrompt);
+            ChatResponse synthesisResponse = executePromptWithRetry(synthesisPrompt).join();
             
             // Parse synthesis
             PerplexityResearchResult.ResearchSynthesis synthesis = 

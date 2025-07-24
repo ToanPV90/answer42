@@ -399,6 +399,7 @@ public class AIConfig {
      * 
      * @return An AnthropicApi client for making requests to Anthropic's services
      */
+    @SuppressWarnings("deprecation")
     @Bean
     public AnthropicApi anthropicApi() {
         return new AnthropicApi(getAnthropicKey());

@@ -72,14 +72,8 @@ public class ConceptExplainerTasklet extends BaseAgentTasklet {
                 throw new RuntimeException("Concept explanation failed: " + agentResult.getErrorMessage());
             }
 
-            // Extract the ConceptExplanationResult from the agent result
-            Object resultData = agentResult.getResultData();
-            if (!(resultData instanceof ConceptExplanationResult)) {
-                throw new RuntimeException("Unexpected result type from ConceptExplainerAgent: " + 
-                    (resultData != null ? resultData.getClass().getSimpleName() : "null"));
-            }
-
-            ConceptExplanationResult explanationResult = (ConceptExplanationResult) resultData;
+            // Extract the ConceptExplanationResult from the agent result with enhanced type safety
+            ConceptExplanationResult explanationResult = validateAndExtractResult(agentResult);
 
             // Create a simplified result for storage
             AgentResult combinedResult = createConceptExplanationResult(paperId, explanationResult);
@@ -93,6 +87,89 @@ public class ConceptExplainerTasklet extends BaseAgentTasklet {
         } catch (Exception e) {
             handleTaskletFailure(chunkContext, "ConceptExplainer", "conceptExplainerResult", e);
             throw new RuntimeException("Concept explanation failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Validates and extracts ConceptExplanationResult from AgentResult with enhanced type safety.
+     * Handles partial failures and type conversion issues that were causing pipeline failures.
+     */
+    private ConceptExplanationResult validateAndExtractResult(AgentResult agentResult) {
+        Object resultData = agentResult.getResultData();
+        
+        // Handle null result data
+        if (resultData == null) {
+            LoggingUtil.warn(LOG, "validateAndExtractResult", 
+                "Received null result data from ConceptExplainerAgent");
+            throw new RuntimeException("ConceptExplainerAgent returned null result data");
+        }
+        
+        // Handle HashMap responses during partial failures (Phase 1 reliability fix)
+        if (resultData instanceof HashMap) {
+            LoggingUtil.warn(LOG, "validateAndExtractResult", 
+                "Received HashMap instead of ConceptExplanationResult, attempting conversion");
+            return convertHashMapToResult((HashMap<?, ?>) resultData);
+        }
+        
+        // Handle expected ConceptExplanationResult type
+        if (resultData instanceof ConceptExplanationResult) {
+            return (ConceptExplanationResult) resultData;
+        }
+        
+        // Handle unexpected types
+        String actualType = resultData.getClass().getSimpleName();
+        LoggingUtil.error(LOG, "validateAndExtractResult", 
+            "Unexpected result type from ConceptExplainerAgent: %s", actualType);
+        throw new RuntimeException("Unexpected result type from ConceptExplainerAgent: " + actualType);
+    }
+    
+    /**
+     * Converts HashMap result data to ConceptExplanationResult during partial failures.
+     * This handles cases where the agent returns a HashMap instead of the expected type.
+     */
+    private ConceptExplanationResult convertHashMapToResult(HashMap<?, ?> hashMapData) {
+        try {
+            LoggingUtil.info(LOG, "convertHashMapToResult", 
+                "Converting HashMap with %d entries to ConceptExplanationResult", hashMapData.size());
+            
+            // Create a minimal ConceptExplanationResult from available data
+            ConceptExplanationResult.ConceptExplanationResultBuilder builder = ConceptExplanationResult.builder();
+            
+            // Extract basic information if available
+            if (hashMapData.containsKey("overallQualityScore")) {
+                Object score = hashMapData.get("overallQualityScore");
+                if (score instanceof Number) {
+                    builder.overallQualityScore(((Number) score).doubleValue());
+                } else {
+                    builder.overallQualityScore(0.5); // Default quality score
+                }
+            } else {
+                builder.overallQualityScore(0.5); // Default quality score
+            }
+            
+            // Set default values for other fields
+            builder.totalTermsProcessed(0);
+            
+            // Add processing metadata indicating this was a converted result
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("convertedFromHashMap", true);
+            metadata.put("originalDataKeys", hashMapData.keySet().toString());
+            metadata.put("conversionTimestamp", Instant.now().toString());
+            metadata.put("fallbackReason", "Agent returned HashMap instead of ConceptExplanationResult");
+            builder.processingMetadata(metadata);
+            
+            ConceptExplanationResult result = builder.build();
+            
+            LoggingUtil.info(LOG, "convertHashMapToResult", 
+                "Successfully converted HashMap to ConceptExplanationResult with quality score: %f", 
+                result.getOverallQualityScore());
+            
+            return result;
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "convertHashMapToResult", 
+                "Failed to convert HashMap to ConceptExplanationResult: %s", e.getMessage());
+            throw new RuntimeException("Failed to convert HashMap result to ConceptExplanationResult: " + e.getMessage(), e);
         }
     }
 

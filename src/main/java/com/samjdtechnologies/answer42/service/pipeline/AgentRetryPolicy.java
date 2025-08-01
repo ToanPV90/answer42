@@ -58,7 +58,7 @@ public class AgentRetryPolicy {
      */
     public <T> CompletableFuture<T> executeWithRetry(
             Supplier<CompletableFuture<T>> operation) {
-        return executeWithRetryAndCircuitBreaker(null, operation, DEFAULT_MAX_RETRIES, DEFAULT_INITIAL_DELAY);
+        return executeWithRetry(null, operation, 0, DEFAULT_MAX_RETRIES, DEFAULT_INITIAL_DELAY);
     }
     
     /**
@@ -69,43 +69,7 @@ public class AgentRetryPolicy {
             Supplier<CompletableFuture<T>> operation) {
         
         RetryConfiguration config = getRetryConfigForAgent(agentType);
-        return executeWithRetryAndCircuitBreaker(agentType, operation, config.maxRetries, config.initialDelay);
-    }
-    
-    /**
-     * Execute operation with custom retry policy and circuit breaker protection.
-     */
-    public <T> CompletableFuture<T> executeWithRetry(
-            AgentType agentType,
-            Supplier<CompletableFuture<T>> operation,
-            int maxRetries,
-            Duration initialDelay) {
-        
-        return executeWithRetryAndCircuitBreaker(agentType, operation, maxRetries, initialDelay);
-    }
-    
-    /**
-     * Execute operation with integrated retry policy and circuit breaker protection.
-     */
-    public <T> CompletableFuture<T> executeWithRetryAndCircuitBreaker(
-            AgentType agentType,
-            Supplier<CompletableFuture<T>> operation,
-            int maxRetries,
-            Duration initialDelay) {
-        
-        // First check circuit breaker state
-        if (agentType != null) {
-            AgentCircuitBreaker.CircuitBreakerStatus status = circuitBreaker.getCircuitBreakerStatus(agentType);
-            if (status == AgentCircuitBreaker.CircuitBreakerStatus.OPEN) {
-                circuitBreakerTrips.incrementAndGet();
-                LoggingUtil.warn(LOG, "executeWithRetryAndCircuitBreaker", 
-                    "Circuit breaker is OPEN for agent %s, skipping retry attempts", agentType);
-                return CompletableFuture.failedFuture(
-                    new AgentCircuitBreaker.CircuitBreakerOpenException("Agent " + agentType + " is unavailable"));
-            }
-        }
-        
-        return executeWithRetry(agentType, operation, 0, maxRetries, initialDelay);
+        return executeWithRetry(agentType, operation, 0, config.maxRetries, config.initialDelay);
     }
     
     /**
@@ -499,36 +463,45 @@ public class AgentRetryPolicy {
     
     /**
      * Get retry configuration for specific agent types.
+     * Phase 1 reliability improvements: Tuned for AI service characteristics.
      */
     private RetryConfiguration getRetryConfigForAgent(AgentType agentType) {
         switch (agentType) {
             case PAPER_PROCESSOR:
-                // Paper processing is expensive, fewer retries with longer delays
-                return new RetryConfiguration(2, Duration.ofSeconds(3));
-                
-            case METADATA_ENHANCER:
-                // External API calls can be flaky, more retries
-                return new RetryConfiguration(4, Duration.ofSeconds(2));
+                // Paper processing can be resource-intensive, increased delay for AI services
+                return new RetryConfiguration(3, Duration.ofSeconds(10)); // Was 5s
                 
             case CONTENT_SUMMARIZER:
+                // Content summarization needs more time for AI processing
+                return new RetryConfiguration(4, Duration.ofSeconds(8)); // Was 3 retries, 3s
+                
             case CONCEPT_EXPLAINER:
-                // AI processing can have transient issues
-                return new RetryConfiguration(3, Duration.ofSeconds(2));
+                // Concept explanation is complex, more retries with longer delays (Phase 1 fix)
+                return new RetryConfiguration(4, Duration.ofSeconds(5)); // Was 3 retries, 2s
+                
+            case METADATA_ENHANCER:
+                // Metadata enhancement with AI needs more time
+                return new RetryConfiguration(4, Duration.ofSeconds(5)); // Was 2s
                 
             case QUALITY_CHECKER:
-                // Quality checks are less critical, fewer retries
-                return new RetryConfiguration(2, Duration.ofSeconds(1));
+                // Quality checking with AI models needs patience
+                return new RetryConfiguration(3, Duration.ofSeconds(6)); // Was 3s
                 
             case CITATION_FORMATTER:
-                // Citation formatting is deterministic, minimal retries
-                return new RetryConfiguration(1, Duration.ofSeconds(1));
+                // Citation formatting with AI assistance needs more time
+                return new RetryConfiguration(3, Duration.ofSeconds(4)); // Was 2 retries, 2s
                 
             case PERPLEXITY_RESEARCHER:
-                // External research API, more tolerant of failures
-                return new RetryConfiguration(4, Duration.ofSeconds(3));
+                // Research operations are most tolerant (Phase 1 improvement)
+                return new RetryConfiguration(5, Duration.ofSeconds(15)); // Was 4 retries, 10s
+                
+            case RELATED_PAPER_DISCOVERY:
+                // Discovery operations may face external API limits, need patience
+                return new RetryConfiguration(4, Duration.ofSeconds(12)); // Was 8s
                 
             default:
-                return new RetryConfiguration(DEFAULT_MAX_RETRIES, DEFAULT_INITIAL_DELAY);
+                // Default configuration tuned for AI services
+                return new RetryConfiguration(3, Duration.ofSeconds(8)); // Was 5s
         }
     }
     

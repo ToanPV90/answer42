@@ -309,6 +309,7 @@ public class AIConfig {
                 promptCostPer1K = 0.0005;     // $0.5/1M tokens
                 completionCostPer1K = 0.0015; // $1.5/1M tokens
                 break;
+            case "sonar":
             case "llama-3.1-sonar-small-128k-online":
                 promptCostPer1K = 0.0002;     // Perplexity pricing
                 completionCostPer1K = 0.0002;
@@ -513,7 +514,7 @@ public class AIConfig {
     @Bean
     public OpenAiChatModel perplexityChatModel(OpenAiApi perplexityApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
-                .model("llama-3.1-sonar-small-128k-online")  // Use Perplexity's model
+                .model("sonar")  // Use Perplexity's Sonar model
                 .maxTokens(perplexityMaxTokens)
                 .temperature(perplexityTemperature)
                 .build();

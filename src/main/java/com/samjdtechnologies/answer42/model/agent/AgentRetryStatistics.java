@@ -24,6 +24,12 @@ public class AgentRetryStatistics {
     private double overallSuccessRate;
     private double retrySuccessRate;
     
+    // Phase 5.2: Fallback metrics
+    private long fallbackAttempts;
+    private long fallbackSuccesses;
+    private double fallbackSuccessRate;
+    private String preferredFallbackModel;
+    
     @Override
     public String toString() {
         return String.format(

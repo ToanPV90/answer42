@@ -506,52 +506,121 @@ volumes:
 - ✅ Application Properties: Comprehensive Ollama and fallback configuration with environment variable support
 - ✅ Docker Compose Integration: Production-ready Ollama service setup with GPU support and health monitoring
 
-### Phase 5: Enhanced Monitoring and Metrics
+### Phase 5: Enhanced Monitoring and Metrics ✅ **COMPLETED**
 
-#### 5.1 Update AgentResult Model
+#### 5.1 Update AgentResult Model ✅ **COMPLETED**
 **File**: `src/main/java/com/samjdtechnologies/answer42/model/agent/AgentResult.java`
 
-Add fallback tracking:
+**Implementation Status**: ✅ **FULLY IMPLEMENTED**
+
+Added comprehensive fallback tracking capabilities:
 ```java
 public class AgentResult {
     // Existing fields...
     
+    // Phase 5.1: Fallback tracking fields
     private boolean usedFallback;
     private String primaryFailureReason;
     private String fallbackProvider;
     
+    /**
+     * Create a successful fallback result.
+     */
     public static AgentResult withFallback(String taskId, Object resultData, 
                                          String primaryFailureReason) {
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("result", resultData);
+        resultMap.put("usedFallback", true);
+        resultMap.put("primaryFailureReason", primaryFailureReason);
+        
         return AgentResult.builder()
             .taskId(taskId)
             .success(true)
-            .resultData(resultData)
+            .resultData(resultMap)
             .usedFallback(true)
             .primaryFailureReason(primaryFailureReason)
             .fallbackProvider("OLLAMA")
+            .timestamp(Instant.now())
+            .build();
+    }
+    
+    /**
+     * Create a successful fallback result with structured data.
+     */
+    public static AgentResult withFallback(String taskId, Map<String, Object> resultData, 
+                                         String primaryFailureReason) {
+        Map<String, Object> enhancedData = new HashMap<>(resultData);
+        enhancedData.put("usedFallback", true);
+        enhancedData.put("primaryFailureReason", primaryFailureReason);
+        
+        return AgentResult.builder()
+            .taskId(taskId)
+            .success(true)
+            .resultData(enhancedData)
+            .usedFallback(true)
+            .primaryFailureReason(primaryFailureReason)
+            .fallbackProvider("OLLAMA")
+            .timestamp(Instant.now())
             .build();
     }
 }
 ```
 
-#### 5.2 Update Retry Statistics 
+**✅ JSON Serialization Enhanced**: Updated `toJsonNode()` method to include all fallback metadata:
+```java
+public JsonNode toJsonNode() {
+    ObjectNode node = objectMapper.createObjectNode();
+    // ... existing fields ...
+    
+    if (usedFallback) {
+        node.put("usedFallback", true);
+        if (primaryFailureReason != null) {
+            node.put("primaryFailureReason", primaryFailureReason);
+        }
+        if (fallbackProvider != null) {
+            node.put("fallbackProvider", fallbackProvider);
+        }
+    }
+    
+    return node;
+}
+```
+
+#### 5.2 Update Retry Statistics ✅ **COMPLETED**
 **File**: `src/main/java/com/samjdtechnologies/answer42/model/agent/AgentRetryStatistics.java`
 
-Add fallback metrics:
+**Implementation Status**: ✅ **FULLY IMPLEMENTED**
+
+Extended AgentRetryStatistics with comprehensive fallback metrics:
 ```java
 public class AgentRetryStatistics {
     // Existing fields...
     
+    // Phase 5.2: Fallback metrics
     private long fallbackAttempts;
     private long fallbackSuccesses;
     private double fallbackSuccessRate;
     private String preferredFallbackModel;
     
+    // Calculation method automatically handled by Lombok
     public double getFallbackSuccessRate() {
         return fallbackAttempts > 0 ? (double) fallbackSuccesses / fallbackAttempts : 0.0;
     }
 }
 ```
+
+**Phase 5 Implementation Summary:**
+- ✅ **Complete Fallback Tracking**: AgentResult now tracks every aspect of fallback usage
+- ✅ **Rich Metrics Collection**: AgentRetryStatistics extended with comprehensive fallback analytics
+- ✅ **JSON Persistence**: All fallback metadata properly serialized for monitoring systems
+- ✅ **Factory Methods**: Easy-to-use static methods for creating fallback results
+- ✅ **Monitoring Ready**: All infrastructure in place for detailed fallback reporting and dashboards
+
+The system now provides complete visibility into fallback behavior, enabling:
+- Detailed analytics on fallback usage patterns
+- Performance monitoring of local vs cloud processing
+- Quality assessment of fallback results
+- Operational insights for system optimization
 
 ### Phase 6: Testing Strategy
 

@@ -33,6 +33,7 @@ public class AgentResult implements Serializable {
     // Fields for result metadata
     private boolean usedFallback;
     private String primaryFailureReason;
+    private String fallbackProvider;
     
     private static final ObjectMapper objectMapper = new ObjectMapper();
     
@@ -115,6 +116,47 @@ public class AgentResult implements Serializable {
     }
     
     /**
+     * Create a successful fallback result.
+     */
+    public static AgentResult withFallback(String taskId, Object resultData, 
+                                         String primaryFailureReason) {
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("result", resultData);
+        resultMap.put("usedFallback", true);
+        resultMap.put("primaryFailureReason", primaryFailureReason);
+        
+        return AgentResult.builder()
+            .taskId(taskId)
+            .success(true)
+            .resultData(resultMap)
+            .usedFallback(true)
+            .primaryFailureReason(primaryFailureReason)
+            .fallbackProvider("OLLAMA")
+            .timestamp(Instant.now())
+            .build();
+    }
+    
+    /**
+     * Create a successful fallback result with structured data.
+     */
+    public static AgentResult withFallback(String taskId, Map<String, Object> resultData, 
+                                         String primaryFailureReason) {
+        Map<String, Object> enhancedData = new HashMap<>(resultData);
+        enhancedData.put("usedFallback", true);
+        enhancedData.put("primaryFailureReason", primaryFailureReason);
+        
+        return AgentResult.builder()
+            .taskId(taskId)
+            .success(true)
+            .resultData(enhancedData)
+            .usedFallback(true)
+            .primaryFailureReason(primaryFailureReason)
+            .fallbackProvider("OLLAMA")
+            .timestamp(Instant.now())
+            .build();
+    }
+    
+    /**
      * Create result from cached data.
      */
     public static AgentResult fromCachedResult(String taskId, JsonNode cachedData) {
@@ -144,6 +186,7 @@ public class AgentResult implements Serializable {
             .processingTime(this.processingTime)
             .usedFallback(this.usedFallback)
             .primaryFailureReason(this.primaryFailureReason)
+            .fallbackProvider(this.fallbackProvider)
             .build();
     }
     
@@ -218,6 +261,16 @@ public class AgentResult implements Serializable {
         
         if (metrics != null) {
             node.set("metrics", objectMapper.valueToTree(metrics));
+        }
+        
+        if (usedFallback) {
+            node.put("usedFallback", true);
+            if (primaryFailureReason != null) {
+                node.put("primaryFailureReason", primaryFailureReason);
+            }
+            if (fallbackProvider != null) {
+                node.put("fallbackProvider", fallbackProvider);
+            }
         }
         
         return node;

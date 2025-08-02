@@ -31,11 +31,24 @@ public class RetryMetrics {
     @Builder.Default
     private final AtomicLong failedOperations = new AtomicLong(0);
     
+    // Fallback tracking (Phase 3)
+    @Builder.Default
+    private final AtomicLong fallbackAttempts = new AtomicLong(0);
+    
+    @Builder.Default
+    private final AtomicLong fallbackSuccesses = new AtomicLong(0);
+    
+    @Builder.Default
+    private final AtomicLong fallbackFailures = new AtomicLong(0);
+    
     public void reset() {
         totalAttempts.set(0);
         totalRetries.set(0);
         successfulOperations.set(0);
         successfulRetries.set(0);
         failedOperations.set(0);
+        fallbackAttempts.set(0);
+        fallbackSuccesses.set(0);
+        fallbackFailures.set(0);
     }
 }

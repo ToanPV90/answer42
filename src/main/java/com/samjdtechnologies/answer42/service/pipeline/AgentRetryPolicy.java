@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
@@ -15,11 +16,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
+import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.agent.AgentRetryStatistics;
 import com.samjdtechnologies.answer42.model.agent.RetryMetrics;
 import com.samjdtechnologies.answer42.model.agent.RetryStatistics;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.model.interfaces.AIAgent;
+import com.samjdtechnologies.answer42.service.agent.FallbackAgentFactory;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
@@ -38,6 +46,7 @@ public class AgentRetryPolicy {
     
     private final Executor taskExecutor;
     private final AgentCircuitBreaker circuitBreaker;
+    private final FallbackAgentFactory fallbackAgentFactory;
     
     // Statistics tracking
     private final AtomicLong totalAttempts = new AtomicLong(0);
@@ -46,12 +55,24 @@ public class AgentRetryPolicy {
     private final AtomicLong successfulRetries = new AtomicLong(0);
     private final AtomicLong failedOperations = new AtomicLong(0);
     private final AtomicLong circuitBreakerTrips = new AtomicLong(0);
+    
+    // Fallback tracking statistics (Phase 3)
+    private final AtomicLong fallbackAttempts = new AtomicLong(0);
+    private final AtomicLong fallbackSuccesses = new AtomicLong(0);
+    private final AtomicLong fallbackFailures = new AtomicLong(0);
+    
     private final Map<AgentType, RetryMetrics> agentMetrics = new ConcurrentHashMap<>();
     private final ZonedDateTime startTime = ZonedDateTime.now();
     
-    public AgentRetryPolicy(ThreadConfig threadConfig, AgentCircuitBreaker circuitBreaker) {
+    public AgentRetryPolicy(ThreadConfig threadConfig, AgentCircuitBreaker circuitBreaker,
+                           FallbackAgentFactory fallbackAgentFactory) {
         this.taskExecutor = threadConfig.taskExecutor();
         this.circuitBreaker = circuitBreaker;
+        this.fallbackAgentFactory = fallbackAgentFactory;
+        
+        LoggingUtil.info(LOG, "constructor", 
+            "AgentRetryPolicy initialized with fallback support: %s", 
+            fallbackAgentFactory != null ? "enabled" : "disabled");
     }
     
     /**
@@ -114,8 +135,26 @@ public class AgentRetryPolicy {
                 
                 if (attemptNumber >= maxRetries || !isRetryableException(throwable)) {
                     LoggingUtil.warn(LOG, "executeWithRetry", 
-                        "Operation failed after %d attempts, not retrying: %s", 
+                        "Operation failed after %d attempts, checking fallback availability: %s", 
                         attemptNumber + 1, throwable.getMessage());
+                    
+                    // If all retries exhausted and fallback available, try Ollama
+                    if (agentType != null && isFallbackAvailable(agentType)) {
+                        LoggingUtil.info(LOG, "executeWithRetry", 
+                            "Attempting Ollama fallback for agent %s after %d failed attempts", 
+                            agentType, attemptNumber + 1);
+                        
+                        try {
+                            T fallbackResult = attemptOllamaFallback(agentType, throwable);
+                            recordFallbackSuccess(agentType);
+                            return CompletableFuture.completedFuture(fallbackResult);
+                        } catch (Exception fallbackException) {
+                            recordFallbackFailure(agentType, fallbackException);
+                            LoggingUtil.error(LOG, "executeWithRetry", 
+                                "Ollama fallback also failed for agent %s: %s", agentType, fallbackException.getMessage());
+                            // Continue to record final failure and return error
+                        }
+                    }
                     
                     // Record final failure
                     recordFailure(agentType);
@@ -154,22 +193,44 @@ public class AgentRetryPolicy {
     }
     
     /**
-     * Record successful operation outcome (FIXED VERSION).
+     * Create a fallback task with context about the primary failure.
      */
-    private void recordSuccess(AgentType agentType, boolean wasRetry) {
-        // Count ALL successful operations
-        successfulOperations.incrementAndGet();
+    private AgentTask createFallbackTask(AgentType agentType, Throwable primaryFailure) {
+        String fallbackTaskId = "fallback-" + System.currentTimeMillis();
         
-        if (wasRetry) {
-            successfulRetries.incrementAndGet(); // Keep retry-specific metrics
+        // Create input JSON with fallback context
+        ObjectNode inputJson = JsonNodeFactory.instance.objectNode();
+        inputJson.put("content", "Fallback processing due to primary agent failure: " + primaryFailure.getMessage());
+        inputJson.put("isFallback", true);
+        inputJson.put("primaryFailure", primaryFailure.getMessage());
+        inputJson.put("fallbackReason", "All cloud providers failed");
+        inputJson.put("agentType", agentType.toString());
+        
+        return AgentTask.builder()
+            .id(fallbackTaskId)
+            .agentId(agentType.toString().toLowerCase().replace("_", "-"))
+            .userId(java.util.UUID.randomUUID()) // Fallback user ID - in real implementation would use actual user
+            .input(inputJson)
+            .status("pending")
+            .createdAt(java.time.Instant.now())
+            .build();
+    }
+    
+    /**
+     * Record successful operation outcome.
+     */
+    private void recordSuccess(AgentType agentType, boolean isRetry) {
+        successfulOperations.incrementAndGet();
+        if (isRetry) {
+            successfulRetries.incrementAndGet();
         }
         
         if (agentType != null) {
             RetryMetrics metrics = agentMetrics.get(agentType);
             if (metrics != null) {
-                metrics.getSuccessfulOperations().incrementAndGet(); // NEW: All success tracking
-                if (wasRetry) {
-                    metrics.getSuccessfulRetries().incrementAndGet(); // Retry success tracking
+                metrics.getSuccessfulOperations().incrementAndGet();
+                if (isRetry) {
+                    metrics.getSuccessfulRetries().incrementAndGet();
                 }
             }
         }
@@ -274,6 +335,117 @@ public class AgentRetryPolicy {
     }
     
     /**
+     * Check if fallback is available for the specified agent type.
+     * Phase 3: Fallback integration logic.
+     */
+    private boolean isFallbackAvailable(AgentType agentType) {
+        boolean available = fallbackAgentFactory != null && fallbackAgentFactory.hasFallbackFor(agentType);
+        
+        LoggingUtil.debug(LOG, "isFallbackAvailable", 
+            "Fallback availability for %s: %s", agentType, available);
+        
+        return available;
+    }
+    
+    /**
+     * Attempts to use Ollama fallback agent for the operation.
+     * Phase 3: Core fallback execution logic.
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T attemptOllamaFallback(AgentType agentType, Throwable primaryFailure) {
+        fallbackAttempts.incrementAndGet();
+        
+        try {
+            AIAgent fallbackAgent = fallbackAgentFactory.getFallbackAgent(agentType);
+            if (fallbackAgent == null) {
+                throw new RuntimeException("No fallback agent available for " + agentType);
+            }
+            
+            LoggingUtil.info(LOG, "attemptOllamaFallback", 
+                "Executing fallback agent %s for %s", 
+                fallbackAgent.getClass().getSimpleName(), agentType);
+            
+            // Create a fallback task with the primary failure context
+            AgentTask fallbackTask = createFallbackTask(agentType, primaryFailure);
+            
+            // Execute the fallback agent
+            AgentResult fallbackResult = fallbackAgent.process(fallbackTask).get();
+            
+            if (fallbackResult.isSuccess()) {
+                LoggingUtil.info(LOG, "attemptOllamaFallback", 
+                    "Ollama fallback successful for %s", agentType);
+                return (T) fallbackResult;
+            } else {
+                throw new RuntimeException("Fallback agent processing failed: " + fallbackResult.getErrorMessage());
+            }
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "attemptOllamaFallback", 
+                "Failed to execute Ollama fallback for %s: %s", agentType, e.getMessage());
+            throw new RuntimeException("Ollama fallback failed for " + agentType, e);
+        }
+    }
+    
+    
+    /**
+     * Record successful fallback operation.
+     */
+    private void recordFallbackSuccess(AgentType agentType) {
+        fallbackSuccesses.incrementAndGet();
+        
+        if (agentType != null) {
+            RetryMetrics metrics = agentMetrics.get(agentType);
+            if (metrics != null) {
+                metrics.getFallbackSuccesses().incrementAndGet();
+            }
+        }
+        
+        LoggingUtil.info(LOG, "recordFallbackSuccess", 
+            "Recorded fallback success for %s", agentType);
+    }
+    
+    /**
+     * Record failed fallback operation.
+     */
+    private void recordFallbackFailure(AgentType agentType, Exception fallbackException) {
+        fallbackFailures.incrementAndGet();
+        
+        if (agentType != null) {
+            RetryMetrics metrics = agentMetrics.get(agentType);
+            if (metrics != null) {
+                metrics.getFallbackFailures().incrementAndGet();
+            }
+        }
+        
+        LoggingUtil.warn(LOG, "recordFallbackFailure", 
+            "Recorded fallback failure for %s: %s", agentType, fallbackException.getMessage());
+    }
+    
+    /**
+     * Get fallback statistics for monitoring.
+     */
+    public java.util.Map<String, Object> getFallbackStatistics() {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        
+        long attempts = fallbackAttempts.get();
+        long successes = fallbackSuccesses.get();
+        long failures = fallbackFailures.get();
+        
+        stats.put("fallbackAttempts", attempts);
+        stats.put("fallbackSuccesses", successes);
+        stats.put("fallbackFailures", failures);
+        stats.put("fallbackSuccessRate", attempts > 0 ? (double) successes / attempts : 0.0);
+        stats.put("fallbackEnabled", fallbackAgentFactory != null);
+        
+        if (fallbackAgentFactory != null) {
+            stats.put("availableFallbackAgents", fallbackAgentFactory.getFallbackCount());
+            stats.put("fallbackSystemInfo", fallbackAgentFactory.getFallbackSystemInfo());
+        }
+        
+        return stats;
+    }
+    
+    /**
      * Reset statistics (for testing or periodic cleanup).
      */
     public void resetStatistics() {
@@ -283,9 +455,15 @@ public class AgentRetryPolicy {
         successfulRetries.set(0);
         failedOperations.set(0);
         circuitBreakerTrips.set(0);
+        
+        // Reset fallback statistics
+        fallbackAttempts.set(0);
+        fallbackSuccesses.set(0);
+        fallbackFailures.set(0);
+        
         agentMetrics.values().forEach(RetryMetrics::reset);
         
-        LoggingUtil.info(LOG, "resetStatistics", "Reset all retry statistics");
+        LoggingUtil.info(LOG, "resetStatistics", "Reset all retry and fallback statistics");
     }
     
     /**

@@ -42,6 +42,7 @@ public class AgentRetryPolicy {
     // Statistics tracking
     private final AtomicLong totalAttempts = new AtomicLong(0);
     private final AtomicLong totalRetries = new AtomicLong(0);
+    private final AtomicLong successfulOperations = new AtomicLong(0);
     private final AtomicLong successfulRetries = new AtomicLong(0);
     private final AtomicLong failedOperations = new AtomicLong(0);
     private final AtomicLong circuitBreakerTrips = new AtomicLong(0);
@@ -153,16 +154,22 @@ public class AgentRetryPolicy {
     }
     
     /**
-     * Record successful retry outcome.
+     * Record successful operation outcome (FIXED VERSION).
      */
     private void recordSuccess(AgentType agentType, boolean wasRetry) {
+        // Count ALL successful operations
+        successfulOperations.incrementAndGet();
+        
         if (wasRetry) {
-            successfulRetries.incrementAndGet();
-            
-            if (agentType != null) {
-                RetryMetrics metrics = agentMetrics.get(agentType);
-                if (metrics != null) {
-                    metrics.getSuccessfulRetries().incrementAndGet();
+            successfulRetries.incrementAndGet(); // Keep retry-specific metrics
+        }
+        
+        if (agentType != null) {
+            RetryMetrics metrics = agentMetrics.get(agentType);
+            if (metrics != null) {
+                metrics.getSuccessfulOperations().incrementAndGet(); // NEW: All success tracking
+                if (wasRetry) {
+                    metrics.getSuccessfulRetries().incrementAndGet(); // Retry success tracking
                 }
             }
         }
@@ -183,26 +190,32 @@ public class AgentRetryPolicy {
     }
     
     /**
-     * Get comprehensive retry statistics for monitoring.
+     * Get comprehensive retry statistics for monitoring (FIXED VERSION).
      */
     public RetryStatistics getRetryStatistics() {
-        long total = totalRetries.get();
-        long successful = successfulRetries.get();
-        double successRate = total > 0 ? (double) successful / total : 0.0;
+        long totalOps = totalAttempts.get();
+        long successfulOps = successfulOperations.get();
+        long totalRetries = this.totalRetries.get();
+        long successfulRetries = this.successfulRetries.get();
+        
+        double overallSuccessRate = totalOps > 0 ? (double) successfulOps / totalOps : 0.0;
+        double retrySuccessRate = totalRetries > 0 ? (double) successfulRetries / totalRetries : 0.0;
         
         return RetryStatistics.builder()
-            .totalAttempts(totalAttempts.get())
-            .totalRetries(total)
-            .successfulRetries(successful)
+            .totalAttempts(totalOps)
+            .totalRetries(totalRetries)
+            .successfulOperations(successfulOps)
+            .successfulRetries(successfulRetries)
             .failedOperations(failedOperations.get())
-            .successRate(successRate)
+            .overallSuccessRate(overallSuccessRate)
+            .retrySuccessRate(retrySuccessRate)
             .uptime(Duration.between(startTime, ZonedDateTime.now()))
             .trackedAgents(agentMetrics.size())
             .build();
     }
     
     /**
-     * Get retry statistics for a specific agent type.
+     * Get retry statistics for a specific agent type (FIXED VERSION).
      */
     public AgentRetryStatistics getAgentRetryStatistics(AgentType agentType) {
         RetryMetrics metrics = agentMetrics.get(agentType);
@@ -211,21 +224,29 @@ public class AgentRetryPolicy {
                 .agentType(agentType)
                 .totalAttempts(0)
                 .totalRetries(0)
+                .successfulOperations(0)
                 .successfulRetries(0)
-                .successRate(0.0)
+                .overallSuccessRate(0.0)
+                .retrySuccessRate(0.0)
                 .build();
         }
         
-        long total = metrics.getTotalRetries().get();
-        long successful = metrics.getSuccessfulRetries().get();
-        double successRate = total > 0 ? (double) successful / total : 0.0;
+        long totalOps = metrics.getTotalAttempts().get();
+        long successfulOps = metrics.getSuccessfulOperations().get();
+        long totalRetries = metrics.getTotalRetries().get();
+        long successfulRetries = metrics.getSuccessfulRetries().get();
+        
+        double overallSuccessRate = totalOps > 0 ? (double) successfulOps / totalOps : 0.0;
+        double retrySuccessRate = totalRetries > 0 ? (double) successfulRetries / totalRetries : 0.0;
         
         return AgentRetryStatistics.builder()
             .agentType(agentType)
-            .totalAttempts(metrics.getTotalAttempts().get())
-            .totalRetries(total)
-            .successfulRetries(successful)
-            .successRate(successRate)
+            .totalAttempts(totalOps)
+            .totalRetries(totalRetries)
+            .successfulOperations(successfulOps)
+            .successfulRetries(successfulRetries)
+            .overallSuccessRate(overallSuccessRate)
+            .retrySuccessRate(retrySuccessRate)
             .build();
     }
     
@@ -258,6 +279,7 @@ public class AgentRetryPolicy {
     public void resetStatistics() {
         totalAttempts.set(0);
         totalRetries.set(0);
+        successfulOperations.set(0);
         successfulRetries.set(0);
         failedOperations.set(0);
         circuitBreakerTrips.set(0);
@@ -267,27 +289,35 @@ public class AgentRetryPolicy {
     }
     
     /**
-     * Scheduled task to log statistics periodically.
+     * Scheduled task to log statistics periodically (FIXED VERSION).
      */
     @Scheduled(fixedRate = 300000) // Every 5 minutes
     public void logStatistics() {
         RetryStatistics stats = getRetryStatistics();
         
         LoggingUtil.info(LOG, "logStatistics", 
-            "Retry Statistics - Total Attempts: %d, Total Retries: %d, Successful Retries: %d, Success Rate: %.2f%%, Failed Operations: %d, Circuit Breaker Trips: %d",
-            stats.getTotalAttempts(), stats.getTotalRetries(), stats.getSuccessfulRetries(), 
-            stats.getSuccessRate() * 100, stats.getFailedOperations(), circuitBreakerTrips.get());
+            "FIXED Statistics - Total Attempts: %d, Successful Operations: %d, Overall Success Rate: %.2f%%, Retry-Only Success Rate: %.2f%%, Failed Operations: %d, Circuit Breaker Trips: %d",
+            stats.getTotalAttempts(), 
+            stats.getSuccessfulOperations(),
+            stats.getOverallSuccessRate() * 100,
+            stats.getRetrySuccessRate() * 100,
+            stats.getFailedOperations(), 
+            circuitBreakerTrips.get());
         
         // Log per-agent statistics if there are any
         if (!agentMetrics.isEmpty()) {
-            LoggingUtil.info(LOG, "logStatistics", "Per-agent retry statistics:");
+            LoggingUtil.info(LOG, "logStatistics", "FIXED Per-agent statistics:");
             for (AgentType agentType : agentMetrics.keySet()) {
                 AgentRetryStatistics agentStats = getAgentRetryStatistics(agentType);
                 AgentCircuitBreaker.CircuitBreakerStatus cbStatus = getCircuitBreakerStatus(agentType);
                 LoggingUtil.info(LOG, "logStatistics", 
-                    "  %s - Attempts: %d, Retries: %d, Success Rate: %.2f%%, Circuit Breaker: %s",
-                    agentType, agentStats.getTotalAttempts(), agentStats.getTotalRetries(), 
-                    agentStats.getSuccessRate() * 100, cbStatus);
+                    "  %s - Attempts: %d, Successful Ops: %d, Overall Success: %.2f%%, Retry Success: %.2f%%, Circuit Breaker: %s",
+                    agentType, 
+                    agentStats.getTotalAttempts(),
+                    agentStats.getSuccessfulOperations(),
+                    agentStats.getOverallSuccessRate() * 100,
+                    agentStats.getRetrySuccessRate() * 100,
+                    cbStatus);
             }
         }
     }

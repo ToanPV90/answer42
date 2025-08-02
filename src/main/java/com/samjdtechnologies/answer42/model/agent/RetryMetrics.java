@@ -23,6 +23,9 @@ public class RetryMetrics {
     private final AtomicLong totalRetries = new AtomicLong(0);
     
     @Builder.Default
+    private final AtomicLong successfulOperations = new AtomicLong(0);
+    
+    @Builder.Default
     private final AtomicLong successfulRetries = new AtomicLong(0);
     
     @Builder.Default
@@ -31,6 +34,7 @@ public class RetryMetrics {
     public void reset() {
         totalAttempts.set(0);
         totalRetries.set(0);
+        successfulOperations.set(0);
         successfulRetries.set(0);
         failedOperations.set(0);
     }

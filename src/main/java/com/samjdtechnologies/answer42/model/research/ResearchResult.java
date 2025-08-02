@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.model.research;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResearchResult {
+public class ResearchResult implements Serializable {
+    private static final long serialVersionUID = 1L;
     
     private String queryId;
     private ResearchQuery.ResearchType queryType;

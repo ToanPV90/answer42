@@ -80,6 +80,9 @@ public class AIConfig {
     @Value("${spring.ai.token-logging.enabled:true}")
     private boolean tokenLoggingEnabled;
     
+    @Value("${spring.ai.perplexity.chat.options.model:llama-3.1-sonar-small-128k-online}")
+    private String perplexityModel;
+    
     private final UserPreferencesService userPreferencesService;
     
     // Current user-specific API keys (cached after login)
@@ -514,7 +517,7 @@ public class AIConfig {
     @Bean
     public OpenAiChatModel perplexityChatModel(OpenAiApi perplexityApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
-                .model("sonar")  // Use Perplexity's Sonar model
+                .model(perplexityModel)  // Use configured Perplexity model
                 .maxTokens(perplexityMaxTokens)
                 .temperature(perplexityTemperature)
                 .build();

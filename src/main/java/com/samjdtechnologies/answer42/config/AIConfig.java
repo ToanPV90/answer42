@@ -9,6 +9,9 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.model.tool.DefaultToolCallingManager;
 import org.springframework.ai.model.tool.ToolCallingManager;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
@@ -17,6 +20,7 @@ import org.springframework.ai.tool.execution.DefaultToolExecutionExceptionProces
 import org.springframework.ai.tool.execution.ToolExecutionExceptionProcessor;
 import org.springframework.ai.tool.resolution.ToolCallbackResolver;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -82,6 +86,18 @@ public class AIConfig {
     
     @Value("${spring.ai.perplexity.chat.options.model:llama-3.1-sonar-small-128k-online}")
     private String perplexityModel;
+    
+    @Value("${spring.ai.ollama.base-url:http://localhost:11434}")
+    private String ollamaBaseUrl;
+    
+    @Value("${spring.ai.ollama.chat.options.model:llama2}")
+    private String ollamaModel;
+    
+    @Value("${spring.ai.ollama.chat.options.max-tokens:4000}")
+    private int ollamaMaxTokens;
+    
+    @Value("${spring.ai.ollama.chat.options.temperature:0.7}")
+    private double ollamaTemperature;
     
     private final UserPreferencesService userPreferencesService;
     
@@ -572,5 +588,53 @@ public class AIConfig {
     @Bean
     public ChatClient openAiChatClient(OpenAiChatModel openAiChatModel) {
         return ChatClient.builder(openAiChatModel).build();
+    }
+    
+    /**
+     * Creates an Ollama API client for local model processing.
+     * This bean is conditionally created only when Ollama is enabled.
+     * 
+     * @return An OllamaApi client configured with the specified base URL
+     */
+    @Bean
+    @ConditionalOnProperty(name = "spring.ai.ollama.enabled", havingValue = "true", matchIfMissing = false)
+    public OllamaApi ollamaApi() {
+        return OllamaApi.builder()
+            .baseUrl(ollamaBaseUrl)
+            .build();
+    }
+    
+    /**
+     * Creates and configures an Ollama chat model for local fallback processing.
+     * This bean is conditionally created only when Ollama is enabled.
+     * 
+     * @param ollamaApi The Ollama API client
+     * @return A configured OllamaChatModel for local processing
+     */
+    @Bean
+    @ConditionalOnProperty(name = "spring.ai.ollama.enabled", havingValue = "true", matchIfMissing = false)
+    public OllamaChatModel ollamaChatModel(OllamaApi ollamaApi) {
+        OllamaOptions options = OllamaOptions.builder()
+            .model(ollamaModel)
+            .temperature(ollamaTemperature)
+            .build();
+        
+        return OllamaChatModel.builder()
+            .ollamaApi(ollamaApi)
+            .defaultOptions(options)
+            .build();
+    }
+    
+    /**
+     * Creates a chat client using the Ollama chat model for local fallback.
+     * This bean is conditionally created only when Ollama is enabled.
+     * 
+     * @param ollamaChatModel The configured Ollama chat model
+     * @return A ChatClient that uses the Ollama model for local conversations
+     */
+    @Bean
+    @ConditionalOnProperty(name = "spring.ai.ollama.enabled", havingValue = "true", matchIfMissing = false)
+    public ChatClient ollamaChatClient(OllamaChatModel ollamaChatModel) {
+        return ChatClient.builder(ollamaChatModel).build();
     }
 }

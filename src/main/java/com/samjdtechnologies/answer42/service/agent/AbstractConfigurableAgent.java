@@ -206,7 +206,7 @@ public abstract class AbstractConfigurableAgent implements AIAgent {
     public String getRetryStatistics() {
         var stats = retryPolicy.getAgentRetryStatistics(getAgentType());
         return String.format("Attempts: %d, Retries: %d, Success Rate: %.2f%%", 
-            stats.getTotalAttempts(), stats.getTotalRetries(), stats.getSuccessRate() * 100);
+            stats.getTotalAttempts(), stats.getTotalRetries(), stats.getOverallSuccessRate() * 100);
     }
 
     /**

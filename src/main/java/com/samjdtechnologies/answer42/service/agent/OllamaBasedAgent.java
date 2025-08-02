@@ -28,7 +28,6 @@ import com.samjdtechnologies.answer42.util.LoggingUtil;
  * - Integration with existing retry policies and rate limiting
  */
 public abstract class OllamaBasedAgent extends AbstractConfigurableAgent {
-    private static final Logger LOG = LoggerFactory.getLogger(OllamaBasedAgent.class);
     
     /**
      * Maximum content length for local processing to prevent resource exhaustion.

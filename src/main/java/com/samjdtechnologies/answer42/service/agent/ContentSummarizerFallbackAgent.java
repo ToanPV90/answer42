@@ -18,7 +18,6 @@ import com.samjdtechnologies.answer42.model.agent.SummaryResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.agent.SummaryConfig;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
-import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
@@ -46,8 +45,8 @@ public class ContentSummarizerFallbackAgent extends OllamaBasedAgent {
     );
     
     public ContentSummarizerFallbackAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
-                                        AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
-        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
+                                         APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, rateLimiter);
     }
     
     @Override

@@ -2,8 +2,6 @@ package com.samjdtechnologies.answer42.service.agent;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -14,7 +12,6 @@ import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
-import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
@@ -40,18 +37,18 @@ public abstract class OllamaBasedAgent extends AbstractConfigurableAgent {
 
     /**
      * Creates a new Ollama-based agent with the provided configuration.
+     * Fallback agents don't use retry policy to avoid circular dependencies.
      * 
      * @param aiConfig The AI configuration containing Ollama client setup
      * @param threadConfig Thread pool configuration for async processing
-     * @param retryPolicy Retry policy for handling failures
      * @param rateLimiter Rate limiter for controlling request frequency
      */
     protected OllamaBasedAgent(AIConfig aiConfig, ThreadConfig threadConfig,
-                              AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
-        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
+                              APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, null, rateLimiter);
         
         LoggingUtil.info(LOG, "OllamaBasedAgent", 
-            "Initialized Ollama-based fallback agent %s", getAgentType());
+            "Initialized Ollama-based fallback agent %s (no retry policy - fallback only)", getAgentType());
     }
     
     @Override

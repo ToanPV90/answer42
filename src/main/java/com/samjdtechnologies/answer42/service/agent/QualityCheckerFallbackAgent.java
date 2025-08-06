@@ -17,7 +17,6 @@ import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
-import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
@@ -53,9 +52,9 @@ public class QualityCheckerFallbackAgent extends OllamaBasedAgent {
         "maximumSections", 20
     );
     
-    public QualityCheckerFallbackAgent(AIConfig aiConfig, ThreadConfig threadConfig,
-                                     AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
-        super(aiConfig, threadConfig, retryPolicy, rateLimiter);
+    public QualityCheckerFallbackAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
+                                      APIRateLimiter rateLimiter) {
+        super(aiConfig, threadConfig, rateLimiter);
     }
     
     @Override

@@ -1,0 +1,202 @@
+{
+  "name": "plan-creator",
+  "version": "1.0.0",
+  "description": "Transform design.md documents into detailed, actionable implementation plans following the AI-TDD methodology",
+  "purpose": "Transform design.md documents into detailed, actionable implementation plans following the AI-TDD methodology",
+  "capabilities": [
+    "Parse technical design specifications",
+    "Create numbered, sequential implementation steps",
+    "Define clear task boundaries",
+    "Assign effort estimates",
+    "Include verification criteria for each step",
+    "Track implementation progress",
+    "Ensure all generated documents stay under 300 lines"
+  ],
+  "file_size_management": {
+    "max_lines": 300,
+    "enforcement": "STRICT",
+    "splitting_strategies": [
+      "Split large plans into phases (plan-phase1.md, plan-phase2.md, plan-phase3.md)",
+      "Create separate files for different implementation phases",
+      "Keep main plan.md concise with references to detailed phase documents",
+      "Focus on overview and current phase in main document"
+    ],
+    "document_organization": [
+      "Overview & Current Phase -> plan.md",
+      "Phase 1 Details -> plan-phase1.md",
+      "Phase 2 Details -> plan-phase2.md",
+      "Phase 3 Details -> plan-phase3.md",
+      "Always maintain main plan.md as coordination hub"
+    ]
+  },
+  "workflow": [
+    {
+      "step": 1,
+      "action": "analyze_design_document",
+      "description": "Analyze design.md for components and dependencies"
+    },
+    {
+      "step": 2,
+      "action": "break_down_tasks",
+      "description": "Break down implementation into atomic tasks"
+    },
+    {
+      "step": 3,
+      "action": "order_by_dependencies",
+      "description": "Order tasks by dependencies and logical flow"
+    },
+    {
+      "step": 4,
+      "action": "add_verification_steps",
+      "description": "Add verification steps after each implementation"
+    },
+    {
+      "step": 5,
+      "action": "generate_implementation_plan",
+      "description": "Generate comprehensive plan.md with status tracking"
+    }
+  ],
+  "commands": [
+    {
+      "name": "create_implementation_plan",
+      "description": "Create implementation plan from design",
+      "parameters": {
+        "design_file": {
+          "type": "string",
+          "required": true,
+          "default": "./ai-tdd-docs/[feature-name]/design.md",
+          "description": "Path to the design.md file to transform (in feature-specific folder)"
+        },
+        "output_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/plan.md",
+          "description": "Path where the plan document should be created (in feature-specific folder)"
+        }
+      }
+    },
+    {
+      "name": "generate_step_by_step_plan",
+      "description": "Generate step-by-step plan for design file",
+      "parameters": {
+        "design_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to the design file to process"
+        },
+        "team_size": {
+          "type": "integer",
+          "required": false,
+          "default": 1,
+          "description": "Number of developers working on the implementation"
+        },
+        "timeline": {
+          "type": "string",
+          "required": false,
+          "description": "Target timeline for completion (e.g., '2 weeks', '1 month')"
+        }
+      }
+    },
+    {
+      "name": "transform_design_to_tasks",
+      "description": "Transform design into actionable tasks",
+      "parameters": {
+        "feature_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the feature being planned"
+        },
+        "complexity": {
+          "type": "string",
+          "required": false,
+          "enum": ["low", "medium", "high"],
+          "default": "medium",
+          "description": "Expected complexity level of the implementation"
+        }
+      }
+    }
+  ],
+  "template": {
+    "sections": [
+      "Implementation Plan: [Feature Name]",
+      "Overview",
+      "Pre-Implementation Checklist",
+      "Implementation Steps",
+      "Testing Phase",
+      "Quality Gates",
+      "Post-Implementation"
+    ],
+    "step_structure": {
+      "status": "[ ] Not Started / [ ] In Progress / [ ] Complete",
+      "effort": "Estimated hours or story points",
+      "description": "Detailed task description",
+      "actions": "Specific action items",
+      "verification": "Verification criteria and tests"
+    }
+  },
+  "execution": {
+    "input_format": "markdown",
+    "input_file": "design.md",
+    "output_format": "markdown",
+    "output_file": "plan.md",
+    "quality_checks": [
+      "All tasks are actionable and specific",
+      "Dependencies are properly sequenced",
+      "Effort estimates are realistic",
+      "Verification criteria are clear",
+      "Progress tracking is enabled"
+    ]
+  },
+  "planning_principles": {
+    "task_breakdown": [
+      "Keep tasks under 4-8 hours each",
+      "Ensure tasks are testable",
+      "Make dependencies explicit",
+      "Include integration points"
+    ],
+    "verification_types": [
+      "Unit tests pass",
+      "Code compiles without warnings",
+      "Follows coding standards",
+      "Integration tests pass",
+      "Performance requirements met"
+    ],
+    "status_tracking": [
+      "Not Started",
+      "In Progress", 
+      "Complete",
+      "Blocked",
+      "Review Required"
+    ]
+  },
+  "effort_estimation": {
+    "factors": [
+      "Code complexity",
+      "Integration requirements",
+      "Testing needs",
+      "Documentation requirements",
+      "Review and refactoring time"
+    ],
+    "guidelines": {
+      "simple_crud": "2-4 hours",
+      "api_endpoint": "4-6 hours", 
+      "ui_component": "3-5 hours",
+      "integration": "6-8 hours",
+      "complex_algorithm": "8-12 hours"
+    }
+  },
+  "quality_gates": {
+    "development": [
+      "All unit tests pass",
+      "Code coverage > 80%",
+      "Static analysis clean",
+      "Code review complete"
+    ],
+    "integration": [
+      "Integration tests pass",
+      "Performance benchmarks met",
+      "Security scan clean",
+      "Documentation updated"
+    ]
+  }
+}

@@ -1,0 +1,292 @@
+{
+  "name": "test-generator",
+  "version": "1.0.0",
+  "description": "Generate comprehensive unit tests using Symflower and ensure code quality through automated testing",
+  "purpose": "Generate comprehensive unit tests using Symflower and ensure code quality through automated testing",
+  "capabilities": [
+    "Analyze implemented code for test requirements",
+    "Generate unit tests using Symflower",
+    "Create edge case and error condition tests",
+    "Verify test coverage metrics",
+    "Add manual tests for complex scenarios",
+    "Ensure all generated test files stay under 300 lines"
+  ],
+  "file_size_management": {
+    "max_lines": 300,
+    "enforcement": "STRICT",
+    "splitting_strategies": [
+      "Split large test classes into focused test suites",
+      "Create separate test classes for different test categories",
+      "Use test base classes to reduce code duplication",
+      "Organize tests by functionality rather than class size",
+      "Extract test data and utilities to separate classes"
+    ],
+    "test_organization": [
+      "Unit Tests: [ClassName]Test.java (core functionality)",
+      "Integration Tests: [ClassName]IntegrationTest.java", 
+      "Edge Case Tests: [ClassName]EdgeCaseTest.java",
+      "Performance Tests: [ClassName]PerformanceTest.java",
+      "Keep each test file focused on specific test scenarios"
+    ]
+  },
+  "workflow": [
+    {
+      "step": 1,
+      "action": "identify_test_requirements",
+      "description": "Identify classes/methods needing tests"
+    },
+    {
+      "step": 2,
+      "action": "run_symflower_generation",
+      "description": "Run Symflower test generation"
+    },
+    {
+      "step": 3,
+      "action": "review_generated_tests",
+      "description": "Review generated tests for completeness"
+    },
+    {
+      "step": 4,
+      "action": "add_additional_tests",
+      "description": "Add additional test cases as needed"
+    },
+    {
+      "step": 5,
+      "action": "verify_coverage",
+      "description": "Verify coverage meets requirements (80%+)"
+    },
+    {
+      "step": 6,
+      "action": "run_all_tests",
+      "description": "Run all tests to ensure passing"
+    }
+  ],
+  "commands": [
+    {
+      "name": "generate_tests_for_latest",
+      "description": "Generate tests for latest implementation",
+      "parameters": {
+        "target_coverage": {
+          "type": "integer",
+          "required": false,
+          "default": 80,
+          "description": "Target test coverage percentage"
+        },
+        "include_integration_tests": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Whether to include integration tests"
+        },
+        "output_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/test-reports/",
+          "description": "Path where test reports should be created (in feature-specific folder)"
+        }
+      }
+    },
+    {
+      "name": "create_unit_tests_for_class",
+      "description": "Create unit tests for specific class",
+      "parameters": {
+        "class_name": {
+          "type": "string",
+          "required": true,
+          "description": "Fully qualified class name to test"
+        },
+        "test_types": {
+          "type": "array",
+          "required": false,
+          "default": ["unit", "edge_case", "error_condition"],
+          "description": "Types of tests to generate"
+        }
+      }
+    },
+    {
+      "name": "verify_test_coverage",
+      "description": "Verify test coverage requirements",
+      "parameters": {
+        "minimum_coverage": {
+          "type": "integer",
+          "required": false,
+          "default": 80,
+          "description": "Minimum acceptable coverage percentage"
+        },
+        "enforce_critical_path": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Enforce 100% coverage for critical business logic"
+        }
+      }
+    },
+    {
+      "name": "add_edge_case_tests",
+      "description": "Add edge case tests",
+      "parameters": {
+        "focus_areas": {
+          "type": "array",
+          "required": false,
+          "default": ["null_inputs", "boundary_conditions", "concurrency"],
+          "description": "Areas to focus edge case testing on"
+        }
+      }
+    }
+  ],
+  "symflower_integration": {
+    "direct_cli": {
+      "installation_path": "/usr/local/bin/symflower",
+      "commands": [
+        "symflower test --class com.samjdtechnologies.answer42.service.AgentService",
+        "symflower test --package com.samjdtechnologies.answer42.service",
+        "symflower test --coverage"
+      ]
+    },
+    "maven_integration": {
+      "preferred_method": true,
+      "commands": [
+        "./mvnw exec:exec -Dexec.executable=\"symflower\" -Dexec.args=\"test --language=java\"",
+        "./mvnw exec:exec -Dexec.executable=\"symflower\" -Dexec.args=\"test --class com.samjdtechnologies.answer42.service.AgentService\""
+      ],
+      "note": "Symflower must be installed separately as it doesn't have a Maven plugin"
+    }
+  },
+  "test_enhancement_guidelines": {
+    "edge_case_patterns": [
+      "Null input testing",
+      "Empty collection handling",
+      "Boundary value analysis",
+      "Concurrent access scenarios",
+      "Resource exhaustion conditions"
+    ],
+    "error_condition_patterns": [
+      "Invalid configuration testing",
+      "Network failure simulation",
+      "Database connection failures",
+      "External service timeouts",
+      "Security constraint violations"
+    ],
+    "integration_scenarios": [
+      "Real Spring context testing",
+      "Database transaction testing",
+      "Multi-agent workflow testing",
+      "API endpoint integration",
+      "UI component integration"
+    ]
+  },
+  "coverage_requirements": {
+    "minimum_thresholds": {
+      "unit_test_coverage": 80,
+      "critical_path_coverage": 100,
+      "error_handling_coverage": 100,
+      "edge_case_coverage": 90
+    },
+    "measurement_tools": [
+      "JaCoCo for Java coverage",
+      "Symflower coverage reports",
+      "Maven Surefire reports",
+      "SonarQube integration"
+    ]
+  },
+  "test_quality_checklist": [
+    "All public methods have tests",
+    "Happy path scenarios covered",
+    "Error conditions tested",
+    "Edge cases handled",
+    "Mocking used appropriately",
+    "Tests are independent",
+    "Tests are repeatable",
+    "Assertions are meaningful"
+  ],
+  "execution": {
+    "output_format": "java_test_files",
+    "naming_convention": "ClassNameTest.java",
+    "location": "src/test/java/",
+    "quality_checks": [
+      "All generated tests compile",
+      "Tests run successfully",
+      "Coverage targets are met",
+      "No test dependencies or coupling",
+      "Proper test categorization"
+    ]
+  },
+  "test_frameworks": {
+    "primary": {
+      "junit5": {
+        "version": "5.x",
+        "annotations": ["@Test", "@BeforeEach", "@AfterEach", "@ParameterizedTest"]
+      },
+      "mockito": {
+        "version": "4.x",
+        "patterns": ["@Mock", "@InjectMocks", "@Spy", "when().thenReturn()"]
+      }
+    },
+    "integration": {
+      "spring_boot_test": {
+        "annotations": ["@SpringBootTest", "@WebMvcTest", "@DataJpaTest"],
+        "profiles": ["test", "integration"]
+      },
+      "testcontainers": {
+        "containers": ["PostgreSQL", "Redis"],
+        "usage": "Integration test scenarios"
+      }
+    }
+  },
+  "ai_tdd_integration": {
+    "plan_integration": [
+      "Update plan.md with test completion status",
+      "Run full test suite after generation",
+      "Fix any failing tests immediately",
+      "Proceed to quality check phase"
+    ],
+    "quality_gates": [
+      "All tests pass",
+      "Coverage targets met",
+      "No test smells detected",
+      "Performance tests within limits"
+    ]
+  },
+  "performance_testing": {
+    "timeout_constraints": [
+      "@Test(timeout = 1000) for unit tests",
+      "Performance benchmarks for algorithms",
+      "Load testing for services",
+      "Memory usage validation"
+    ],
+    "benchmarking": [
+      "Method execution time limits",
+      "Memory allocation constraints",
+      "Database query performance",
+      "API response time validation"
+    ]
+  },
+  "spring_boot_specific": {
+    "test_slices": [
+      "@WebMvcTest for controller testing",
+      "@DataJpaTest for repository testing",
+      "@JsonTest for serialization testing",
+      "@TestPropertySource for configuration"
+    ],
+    "mocking_patterns": [
+      "@MockBean for Spring beans",
+      "@SpyBean for partial mocking",
+      "TestRestTemplate for API testing",
+      "MockMvc for web layer testing"
+    ]
+  },
+  "vaadin_testing": {
+    "ui_testing": [
+      "Component unit tests",
+      "View navigation testing",
+      "Data binding validation",
+      "Event handling verification"
+    ],
+    "integration": [
+      "Full UI flow testing",
+      "Browser automation with Selenium",
+      "Visual regression testing",
+      "Accessibility testing"
+    ]
+  }
+}

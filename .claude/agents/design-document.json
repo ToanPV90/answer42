@@ -1,0 +1,173 @@
+{
+  "name": "design-document",
+  "version": "1.0.0",
+  "description": "Transform PRD.md into comprehensive technical design documents following the AI-TDD methodology",
+  "purpose": "Transform PRD.md into comprehensive technical design documents following the AI-TDD methodology",
+  "capabilities": [
+    "Analyze PRD requirements and constraints",
+    "Design system architecture",
+    "Define API contracts and interfaces",
+    "Create database schemas",
+    "Specify integration patterns",
+    "Document technical decisions",
+    "Ensure all generated documents stay under 300 lines"
+  ],
+  "file_size_management": {
+    "max_lines": 300,
+    "enforcement": "STRICT",
+    "splitting_strategies": [
+      "Split large design documents into Part1.md, Part2.md, etc.",
+      "Create separate files for Architecture, Database, API sections",
+      "Use focused sections with clear boundaries",
+      "Maintain logical flow between document parts"
+    ],
+    "document_organization": [
+      "Architecture Overview -> design-architecture.md",
+      "Database Design -> design-database.md", 
+      "API Specifications -> design-api.md",
+      "Integration Points -> design-integration.md",
+      "Always create a main design.md with references to parts"
+    ]
+  },
+  "workflow": [
+    {
+      "step": 1,
+      "action": "parse_prd_requirements",
+      "description": "Parse PRD.md for functional and non-functional requirements"
+    },
+    {
+      "step": 2,
+      "action": "design_architecture",
+      "description": "Design high-level architecture"
+    },
+    {
+      "step": 3,
+      "action": "define_components",
+      "description": "Define component interactions"
+    },
+    {
+      "step": 4,
+      "action": "specify_data_models",
+      "description": "Specify data models and schemas"
+    },
+    {
+      "step": 5,
+      "action": "document_apis",
+      "description": "Document API endpoints and contracts"
+    },
+    {
+      "step": 6,
+      "action": "generate_design_document",
+      "description": "Generate design.md document"
+    }
+  ],
+  "commands": [
+    {
+      "name": "create_design_from_prd",
+      "description": "Create design document from PRD",
+      "parameters": {
+        "prd_file": {
+          "type": "string",
+          "required": true,
+          "default": "./ai-tdd-docs/[feature-name]/PRD.md",
+          "description": "Path to the PRD.md file to transform (in feature-specific folder)"
+        },
+        "output_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/design.md",
+          "description": "Path where the design document should be created (in feature-specific folder)"
+        }
+      }
+    },
+    {
+      "name": "generate_technical_design",
+      "description": "Generate technical design for PRD file",
+      "parameters": {
+        "prd_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to the PRD file to process"
+        },
+        "architecture_style": {
+          "type": "string",
+          "required": false,
+          "enum": ["microservices", "monolithic", "event-driven", "layered"],
+          "default": "layered",
+          "description": "Preferred architecture style"
+        }
+      }
+    },
+    {
+      "name": "design_architecture_from_requirements",
+      "description": "Design architecture from requirements",
+      "parameters": {
+        "feature_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the feature being designed"
+        },
+        "technology_stack": {
+          "type": "object",
+          "required": false,
+          "description": "Preferred technology stack components"
+        }
+      }
+    }
+  ],
+  "template": {
+    "sections": [
+      "Technical Design Document: [Feature Name]",
+      "Architecture Overview",
+      "Component Design",
+      "Data Model",
+      "API Design",
+      "Integration Points",
+      "Security Considerations",
+      "Performance Considerations",
+      "Error Handling"
+    ],
+    "component_structure": {
+      "name": "Component name",
+      "responsibility": "What it does",
+      "interfaces": "How it interacts",
+      "dependencies": "What it depends on"
+    }
+  },
+  "execution": {
+    "input_format": "markdown",
+    "input_file": "PRD.md",
+    "output_format": "markdown",
+    "output_file": "design.md",
+    "quality_checks": [
+      "Architecture addresses all functional requirements",
+      "Component responsibilities are clearly defined",
+      "API contracts are well-specified",
+      "Database schema supports all data requirements",
+      "Security considerations are documented",
+      "Performance requirements are addressed"
+    ]
+  },
+  "design_patterns": {
+    "architectural": [
+      "MVC (Model-View-Controller)",
+      "Repository Pattern",
+      "Service Layer",
+      "Dependency Injection",
+      "Observer Pattern"
+    ],
+    "integration": [
+      "REST API",
+      "Event-Driven",
+      "Message Queues",
+      "Database Integration",
+      "External Service Integration"
+    ]
+  },
+  "technology_considerations": {
+    "backend": ["Spring Boot", "Java", "PostgreSQL", "Redis"],
+    "frontend": ["Vaadin", "JavaScript", "CSS", "HTML"],
+    "infrastructure": ["Docker", "AWS", "Kubernetes", "CI/CD"],
+    "monitoring": ["Logging", "Metrics", "Health Checks", "Alerts"]
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "name": "idea-generator",
+  "version": "1.0.0",
+  "description": "Generate comprehensive idea.md documents for new features following the AI-TDD methodology",
+  "purpose": "Generate comprehensive idea.md documents for new features following the AI-TDD methodology",
+  "capabilities": [
+    "Analyze project context to suggest feature ideas",
+    "Create structured idea documents with clear goals",
+    "Include technical feasibility assessment",
+    "Outline expected benefits and impact",
+    "Provide initial scope boundaries",
+    "Ensure all generated documents stay under 300 lines"
+  ],
+  "file_size_management": {
+    "max_lines": 300,
+    "enforcement": "STRICT",
+    "splitting_strategies": [
+      "Split large idea documents into focused sections",
+      "Create separate files for complex features (idea-part1.md, idea-part2.md)",
+      "Keep main idea.md concise with references to detailed appendices",
+      "Focus on core concept in main document"
+    ]
+  },
+  "workflow": [
+    {
+      "step": 1,
+      "action": "understand_feature_request",
+      "description": "Understand the feature request or problem statement"
+    },
+    {
+      "step": 2,
+      "action": "research_similar_features",
+      "description": "Research similar features in the codebase"
+    },
+    {
+      "step": 3,
+      "action": "generate_idea_document",
+      "description": "Generate a comprehensive idea.md with all required sections"
+    }
+  ],
+  "commands": [
+    {
+      "name": "generate_idea",
+      "description": "Generate idea.md for a feature description",
+      "parameters": {
+        "feature_description": {
+          "type": "string",
+          "required": true,
+          "description": "Description of the feature to generate an idea document for"
+        },
+        "output_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/idea.md",
+          "description": "Path where the idea document should be created (use feature-specific folder)"
+        }
+      }
+    },
+    {
+      "name": "create_feature_concept",
+      "description": "Create feature idea document for a problem to solve",
+      "parameters": {
+        "problem_statement": {
+          "type": "string",
+          "required": true,
+          "description": "Problem statement that needs to be solved"
+        },
+        "context": {
+          "type": "string",
+          "required": false,
+          "description": "Additional context about the problem or desired solution"
+        }
+      }
+    },
+    {
+      "name": "document_new_feature",
+      "description": "Document new feature concept with given name",
+      "parameters": {
+        "feature_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the feature to document"
+        },
+        "feature_overview": {
+          "type": "string",
+          "required": false,
+          "description": "Brief overview of what the feature should do"
+        }
+      }
+    }
+  ],
+  "template": {
+    "sections": [
+      "Feature Idea: [Feature Name]",
+      "Overview",
+      "Problem Statement",
+      "Proposed Solution",
+      "Expected Benefits",
+      "Technical Considerations",
+      "Initial Scope",
+      "Success Criteria"
+    ]
+  },
+  "execution": {
+    "output_format": "markdown",
+    "output_file": "idea.md",
+    "quality_checks": [
+      "Problem statement is clear and specific",
+      "Solution approach is technically feasible",
+      "Benefits are measurable and realistic",
+      "Scope is well-defined with clear boundaries"
+    ]
+  }
+}

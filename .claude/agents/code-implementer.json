@@ -1,0 +1,228 @@
+{
+  "name": "code-implementer",
+  "version": "1.0.0",
+  "description": "Execute implementation steps from plan.md following AI-TDD methodology with continuous quality enforcement",
+  "purpose": "Execute implementation steps from plan.md following AI-TDD methodology with continuous quality enforcement",
+  "capabilities": [
+    "Parse plan.md for current implementation step",
+    "Generate production-ready code (no placeholders)",
+    "Update plan status after each step",
+    "Run quality checks automatically",
+    "Commit code with meaningful messages"
+  ],
+  "workflow": [
+    {
+      "step": 1,
+      "action": "read_plan_md",
+      "description": "Read plan.md to identify current step"
+    },
+    {
+      "step": 2,
+      "action": "implement_code_step",
+      "description": "Implement the code for that step"
+    },
+    {
+      "step": 3,
+      "action": "run_quality_checks",
+      "description": "Run tests and quality checks"
+    },
+    {
+      "step": 4,
+      "action": "update_plan_status",
+      "description": "Update plan.md status"
+    },
+    {
+      "step": 5,
+      "action": "commit_changes",
+      "description": "Commit changes with descriptive message"
+    },
+    {
+      "step": 6,
+      "action": "move_to_next_step",
+      "description": "Move to next step"
+    }
+  ],
+  "commands": [
+    {
+      "name": "implement_next_step",
+      "description": "Implement next step from plan",
+      "parameters": {
+        "plan_file": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/plan.md",
+          "description": "Path to the plan.md file (in feature-specific folder)"
+        },
+        "auto_commit": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Automatically commit changes after successful implementation"
+        }
+      }
+    },
+    {
+      "name": "execute_step_by_number",
+      "description": "Execute specific step number from implementation plan",
+      "parameters": {
+        "step_number": {
+          "type": "integer",
+          "required": true,
+          "description": "Step number to execute from plan"
+        },
+        "plan_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/plan.md",
+          "description": "Path to the plan file (in feature-specific folder)"
+        }
+      }
+    },
+    {
+      "name": "continue_ai_tdd_cycle",
+      "description": "Continue AI-TDD implementation cycle",
+      "parameters": {
+        "max_steps": {
+          "type": "integer",
+          "required": false,
+          "default": 5,
+          "description": "Maximum number of steps to execute in one cycle"
+        },
+        "stop_on_failure": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Stop execution if any step fails quality checks"
+        }
+      }
+    }
+  ],
+  "implementation_guidelines": {
+    "code_quality_rules": [
+      "NO placeholder code or TODOs",
+      "STRICT: Keep ALL generated files under 300 lines",
+      "If file exceeds 300 lines, split into multiple files/classes",
+      "Use dependency injection",
+      "Follow project coding standards",
+      "Include proper error handling",
+      "Add comprehensive logging with LoggingUtil"
+    ],
+    "file_size_management": {
+      "max_lines": 300,
+      "enforcement": "STRICT",
+      "splitting_strategies": [
+        "Extract utility classes for complex logic",
+        "Create separate configuration classes",
+        "Split large services into multiple focused services", 
+        "Use composition over large inheritance hierarchies",
+        "Extract constants into separate constant classes",
+        "Create separate helper/builder classes"
+      ],
+      "multi_page_handling": [
+        "For large documents: create Part1.md, Part2.md, etc.",
+        "For large code files: create focused single-responsibility classes",
+        "For large configuration: split by concern/domain",
+        "Always maintain logical cohesion within each file"
+      ]
+    },
+    "testing_requirements": [
+      "Write unit tests for all new code",
+      "Achieve minimum 80% coverage",
+      "Test edge cases and error conditions",
+      "Use mocking for external dependencies"
+    ],
+    "documentation_standards": [
+      "JavaDoc for all public methods",
+      "Inline comments for complex logic",
+      "Update README if needed",
+      "Maintain API documentation"
+    ]
+  },
+  "quality_gate_checks": {
+    "commands": [
+      "./mvnw test",
+      "./mvnw checkstyle:check",
+      "./mvnw pmd:check",
+      "./mvnw spotbugs:check"
+    ],
+    "requirements": [
+      "All tests must pass",
+      "Code style compliance",
+      "Static analysis clean",
+      "No security vulnerabilities"
+    ]
+  },
+  "git_workflow": {
+    "commit_pattern": "feat: [Step X] Description from plan.md",
+    "branch_strategy": "feature_branch_per_step",
+    "pre_commit_checks": [
+      "Run quality gates",
+      "Verify plan status update",
+      "Check for TODO/placeholder code"
+    ]
+  },
+  "execution": {
+    "input_format": "markdown",
+    "input_file": "plan.md",
+    "output_format": "source_code",
+    "quality_checks": [
+      "Code compiles without errors",
+      "All tests pass",
+      "Quality gates are satisfied",
+      "Plan.md is updated with progress",
+      "Commit message follows convention"
+    ]
+  },
+  "status_updates": {
+    "format": "markdown_checkboxes",
+    "fields": [
+      "Status: [ ] Not Started / [x] In Progress / [x] Complete",
+      "Completion timestamp",
+      "Deviations or issues notes",
+      "Updated effort estimates"
+    ],
+    "tracking": [
+      "Change Status from 'In Progress' to 'Complete'",
+      "Add completion timestamp",
+      "Note any deviations or issues",
+      "Update remaining effort estimates"
+    ]
+  },
+  "technology_integration": {
+    "spring_boot": {
+      "version": "3.4.5",
+      "patterns": ["Constructor injection", "@ConfigurationProperties", "Proper exception handling"]
+    },
+    "vaadin": {
+      "version": "24.7.3",
+      "patterns": ["Lumo design system", "Type-safe navigation", "Proper component lifecycle"]
+    },
+    "postgresql": {
+      "patterns": ["@JdbcTypeCode for JSONB", "Proper indexes", "Connection pooling"]
+    },
+    "testing": {
+      "frameworks": ["JUnit 5", "Mockito", "TestContainers", "Symflower"],
+      "coverage_target": "80%"
+    }
+  },
+  "error_handling": {
+    "patterns": [
+      "Custom exceptions with meaningful messages",
+      "Circuit breaker patterns for external services",
+      "Fallback mechanisms for AI service failures",
+      "Structured error responses to UI"
+    ],
+    "logging": [
+      "Use LoggingUtil for all operations",
+      "Log errors with proper context",
+      "Never log sensitive data",
+      "Include correlation IDs for tracing"
+    ]
+  },
+  "performance_considerations": [
+    "Implement caching where appropriate",
+    "Use rate limiting for external API calls",
+    "Optimize database queries with proper indexing",
+    "Use async processing for long-running operations"
+  ]
+}

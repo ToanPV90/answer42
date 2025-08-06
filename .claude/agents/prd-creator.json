@@ -1,0 +1,154 @@
+{
+  "name": "prd-creator",
+  "version": "1.0.0",
+  "description": "Transform idea.md documents into comprehensive Product Requirements Documents (PRDs) following the AI-TDD methodology",
+  "purpose": "Transform idea.md documents into comprehensive Product Requirements Documents (PRDs) following the AI-TDD methodology",
+  "capabilities": [
+    "Parse and analyze idea.md content",
+    "Generate detailed user stories",
+    "Define acceptance criteria",
+    "Create feature specifications",
+    "Outline non-functional requirements",
+    "Identify stakeholders and dependencies",
+    "Ensure all generated documents stay under 300 lines"
+  ],
+  "file_size_management": {
+    "max_lines": 300,
+    "enforcement": "STRICT",
+    "splitting_strategies": [
+      "Split large PRDs into focused sections (PRD-part1.md, PRD-part2.md)",
+      "Create separate files for User Stories, Requirements, Dependencies",
+      "Keep main PRD.md concise with references to detailed sections",
+      "Focus on core requirements in main document"
+    ],
+    "document_organization": [
+      "Executive Summary & User Stories -> PRD.md",
+      "Detailed Requirements -> PRD-requirements.md",
+      "Dependencies & Timeline -> PRD-implementation.md",
+      "Always maintain main PRD.md as entry point"
+    ]
+  },
+  "workflow": [
+    {
+      "step": 1,
+      "action": "read_and_analyze_idea",
+      "description": "Read and analyze the provided idea.md"
+    },
+    {
+      "step": 2,
+      "action": "expand_concept",
+      "description": "Expand on the concept with detailed requirements"
+    },
+    {
+      "step": 3,
+      "action": "create_user_stories",
+      "description": "Create user stories with acceptance criteria"
+    },
+    {
+      "step": 4,
+      "action": "define_constraints",
+      "description": "Define technical and business constraints"
+    },
+    {
+      "step": 5,
+      "action": "generate_prd",
+      "description": "Generate comprehensive PRD.md document"
+    }
+  ],
+  "commands": [
+    {
+      "name": "create_prd_from_idea",
+      "description": "Create PRD from idea.md",
+      "parameters": {
+        "idea_file": {
+          "type": "string",
+          "required": true,
+          "default": "./ai-tdd-docs/[feature-name]/idea.md",
+          "description": "Path to the idea.md file to transform (in feature-specific folder)"
+        },
+        "output_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/PRD.md",
+          "description": "Path where the PRD document should be created (in feature-specific folder)"
+        }
+      }
+    },
+    {
+      "name": "generate_product_requirements",
+      "description": "Generate product requirements for idea file",
+      "parameters": {
+        "idea_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to the idea file to process"
+        },
+        "stakeholders": {
+          "type": "array",
+          "required": false,
+          "description": "List of stakeholders for the feature"
+        }
+      }
+    },
+    {
+      "name": "transform_idea_to_prd",
+      "description": "Transform idea into PRD with user stories",
+      "parameters": {
+        "feature_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the feature from the idea document"
+        },
+        "priority": {
+          "type": "string",
+          "required": false,
+          "enum": ["High", "Medium", "Low"],
+          "default": "Medium",
+          "description": "Priority level for the feature"
+        }
+      }
+    }
+  ],
+  "template": {
+    "sections": [
+      "Product Requirements Document: [Feature Name]",
+      "Executive Summary",
+      "User Stories",
+      "Functional Requirements",
+      "Non-Functional Requirements",
+      "Dependencies",
+      "Success Metrics",
+      "Timeline & Milestones"
+    ],
+    "user_story_format": "As a [user type], I want to [action], So that [benefit]"
+  },
+  "execution": {
+    "input_format": "markdown",
+    "input_file": "idea.md",
+    "output_format": "markdown",
+    "output_file": "PRD.md",
+    "quality_checks": [
+      "All user stories have clear acceptance criteria",
+      "Functional requirements are specific and measurable",
+      "Non-functional requirements include performance, security, and usability",
+      "Dependencies are clearly identified",
+      "Success metrics are quantifiable"
+    ]
+  },
+  "requirements_categories": {
+    "functional": [
+      "Core functionality",
+      "User interactions",
+      "Data processing",
+      "Business logic"
+    ],
+    "non_functional": [
+      "Performance",
+      "Security",
+      "Usability",
+      "Scalability",
+      "Reliability",
+      "Maintainability"
+    ]
+  }
+}

@@ -88,7 +88,7 @@ Answer42 now features a fully operational **local AI fallback system** powered b
 **✅ **Intelligent Retry Logic**: Advanced retry policies with circuit breaker protection and fallback factory**
 **✅ **Performance Monitoring**: Comprehensive fallback metrics via FallbackMetricsService**
 **✅ **Quality Assurance**: Local models optimized for academic content processing (8K char limit)**
-**✅ **Docker Integration**: Production-ready Ollama service with GPU support and health checks**
+**✅ **Docker Integration**: Production-ready Ollama service with health checks and improved monitoring**
 
 **Fallback Agents Implemented (Phase 2 Complete):**
 - 📝 **ContentSummarizerFallbackAgent** - Multi-level summarization with truncation support
@@ -98,9 +98,72 @@ Answer42 now features a fully operational **local AI fallback system** powered b
 - ✅ **QualityCheckerFallbackAgent** - Quality scoring with letter grades (A-F)
 - 📖 **CitationFormatterFallbackAgent** - Multi-style formatting with regex fallback
 
-**Quick Setup:**
+**Complete Docker Deployment:**
+
+**1. Supabase Local Development Stack:**
 ```bash
-# Install Ollama with Docker
+# Start Supabase local development environment
+supabase start
+
+# This starts the complete Supabase stack:
+# - PostgreSQL Database (port 54322)
+# - PostgREST API (port 54321) 
+# - Supabase Studio (port 54323)
+# - Edge Functions (port 54324)
+# - Inbucket Email Testing (port 54324)
+
+# Verify Supabase services
+supabase status
+
+# Apply database migrations
+supabase db push
+
+# Reset database with fresh schema and seed data
+supabase db reset
+```
+
+**2. Ollama AI Fallback Service:**
+```bash
+# Start Ollama service with Docker Compose
+docker-compose -f docker-compose.ollama.yml up -d
+
+# Verify service is running and healthy
+docker-compose -f docker-compose.ollama.yml ps
+
+# Pull the required LLaMA 3.1 8B model
+docker exec answer42-ollama ollama pull llama3.1:8b
+
+# Test the service
+curl -X POST http://localhost:11434/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{"model": "llama3.1:8b", "prompt": "Hello, test", "stream": false}'
+```
+
+**3. Complete Development Environment:**
+```bash
+# Start all services in the correct order
+supabase start                                    # Database & API stack
+docker-compose -f docker-compose.ollama.yml up -d # AI fallback service
+./mvnw spring-boot:run                           # Spring Boot application
+
+# Access points:
+# - Application: http://localhost:8080
+# - Supabase Studio: http://localhost:54323
+# - Database: postgresql://postgres:postgres@localhost:54322/postgres
+# - Ollama API: http://localhost:11434
+```
+
+**Service Ports Summary:**
+- **Answer42 App**: `8080`
+- **Supabase API**: `54321` 
+- **PostgreSQL DB**: `54322`
+- **Supabase Studio**: `54323`
+- **Email Testing**: `54324`
+- **Ollama API**: `11434`
+
+**Alternative Setup Scripts:**
+```bash
+# Install Ollama with Docker (automated script)
 ./scripts/setup-ollama.sh
 
 # Test the fallback system

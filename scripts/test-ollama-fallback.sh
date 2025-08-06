@@ -1,4 +1,4 @@
-#!/bin/bash
+    #!/bin/bash
 
 # Answer42 Ollama Fallback Test Script
 # This script tests the Ollama fallback functionality

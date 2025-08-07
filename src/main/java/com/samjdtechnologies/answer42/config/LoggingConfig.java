@@ -43,7 +43,7 @@ public class LoggingConfig {
         if (showSql) {
             loggingLevels.put("org.hibernate.SQL", Level.DEBUG);
             loggingLevels.put("org.hibernate.type.descriptor.sql.BasicBinder", Level.TRACE);
-            logger.info("Hibernate SQL logging ENABLED (JPA_SHOW_SQL=true)");
+            logger.info("Hibernate SQL logging ENABLED (JPA_SHOW_SQL=false)");
         } else {
             // Comprehensive Hibernate SQL logging suppression
             loggingLevels.put("org.hibernate.SQL", Level.OFF);

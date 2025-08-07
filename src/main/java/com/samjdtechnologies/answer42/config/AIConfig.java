@@ -78,13 +78,16 @@ public class AIConfig {
     @Value("${spring.ai.openai.chat.completions-path}")
     private String openaiCompletionsPath;
 
+    @Value("${spring.ai.perplexity.chat.completions-path:/chat/completions}")
+    private String perplexityCompletionsPath;
+
     @Value("${spring.ai.openai.chat.options.model}")
     private String openaiModel;
     
     @Value("${spring.ai.token-logging.enabled:true}")
     private boolean tokenLoggingEnabled;
     
-    @Value("${spring.ai.perplexity.chat.options.model:llama-3.1-sonar-small-128k-online}")
+    @Value("${spring.ai.perplexity.chat.options.model:sonar-pro}")
     private String perplexityModel;
     
     @Value("${spring.ai.ollama.base-url:http://localhost:11434}")
@@ -329,6 +332,7 @@ public class AIConfig {
                 completionCostPer1K = 0.0015; // $1.5/1M tokens
                 break;
             case "sonar":
+            case "sonar-pro":
             case "llama-3.1-sonar-small-128k-online":
                 promptCostPer1K = 0.0002;     // Perplexity pricing
                 completionCostPer1K = 0.0002;
@@ -521,6 +525,7 @@ public class AIConfig {
         return OpenAiApi.builder()
             .apiKey(apiKey)
             .baseUrl(perplexityBaseUrl)
+            .completionsPath(perplexityCompletionsPath)
             .build();
     }
     

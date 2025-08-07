@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @TestPropertySource(properties = {
-    "spring.ai.perplexity.chat.options.model=llama-3.1-sonar-small-128k-online",
+    "spring.ai.perplexity.chat.options.model=sonar-pro",
     "spring.ai.token-logging.enabled=true"
 })
 public class PerplexityIntegrationTest {

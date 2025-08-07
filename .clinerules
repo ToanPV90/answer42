@@ -142,7 +142,7 @@ Answer42 is a sophisticated AI-powered academic research platform built using AI
 ## External Integrations
 - **OpenAI**: Use gpt-4o model with temperature 0.7
 - **Anthropic**: Use claude-3-7-sonnet-latest for deep analysis
-- **Perplexity**: Use llama-3.1-sonar-small-128k-online for research
+- **Perplexity**: Use sonar-pro for research
 - **Ollama**: Use llama3.1:8b for local fallback with 4K token limit
 - **Crossref API**: 45 req/sec limit for citation discovery
 - **Semantic Scholar**: 100 req/min limit for paper similarity

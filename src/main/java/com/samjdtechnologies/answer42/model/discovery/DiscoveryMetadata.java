@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.model.discovery;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
 
@@ -9,14 +10,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Metadata about the discovery process for a related paper.
- * Contains information about how the paper was discovered and processed.
+ * Metadata associated with discovered papers.
+ * Contains source-specific information and quality indicators.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DiscoveryMetadata {
+public class DiscoveryMetadata implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     private Instant discoveredAt;
     private String discoveryQuery;

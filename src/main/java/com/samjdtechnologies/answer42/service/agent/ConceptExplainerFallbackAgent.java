@@ -34,12 +34,6 @@ import com.samjdtechnologies.answer42.util.LoggingUtil;
 @ConditionalOnProperty(name = "spring.ai.ollama.enabled", havingValue = "true", matchIfMissing = false)
 public class ConceptExplainerFallbackAgent extends OllamaBasedAgent {
     
-    // Explanation complexity levels optimized for local models
-    private static final Map<String, String> LOCAL_EXPLANATION_LEVELS = Map.of(
-        "basic", "Simple definition with minimal context",
-        "standard", "Clear explanation with basic examples", 
-        "detailed", "Comprehensive explanation with context and examples"
-    );
     
     public ConceptExplainerFallbackAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
                                         APIRateLimiter rateLimiter) {
@@ -57,49 +51,53 @@ public class ConceptExplainerFallbackAgent extends OllamaBasedAgent {
             "Processing concept explanation with Ollama fallback for task %s", task.getId());
         
         try {
-            // Extract task input
+            // Extract task input with null safety
             JsonNode input = task.getInput();
-            String paperId = input.get("paperId").asText();
-            String concept = input.has("concept") ? input.get("concept").asText() : null;
-            String context = input.has("context") ? input.get("context").asText() : "";
-            String explanationLevel = input.has("explanationLevel") ? 
-                input.get("explanationLevel").asText() : "standard";
+            if (input == null) {
+                return AgentResult.failure(task.getId(), "FALLBACK: No input data provided");
+            }
             
-            if (concept == null || concept.trim().isEmpty()) {
+            JsonNode paperIdNode = input.get("paperId");
+            String paperId = paperIdNode != null ? paperIdNode.asText() : "unknown";
+            
+            // Match the original ConceptExplainerAgent's expected input structure
+            JsonNode contentNode = input.get("content");
+            String content = contentNode != null ? contentNode.asText() : null;
+            
+            if (content == null || content.trim().isEmpty()) {
                 return AgentResult.failure(task.getId(), 
-                    "FALLBACK: No concept provided for explanation");
+                    "FALLBACK: No content provided for concept explanation");
             }
             
-            // Validate explanation level
-            if (!LOCAL_EXPLANATION_LEVELS.containsKey(explanationLevel.toLowerCase())) {
-                LoggingUtil.warn(LOG, "processWithConfig", 
-                    "Unknown explanation level %s for fallback, defaulting to standard", explanationLevel);
-                explanationLevel = "standard";
+            // For fallback processing, we'll provide a simplified concept explanation
+            // rather than trying to do the full complex analysis of the original agent
+            LoggingUtil.info(LOG, "processWithConfig", 
+                "Fallback agent processing content of %d characters", content.length());
+            
+            // Instead of rejecting content, truncate if needed and attempt processing
+            if (content.length() > MAX_LOCAL_CONTENT_LENGTH * 2) {
+                LoggingUtil.info(LOG, "processWithConfig", 
+                    "Truncating large content from %d to %d characters for local processing", 
+                    content.length(), MAX_LOCAL_CONTENT_LENGTH);
+                content = truncateForLocalProcessing(content, MAX_LOCAL_CONTENT_LENGTH);
             }
             
-            // Validate content is suitable for local processing
-            if (!isConceptSuitableForLocalProcessing(concept, context)) {
-                return AgentResult.failure(task.getId(), 
-                    "FALLBACK: Concept too complex for local processing");
-            }
-            
-            // Generate explanation using local model
-            String explanation = performLocalConceptExplanation(concept, context, explanationLevel, paperId);
+            // Generate simplified explanation using local model
+            String explanation = performLocalContentAnalysis(content, paperId);
             
             // Add fallback processing note
             String fallbackNote = createFallbackProcessingNote("Concept Explanation");
             String enhancedExplanation = fallbackNote + "\n\n" + explanation;
             
-            // Create result data with fallback indicators
+            // Create result data that matches the expected ConceptExplanationResult structure
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("paperId", paperId);
-            resultData.put("concept", concept);
-            resultData.put("explanation", enhancedExplanation);
-            resultData.put("explanationLevel", explanationLevel);
-            resultData.put("context", context);
+            resultData.put("content", content);
+            resultData.put("fallbackExplanation", enhancedExplanation);
             resultData.put("fallbackUsed", true);
             resultData.put("fallbackProvider", "OLLAMA");
             resultData.put("primaryFailureReason", "Cloud providers temporarily unavailable");
+            resultData.put("processingNote", "Simplified concept explanation due to fallback processing");
             
             return AgentResult.success(task.getId(), resultData);
                 
@@ -110,118 +108,6 @@ public class ConceptExplainerFallbackAgent extends OllamaBasedAgent {
         }
     }
     
-    /**
-     * Performs local concept explanation using Ollama.
-     * 
-     * @param concept The concept to explain
-     * @param context Additional context for the explanation
-     * @param explanationLevel The level of explanation (basic, standard, detailed)
-     * @param paperId The paper ID for logging
-     * @return The concept explanation
-     */
-    private String performLocalConceptExplanation(String concept, String context, 
-                                                String explanationLevel, String paperId) {
-        LoggingUtil.info(LOG, "performLocalConceptExplanation", 
-            "Generating %s explanation for concept '%s' using Ollama for paper %s", 
-            explanationLevel, concept, paperId);
-        
-        // Truncate context for local processing
-        String processableContext = truncateForLocalProcessing(context, MAX_LOCAL_CONTENT_LENGTH / 2);
-        
-        // Create simplified prompt optimized for local models
-        String promptText = buildLocalExplanationPrompt(concept, processableContext, explanationLevel);
-        
-        Prompt prompt = createFallbackPrompt(promptText, Map.of());
-        
-        try {
-            ChatResponse response = executePrompt(prompt);
-            String explanationContent = response.getResult().getOutput().getText();
-            
-            if (explanationContent == null || explanationContent.trim().isEmpty()) {
-                return createLocalFallbackExplanation(concept, explanationLevel, "Empty response from local model");
-            }
-            
-            // Clean and process the explanation
-            explanationContent = cleanExplanationContent(explanationContent);
-            
-            return explanationContent;
-            
-        } catch (Exception e) {
-            LoggingUtil.error(LOG, "performLocalConceptExplanation", 
-                "Local concept explanation failed for task %s", e, paperId);
-            return createLocalFallbackExplanation(concept, explanationLevel, e.getMessage());
-        }
-    }
-    
-    /**
-     * Builds simplified explanation prompts optimized for local Ollama models.
-     */
-    private String buildLocalExplanationPrompt(String concept, String context, String explanationLevel) {
-        String levelDescription = LOCAL_EXPLANATION_LEVELS.get(explanationLevel.toLowerCase());
-        
-        StringBuilder prompt = new StringBuilder();
-        prompt.append(String.format("Explain the concept: %s\n\n", concept));
-        
-        if (!context.isEmpty()) {
-            prompt.append(String.format("Context: %s\n\n", context));
-        }
-        
-        prompt.append(String.format("Explanation level: %s (%s)\n\n", explanationLevel, levelDescription));
-        
-        switch (explanationLevel.toLowerCase()) {
-            case "basic" -> prompt.append(
-                "Provide a simple, clear definition. Keep it concise and easy to understand. " +
-                "Focus on what it is, not complex details."
-            );
-            
-            case "detailed" -> prompt.append(
-                "Provide a comprehensive explanation including:\n" +
-                "1. What the concept is\n" +
-                "2. Why it's important\n" +
-                "3. How it works (if applicable)\n" +
-                "4. A simple example\n" +
-                "Keep explanations clear and well-structured."
-            );
-            
-            default -> prompt.append(
-                "Provide a clear explanation that includes:\n" +
-                "1. A clear definition\n" +
-                "2. Basic context or importance\n" +
-                "3. A simple example if helpful\n" +
-                "Make it accessible but informative."
-            );
-        }
-        
-        return prompt.toString();
-    }
-    
-    /**
-     * Creates fallback explanation when local processing fails.
-     */
-    private String createLocalFallbackExplanation(String concept, String explanationLevel, String errorReason) {
-        LoggingUtil.warn(LOG, "createLocalFallbackExplanation", 
-            "Creating fallback explanation for concept '%s' due to: %s", concept, errorReason);
-        
-        return switch (explanationLevel.toLowerCase()) {
-            case "basic" -> String.format(
-                "FALLBACK: '%s' is a concept that requires detailed analysis. " +
-                "Full explanation available when cloud providers return.", concept
-            );
-            
-            case "detailed" -> String.format(
-                "FALLBACK PROCESSING: The concept '%s' is an important academic term that requires " +
-                "comprehensive analysis to explain properly. This includes understanding its definition, " +
-                "context, applications, and significance in the field. " +
-                "Detailed explanation will be available when cloud providers return.", concept
-            );
-            
-            default -> String.format(
-                "FALLBACK: '%s' is an academic concept that needs proper analysis for explanation. " +
-                "This concept has specific meaning and applications in its field. " +
-                "Complete explanation available when cloud providers return.", concept
-            );
-        };
-    }
     
     /**
      * Cleans and formats the explanation content from local model.
@@ -237,29 +123,88 @@ public class ConceptExplainerFallbackAgent extends OllamaBasedAgent {
     }
     
     /**
-     * Validates that the concept is suitable for local processing.
+     * Performs local content analysis for concept explanation using Ollama.
      */
-    private boolean isConceptSuitableForLocalProcessing(String concept, String context) {
-        if (concept == null || concept.trim().isEmpty()) {
+    private String performLocalContentAnalysis(String content, String paperId) {
+        LoggingUtil.info(LOG, "performLocalContentAnalysis", 
+            "Analyzing content for concept explanation using Ollama for paper %s", paperId);
+        
+        // Truncate content for local processing
+        String processableContent = truncateForLocalProcessing(content, MAX_LOCAL_CONTENT_LENGTH);
+        
+        // Create simplified prompt optimized for local models
+        String promptText = buildContentAnalysisPrompt(processableContent);
+        
+        Prompt prompt = createFallbackPrompt(promptText, Map.of());
+        
+        try {
+            ChatResponse response = executePrompt(prompt);
+            String analysisContent = response.getResult().getOutput().getText();
+            
+            if (analysisContent == null || analysisContent.trim().isEmpty()) {
+                return createLocalFallbackContentAnalysis("Empty response from local model");
+            }
+            
+            // Clean and process the analysis
+            analysisContent = cleanExplanationContent(analysisContent);
+            
+            return analysisContent;
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "performLocalContentAnalysis", 
+                "Local content analysis failed for paper %s", e, paperId);
+            return createLocalFallbackContentAnalysis(e.getMessage());
+        }
+    }
+    
+    /**
+     * Builds content analysis prompt for concept explanation.
+     */
+    private String buildContentAnalysisPrompt(String content) {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("Analyze this academic content and identify key concepts that need explanation:\n\n");
+        prompt.append(content);
+        prompt.append("\n\nProvide a simplified explanation focusing on:\n");
+        prompt.append("1. The main concepts and terminology used\n");
+        prompt.append("2. Brief definitions of technical terms\n");
+        prompt.append("3. Basic context for understanding the content\n\n");
+        prompt.append("Keep explanations clear and concise. Focus on essential concepts only.");
+        
+        return prompt.toString();
+    }
+    
+    /**
+     * Creates fallback content analysis when local processing fails.
+     */
+    private String createLocalFallbackContentAnalysis(String errorReason) {
+        LoggingUtil.warn(LOG, "createLocalFallbackContentAnalysis", 
+            "Creating fallback content analysis due to: %s", errorReason);
+        
+        return "FALLBACK PROCESSING: This academic content contains technical concepts and terminology " +
+               "that require detailed analysis for proper explanation. The content includes domain-specific " +
+               "terms, methodologies, and concepts that would benefit from comprehensive explanation. " +
+               "Detailed concept explanations will be available when cloud providers return.";
+    }
+
+    /**
+     * Validates that the content is suitable for local processing.
+     */
+    @Override
+    protected boolean isContentSuitableForLocalProcessing(String content) {
+        if (content == null || content.trim().isEmpty()) {
             return false;
         }
         
-        // Check for extremely complex concepts that might cause issues
-        if (concept.length() > 200) {
-            LoggingUtil.warn(LOG, "isConceptSuitableForLocalProcessing", 
-                "Concept too long for local processing: %d characters", concept.length());
+        // Check for extremely large content that might cause issues
+        if (content.length() > MAX_LOCAL_CONTENT_LENGTH * 2) {
+            LoggingUtil.warn(LOG, "isContentSuitableForLocalProcessing", 
+                "Content too large for local processing: %d characters", content.length());
             return false;
-        }
-        
-        // Check context size
-        if (context != null && context.length() > MAX_LOCAL_CONTENT_LENGTH) {
-            LoggingUtil.warn(LOG, "isConceptSuitableForLocalProcessing", 
-                "Context too large for local processing: %d characters", context.length());
-            // Still allow processing with truncated context
         }
         
         return true;
     }
+    
     
     @Override
     public Duration estimateProcessingTime(AgentTask task) {
@@ -281,12 +226,4 @@ public class ConceptExplainerFallbackAgent extends OllamaBasedAgent {
         return Duration.ofSeconds(20); // Conservative estimate for local processing
     }
     
-    /**
-     * Returns a description of this agent for logging and monitoring.
-     */
-    protected String getAgentDescription() {
-        return "Ollama-based fallback agent for concept explanation. " +
-               "Provides local processing when cloud providers are unavailable. " +
-               "Uses simplified prompts optimized for local models with basic explanation capabilities.";
-    }
 }

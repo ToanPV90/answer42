@@ -354,11 +354,29 @@ public class SemanticScholarApiHelper {
     private ZonedDateTime extractPublishedDateTime(SemanticScholarPaper paper) {
         try {
             if (paper.getPublicationDate() != null && !paper.getPublicationDate().trim().isEmpty()) {
-                // Parse date in format "YYYY-MM-DD"
-                return ZonedDateTime.parse(paper.getPublicationDate() + "T00:00:00");
+                String dateStr = paper.getPublicationDate().trim();
+                
+                // Handle different date formats from Semantic Scholar
+                if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                    // Format: "YYYY-MM-DD"
+                    return ZonedDateTime.parse(dateStr + "T00:00:00Z");
+                } else if (dateStr.matches("\\d{4}-\\d{2}")) {
+                    // Format: "YYYY-MM"
+                    return ZonedDateTime.parse(dateStr + "-01T00:00:00Z");
+                } else if (dateStr.matches("\\d{4}")) {
+                    // Format: "YYYY"
+                    return ZonedDateTime.parse(dateStr + "-01-01T00:00:00Z");
+                }
+                
+                // If we get here, the format is unexpected - log once at TRACE level
+                LoggingUtil.trace(LOG, "extractPublishedDateTime", 
+                    "Unexpected date format from Semantic Scholar: '%s'", dateStr);
             }
         } catch (Exception e) {
-            LoggingUtil.debug(LOG, "extractPublishedDateTime", "Failed to parse date", e);
+            // Only log parsing failures at TRACE level to reduce noise
+            LoggingUtil.trace(LOG, "extractPublishedDateTime", 
+                "Failed to parse date '%s': %s", 
+                paper.getPublicationDate(), e.getMessage());
         }
         
         return null;

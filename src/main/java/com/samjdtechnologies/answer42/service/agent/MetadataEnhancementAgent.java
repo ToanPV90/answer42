@@ -71,7 +71,7 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             }
             
             // Execute parallel metadata enhancement from multiple sources
-            EnhancementResult enhancementResult = enhanceMetadataFromSources(paperId, title, doi, authors);
+            EnhancementResult enhancementResult = enhanceMetadataFromSources(paperId, title, doi, authors, task);
             
             // Create result data
             Map<String, Object> resultData = new HashMap<>();
@@ -84,6 +84,18 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             
             return AgentResult.success(task.getId(), resultData);
             
+        } catch (RuntimeException e) {
+            // Let retryable exceptions (like rate limits) bubble up to retry policy
+            if (isRetryableException(e)) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Retryable exception occurred, letting retry policy handle: %s", e.getMessage());
+                throw e; // Let retry policy handle this
+            }
+            
+            // Only catch non-retryable exceptions
+            LoggingUtil.error(LOG, "processWithConfig", "Failed to enhance metadata", e);
+            return AgentResult.failure(task.getId(), "Metadata enhancement failed: " + e.getMessage());
+            
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processWithConfig", "Failed to enhance metadata", e);
             return AgentResult.failure(task.getId(), "Metadata enhancement failed: " + e.getMessage());
@@ -93,7 +105,7 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     /**
      * Enhances metadata using multiple external sources in parallel.
      */
-    private EnhancementResult enhanceMetadataFromSources(String paperId, String title, String doi, JsonNode authors) {
+    private EnhancementResult enhanceMetadataFromSources(String paperId, String title, String doi, JsonNode authors, AgentTask task) {
         LoggingUtil.info(LOG, "enhanceMetadataFromSources", "Enhancing metadata for paper %s", paperId);
         
         // Execute multiple enhancement sources in parallel using ThreadConfig executor
@@ -114,7 +126,7 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             .collect(Collectors.toList());
         
         // Synthesize results using AI
-        return synthesizeMetadataWithAI(title, doi, sources);
+        return synthesizeMetadataWithAI(title, doi, sources, task);
     }
     
     /**
@@ -236,7 +248,7 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     /**
      * Synthesizes metadata from multiple sources using OpenAI GPT-4.
      */
-    private EnhancementResult synthesizeMetadataWithAI(String title, String doi, List<MetadataSource> sources) {
+    private EnhancementResult synthesizeMetadataWithAI(String title, String doi, List<MetadataSource> sources, AgentTask task) {
         LoggingUtil.info(LOG, "synthesizeMetadataWithAI", "Synthesizing metadata from %d sources", sources.size());
         
         // Clean inputs to avoid template parsing issues
@@ -282,7 +294,17 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             """;
         
         Prompt prompt = optimizePromptForOpenAI(synthesisPrompt, variables);
-        ChatResponse response = executePromptWithRetry(prompt).join();
+        
+        // Do NOT catch exceptions here - let them propagate to trigger circuit breaker
+        ChatResponse response;
+        try {
+            response = executePrompt(prompt);
+        } catch (Exception e) {
+            // Log the error but re-throw to ensure circuit breaker sees the failure
+            LoggingUtil.error(LOG, "synthesizeMetadataWithAI", 
+                "AI provider failed for metadata synthesis: %s", e.getMessage());
+            throw new RuntimeException("AI provider communication failed: " + e.getMessage(), e);
+        }
         
         String aiResponse = response.getResult().getOutput().toString();
         

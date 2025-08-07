@@ -67,18 +67,44 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
             "Processing metadata enhancement with Ollama fallback for task %s", task.getId());
         
         try {
-            // Extract task input
+            // Extract task input with null safety
             JsonNode input = task.getInput();
-            String paperId = input.get("paperId").asText();
-            String title = input.has("title") ? input.get("title").asText() : "";
-            String abstractText = input.has("abstract") ? input.get("abstract").asText() : "";
-            String content = input.has("content") ? input.get("content").asText() : "";
-            String enhancementType = input.has("enhancementType") ? 
-                input.get("enhancementType").asText() : "full";
+            if (input == null) {
+                return AgentResult.failure(task.getId(), "FALLBACK: No input data provided");
+            }
             
-            if (title.isEmpty() && abstractText.isEmpty() && content.isEmpty()) {
+            JsonNode paperIdNode = input.get("paperId");
+            String paperId = paperIdNode != null ? paperIdNode.asText() : "unknown";
+            
+            // Match the original MetadataEnhancementAgent's expected input structure
+            JsonNode titleNode = input.get("title");
+            String title = titleNode != null ? titleNode.asText() : "";
+            
+            JsonNode doiNode = input.get("doi");
+            String doi = doiNode != null ? doiNode.asText() : "";
+            
+            JsonNode authorsNode = input.get("authors");
+            String authors = "";
+            if (authorsNode != null) {
+                if (authorsNode.isArray()) {
+                    List<String> authorList = new ArrayList<>();
+                    authorsNode.forEach(node -> {
+                        if (node.isTextual()) {
+                            authorList.add(node.asText());
+                        }
+                    });
+                    authors = String.join(", ", authorList);
+                } else if (authorsNode.isTextual()) {
+                    authors = authorsNode.asText();
+                }
+            }
+            
+            // Set default enhancement type for fallback processing
+            String enhancementType = "full";
+            
+            if (title.isEmpty()) {
                 return AgentResult.failure(task.getId(), 
-                    "FALLBACK: No content provided for metadata enhancement");
+                    "FALLBACK: No title provided for metadata enhancement");
             }
             
             // Validate enhancement type
@@ -89,14 +115,14 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
             }
             
             // Validate content is suitable for local processing
-            if (!isContentSuitableForLocalProcessing(title, abstractText, content)) {
+            if (!isContentSuitableForLocalProcessing(title, doi, authors)) {
                 return AgentResult.failure(task.getId(), 
-                    "FALLBACK: Content too complex for local metadata processing");
+                    "FALLBACK: Content not sufficient for local metadata processing");
             }
             
             // Generate metadata using local model
             Map<String, Object> metadata = performLocalMetadataEnhancement(
-                paperId, title, abstractText, content, enhancementType);
+                paperId, title, doi, authors, enhancementType);
             
             // Add fallback processing note
             String fallbackNote = createFallbackProcessingNote("Metadata Enhancement");
@@ -125,13 +151,13 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
      * 
      * @param paperId The paper ID for logging
      * @param title The paper title
-     * @param abstractText The paper abstract
-     * @param content The paper content
+     * @param doi The paper DOI
+     * @param authors The paper authors
      * @param enhancementType The type of enhancement to perform
      * @return Enhanced metadata
      */
     private Map<String, Object> performLocalMetadataEnhancement(String paperId, String title, 
-                                                              String abstractText, String content, 
+                                                              String doi, String authors, 
                                                               String enhancementType) {
         LoggingUtil.info(LOG, "performLocalMetadataEnhancement", 
             "Generating %s metadata enhancement using Ollama for paper %s", 
@@ -142,24 +168,24 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
         try {
             switch (enhancementType.toLowerCase()) {
                 case "keywords" -> {
-                    List<String> keywords = extractKeywords(title, abstractText, content);
+                    List<String> keywords = extractKeywords(title, doi, authors);
                     metadata.put("keywords", keywords);
                 }
                 case "categories" -> {
-                    List<String> categories = identifyCategories(title, abstractText, content);
+                    List<String> categories = identifyCategories(title, doi, authors);
                     metadata.put("categories", categories);
                 }
                 case "summary_tags" -> {
-                    List<String> tags = generateSummaryTags(title, abstractText, content);
+                    List<String> tags = generateSummaryTags(title, doi, authors);
                     metadata.put("summaryTags", tags);
                 }
                 default -> {
                     // Full enhancement
-                    metadata.put("keywords", extractKeywords(title, abstractText, content));
-                    metadata.put("categories", identifyCategories(title, abstractText, content));
-                    metadata.put("summaryTags", generateSummaryTags(title, abstractText, content));
-                    metadata.put("readabilityScore", assessReadability(title, abstractText, content));
-                    metadata.put("technicalLevel", assessTechnicalLevel(title, abstractText, content));
+                    metadata.put("keywords", extractKeywords(title, doi, authors));
+                    metadata.put("categories", identifyCategories(title, doi, authors));
+                    metadata.put("summaryTags", generateSummaryTags(title, doi, authors));
+                    metadata.put("readabilityScore", assessReadability(title, doi, authors));
+                    metadata.put("technicalLevel", assessTechnicalLevel(title, doi, authors));
                 }
             }
             
@@ -179,9 +205,9 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
     /**
      * Extracts keywords using local processing.
      */
-    private List<String> extractKeywords(String title, String abstractText, String content) {
+    private List<String> extractKeywords(String title, String doi, String authors) {
         // Combine all text for processing
-        String combinedText = combineTextForProcessing(title, abstractText, content);
+        String combinedText = combineTextForProcessing(title, doi, authors);
         
         // Create simplified prompt for keyword extraction
         String promptText = String.format(
@@ -201,15 +227,15 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
         } catch (Exception e) {
             LoggingUtil.warn(LOG, "extractKeywords", 
                 "Keyword extraction failed, using fallback method: %s", e.getMessage());
-            return extractKeywordsFallback(title, abstractText, content);
+            return extractKeywordsFallback(title, doi, authors);
         }
     }
     
     /**
      * Identifies academic categories using local processing.
      */
-    private List<String> identifyCategories(String title, String abstractText, String content) {
-        String combinedText = combineTextForProcessing(title, abstractText, content);
+    private List<String> identifyCategories(String title, String doi, String authors) {
+        String combinedText = combineTextForProcessing(title, doi, authors);
         
         String promptText = String.format(
             "Identify 1-3 academic categories for this research paper:\n\n%s\n\n" +
@@ -230,15 +256,15 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
         } catch (Exception e) {
             LoggingUtil.warn(LOG, "identifyCategories", 
                 "Category identification failed, using fallback method: %s", e.getMessage());
-            return identifyCategoriesFallback(title, abstractText, content);
+            return identifyCategoriesFallback(title, doi, authors);
         }
     }
     
     /**
      * Generates summary tags using local processing.
      */
-    private List<String> generateSummaryTags(String title, String abstractText, String content) {
-        String combinedText = combineTextForProcessing(title, abstractText, content);
+    private List<String> generateSummaryTags(String title, String doi, String authors) {
+        String combinedText = combineTextForProcessing(title, doi, authors);
         
         String promptText = String.format(
             "Generate 4-6 descriptive tags for this academic paper:\n\n%s\n\n" +
@@ -258,16 +284,16 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
         } catch (Exception e) {
             LoggingUtil.warn(LOG, "generateSummaryTags", 
                 "Tag generation failed, using fallback method: %s", e.getMessage());
-            return generateTagsFallback(title, abstractText, content);
+            return generateTagsFallback(title, doi, authors);
         }
     }
     
     /**
      * Assesses readability for local processing.
      */
-    private double assessReadability(String title, String abstractText, String content) {
+    private double assessReadability(String title, String doi, String authors) {
         // Simple readability assessment based on text characteristics
-        String combinedText = combineTextForProcessing(title, abstractText, content);
+        String combinedText = combineTextForProcessing(title, doi, authors);
         
         if (combinedText.isEmpty()) {
             return 5.0; // Neutral score
@@ -289,8 +315,8 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
     /**
      * Assesses technical level for local processing.
      */
-    private String assessTechnicalLevel(String title, String abstractText, String content) {
-        String combinedText = combineTextForProcessing(title, abstractText, content);
+    private String assessTechnicalLevel(String title, String doi, String authors) {
+        String combinedText = combineTextForProcessing(title, doi, authors);
         
         // Simple technical level assessment based on keywords
         String lowerText = combinedText.toLowerCase();
@@ -318,21 +344,19 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
     /**
      * Combines text sources for processing with priority.
      */
-    private String combineTextForProcessing(String title, String abstractText, String content) {
+    private String combineTextForProcessing(String title, String doi, String authors) {
         StringBuilder combined = new StringBuilder();
         
         if (!title.isEmpty()) {
             combined.append("Title: ").append(title).append("\n\n");
         }
         
-        if (!abstractText.isEmpty()) {
-            combined.append("Abstract: ").append(abstractText).append("\n\n");
+        if (!doi.isEmpty()) {
+            combined.append("DOI: ").append(doi).append("\n\n");
         }
         
-        if (!content.isEmpty()) {
-            // Truncate content to fit within processing limits
-            String truncatedContent = truncateForLocalProcessing(content, MAX_LOCAL_CONTENT_LENGTH / 3);
-            combined.append("Content: ").append(truncatedContent);
+        if (!authors.isEmpty()) {
+            combined.append("Authors: ").append(authors).append("\n\n");
         }
         
         return combined.toString();

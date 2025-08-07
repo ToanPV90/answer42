@@ -51,6 +51,14 @@ public abstract class OllamaBasedAgent extends AbstractConfigurableAgent {
             "Initialized Ollama-based fallback agent %s (no retry policy - fallback only)", getAgentType());
     }
     
+    /**
+     * Check if Ollama is available without throwing an exception.
+     * This is used to determine if the agent can be used.
+     */
+    public boolean isOllamaAvailable() {
+        return ollamaChatClient != null;
+    }
+    
     @Override
     public AIProvider getProvider() {
         return AIProvider.OLLAMA;
@@ -65,6 +73,22 @@ public abstract class OllamaBasedAgent extends AbstractConfigurableAgent {
         LoggingUtil.warn(LOG, "getConfiguredChatClient", 
             "Ollama chat client not available - may not be enabled");
         throw new IllegalStateException("Ollama chat client not available. Check if Ollama is enabled and configured properly.");
+    }
+    
+    /**
+     * Returns the chat client if available, or null if Ollama is not configured.
+     * This method is used for safe initialization without throwing exceptions.
+     */
+    protected ChatClient getSafeChatClient() {
+        return ollamaChatClient;
+    }
+    
+    /**
+     * Check if this agent can actually process requests.
+     * Should be called before attempting to use the agent.
+     */
+    public boolean canProcess() {
+        return ollamaChatClient != null;
     }
     
     /**

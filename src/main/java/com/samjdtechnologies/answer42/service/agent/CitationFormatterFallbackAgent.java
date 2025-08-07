@@ -73,14 +73,23 @@ public class CitationFormatterFallbackAgent extends OllamaBasedAgent {
             "Processing citation formatting with Ollama fallback for task %s", task.getId());
         
         try {
-            // Extract task input
+            // Extract task input with null safety
             JsonNode input = task.getInput();
-            String itemId = input.get("itemId").asText();
-            String rawCitations = input.has("rawCitations") ? input.get("rawCitations").asText() : "";
-            String targetStyle = input.has("targetStyle") ? 
-                input.get("targetStyle").asText() : "apa";
-            String sourceFormat = input.has("sourceFormat") ? 
-                input.get("sourceFormat").asText() : "mixed";
+            if (input == null) {
+                return AgentResult.failure(task.getId(), "FALLBACK: No input data provided");
+            }
+            
+            JsonNode itemIdNode = input.get("itemId");
+            String itemId = itemIdNode != null ? itemIdNode.asText() : "unknown";
+            
+            JsonNode rawCitationsNode = input.get("rawCitations");
+            String rawCitations = rawCitationsNode != null ? rawCitationsNode.asText() : "";
+            
+            JsonNode targetStyleNode = input.get("targetStyle");
+            String targetStyle = targetStyleNode != null ? targetStyleNode.asText() : "apa";
+            
+            JsonNode sourceFormatNode = input.get("sourceFormat");
+            String sourceFormat = sourceFormatNode != null ? sourceFormatNode.asText() : "mixed";
             
             if (rawCitations.isEmpty()) {
                 return AgentResult.failure(task.getId(), 

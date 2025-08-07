@@ -51,7 +51,7 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
             }
             
             // Analyze document structure using OpenAI
-            StructuredDocument structuredDoc = analyzeDocumentStructure(textContent, paperId);
+            StructuredDocument structuredDoc = analyzeDocumentStructure(textContent, paperId, task);
             
             // Create result with structured data
             Map<String, Object> resultData = new HashMap<>();
@@ -73,7 +73,7 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
     /**
      * Analyzes document structure using OpenAI GPT-4.
      */
-    private StructuredDocument analyzeDocumentStructure(String textContent, String paperId) {
+    private StructuredDocument analyzeDocumentStructure(String textContent, String paperId, AgentTask task) {
         LoggingUtil.info(LOG, "analyzeDocumentStructure", "Analyzing structure for paper %s", paperId);
         
         try {
@@ -112,8 +112,8 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
             // Use the optimized prompt method from OpenAIBasedAgent
             Prompt prompt = optimizePromptForOpenAI(structurePromptTemplate, variables);
             
-            // Use executePrompt method from AbstractConfigurableAgent (includes retry and rate limiting)
-            ChatResponse response = executePromptWithRetry(prompt).join();
+            // Use direct prompt execution - let agent-level retry policy handle retries and fallback
+            ChatResponse response = executePrompt(prompt);
             
             // Extract content from response - using correct Spring AI API
             String aiResponse = response.getResult().getOutput().getText();

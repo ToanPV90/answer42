@@ -264,13 +264,13 @@ public class AbstractConfigurableAgentTest {
         AgentResult expectedResult = AgentResult.success("test-task", "test result");
         CompletableFuture<AgentResult> futureResult = CompletableFuture.completedFuture(expectedResult);
         
-        when(mockRetryPolicy.executeWithRetry(eq(AgentType.PAPER_PROCESSOR), any()))
+        when(mockRetryPolicy.executeWithRetry(eq(AgentType.PAPER_PROCESSOR), any(), eq(task)))
             .thenAnswer(invocation -> futureResult);
         
         CompletableFuture<AgentResult> result = agent.process(task);
         
         assertNotNull(result);
-        verify(mockRetryPolicy).executeWithRetry(eq(AgentType.PAPER_PROCESSOR), any());
+        verify(mockRetryPolicy).executeWithRetry(eq(AgentType.PAPER_PROCESSOR), any(), eq(task));
     }
 
     @Test
@@ -297,15 +297,6 @@ public class AbstractConfigurableAgentTest {
         assertNull(result);
     }
 
-    @Test
-    void testExecutePromptWithRetry_ReturnsNull() {
-        // Test the default implementation that returns null
-        org.springframework.ai.chat.prompt.Prompt prompt = mock(org.springframework.ai.chat.prompt.Prompt.class);
-        
-        CompletableFuture<org.springframework.ai.chat.model.ChatResponse> result = agent.executePromptWithRetry(prompt);
-        
-        assertNull(result);
-    }
 
     @Test
     void testCreateProcessingMetrics_WithNullStartTime() {
@@ -433,6 +424,12 @@ public class AbstractConfigurableAgentTest {
         @Override
         public AIProvider getProvider() {
             return AIProvider.OPENAI;
+        }
+
+        protected CompletableFuture<org.springframework.ai.chat.model.ChatResponse> executePromptWithRetryInternal(
+                org.springframework.ai.chat.prompt.Prompt prompt, AgentTask originalTask) {
+            // Test implementation returns null to match test expectations
+            return null;
         }
     }
 }

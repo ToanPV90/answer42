@@ -39,16 +39,16 @@ public class APIRateLimiter {
         rateLimiters.put(AIProvider.OPENAI, 
             new ProviderRateLimiter(AIProvider.OPENAI, 3, Duration.ofSeconds(1), 200, Duration.ofMinutes(1)));
 
-        // Anthropic: 5 requests per second, 1000 requests per minute  
+        // Anthropic: CONSERVATIVE - 2 requests per second, 50 requests per minute (to handle usage increase rate limits)
         rateLimiters.put(AIProvider.ANTHROPIC, 
-            new ProviderRateLimiter(AIProvider.ANTHROPIC, 5, Duration.ofSeconds(1), 1000, Duration.ofMinutes(1)));
+            new ProviderRateLimiter(AIProvider.ANTHROPIC, 2, Duration.ofSeconds(1), 50, Duration.ofMinutes(1)));
 
         // Perplexity: 10 requests per second, 600 requests per minute
         rateLimiters.put(AIProvider.PERPLEXITY, 
             new ProviderRateLimiter(AIProvider.PERPLEXITY, 10, Duration.ofSeconds(1), 600, Duration.ofMinutes(1)));
 
         LoggingUtil.info(LOG, "initializeProviderLimiters", 
-            "Initialized rate limiters for %d AI providers", rateLimiters.size());
+            "Initialized rate limiters for %d AI providers with conservative Anthropic limits", rateLimiters.size());
     }
 
     /**

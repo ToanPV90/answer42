@@ -2,6 +2,8 @@ package com.samjdtechnologies.answer42.service.agent;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -126,11 +128,30 @@ public class RelatedPaperDiscoveryAgent extends AbstractConfigurableAgent {
             result.setDiscoveryEndTime(Instant.now());
             result.setTotalProcessingTimeMs(Duration.between(startTime, Instant.now()).toMillis());
 
+            // Check if discovery actually found anything useful
+            boolean hasResults = result.getDiscoveredPapers() != null && !result.getDiscoveredPapers().isEmpty();
+            int papersFound = result.getDiscoveredPapers() != null ? result.getDiscoveredPapers().size() : 0;
+            
             LoggingUtil.info(LOG, "processWithConfig", 
-                "Discovery completed for paper %s: %s", 
-                sourcePaper.getId(), result.getDiscoverySummary());
+                "Discovery completed for paper %s: %s (Found: %d papers)", 
+                sourcePaper.getId(), result.getDiscoverySummary(), papersFound);
 
-            return AgentResult.success(task.getId(), result, createProcessingMetrics(startTime));
+            // Prepare result data
+            Map<String, Object> resultData = new HashMap<>();
+            resultData.put("result", result);
+            resultData.put("hasResults", hasResults);
+            resultData.put("papersFound", papersFound);
+            
+            if (hasResults) {
+                LoggingUtil.info(LOG, "processWithConfig", 
+                    "Discovery successful for paper %s - found %d papers", sourcePaper.getId(), papersFound);
+                return AgentResult.success(task.getId(), resultData, createProcessingMetrics(startTime));
+            } else {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Discovery completed but found no results for paper %s - this may be normal for some research topics", sourcePaper.getId());
+                // Still return success - finding no papers can be legitimate
+                return AgentResult.success(task.getId(), resultData, createProcessingMetrics(startTime));
+            }
 
         } catch (CompletionException e) {
             // Check if the cause is a TimeoutException

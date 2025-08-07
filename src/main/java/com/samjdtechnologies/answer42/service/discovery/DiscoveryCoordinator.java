@@ -69,7 +69,10 @@ public class DiscoveryCoordinator {
                 // Create futures for each enabled source
                 List<CompletableFuture<Void>> sourceFutures = new ArrayList<>();
 
-                // Crossref discovery
+                // Calculate timeout for individual services (give each service 1/3 of total timeout)
+                int serviceTimeoutSeconds = Math.max(30, config.getEffectiveTimeoutSeconds() / 3);
+                
+                // Crossref discovery with timeout
                 if (config.isSourceEnabled(DiscoverySource.CROSSREF)) {
                     CompletableFuture<Void> crossrefFuture = 
                         CompletableFuture.supplyAsync(() -> {
@@ -81,11 +84,17 @@ public class DiscoveryCoordinator {
                                 return List.<DiscoveredPaper>of();
                             }
                         }, threadConfig.taskExecutor())
+                        .orTimeout(serviceTimeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
+                        .exceptionally(ex -> {
+                            LoggingUtil.warn(LOG, "coordinateDiscovery", 
+                                "Crossref discovery timed out or failed: %s", ex.getMessage());
+                            return List.<DiscoveredPaper>of();
+                        })
                         .thenAccept(crossrefPapers::addAll);
                     sourceFutures.add(crossrefFuture);
                 }
 
-                // Semantic Scholar discovery
+                // Semantic Scholar discovery with timeout
                 if (config.isSourceEnabled(DiscoverySource.SEMANTIC_SCHOLAR)) {
                     CompletableFuture<Void> semanticFuture = 
                         CompletableFuture.supplyAsync(() -> {
@@ -97,11 +106,17 @@ public class DiscoveryCoordinator {
                                 return List.<DiscoveredPaper>of();
                             }
                         }, threadConfig.taskExecutor())
+                        .orTimeout(serviceTimeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
+                        .exceptionally(ex -> {
+                            LoggingUtil.warn(LOG, "coordinateDiscovery", 
+                                "Semantic Scholar discovery timed out or failed: %s", ex.getMessage());
+                            return List.<DiscoveredPaper>of();
+                        })
                         .thenAccept(semanticScholarPapers::addAll);
                     sourceFutures.add(semanticFuture);
                 }
 
-                // Perplexity discovery
+                // Perplexity discovery with timeout
                 if (config.isSourceEnabled(DiscoverySource.PERPLEXITY)) {
                     CompletableFuture<Void> perplexityFuture = 
                         CompletableFuture.supplyAsync(() -> {
@@ -113,12 +128,26 @@ public class DiscoveryCoordinator {
                                 return List.<DiscoveredPaper>of();
                             }
                         }, threadConfig.taskExecutor())
+                        .orTimeout(serviceTimeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
+                        .exceptionally(ex -> {
+                            LoggingUtil.warn(LOG, "coordinateDiscovery", 
+                                "Perplexity discovery timed out or failed: %s", ex.getMessage());
+                            return List.<DiscoveredPaper>of();
+                        })
                         .thenAccept(perplexityPapers::addAll);
                     sourceFutures.add(perplexityFuture);
                 }
 
-                // Wait for all sources to complete
-                CompletableFuture.allOf(sourceFutures.toArray(new CompletableFuture[0])).join();
+                // Wait for all sources to complete with overall timeout
+                try {
+                    CompletableFuture.allOf(sourceFutures.toArray(new CompletableFuture[0]))
+                        .orTimeout(config.getEffectiveTimeoutSeconds(), java.util.concurrent.TimeUnit.SECONDS)
+                        .join();
+                } catch (Exception e) {
+                    LoggingUtil.warn(LOG, "coordinateDiscovery", 
+                        "Some discovery services timed out, continuing with available results: %s", e.getMessage());
+                    // Continue processing with whatever results we have
+                }
 
                 LoggingUtil.info(LOG, "coordinateDiscovery", 
                     "Discovered %d Crossref, %d Semantic Scholar, %d Perplexity papers", 

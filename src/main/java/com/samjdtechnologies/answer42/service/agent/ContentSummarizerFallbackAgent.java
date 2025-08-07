@@ -60,11 +60,20 @@ public class ContentSummarizerFallbackAgent extends OllamaBasedAgent {
             "Processing content summarization with Ollama fallback for task %s", task.getId());
         
         try {
-            // Extract task input
+            // Extract task input with null safety
             JsonNode input = task.getInput();
-            String paperId = input.get("paperId").asText();
-            String textContent = input.has("textContent") ? input.get("textContent").asText() : null;
-            String summaryType = input.has("summaryType") ? input.get("summaryType").asText() : "standard";
+            if (input == null) {
+                return AgentResult.failure(task.getId(), "FALLBACK: No input data provided");
+            }
+            
+            JsonNode paperIdNode = input.get("paperId");
+            String paperId = paperIdNode != null ? paperIdNode.asText() : "unknown";
+            
+            JsonNode textContentNode = input.get("textContent");
+            String textContent = textContentNode != null ? textContentNode.asText() : null;
+            
+            JsonNode summaryTypeNode = input.get("summaryType");
+            String summaryType = summaryTypeNode != null ? summaryTypeNode.asText() : "standard";
             
             if (textContent == null || textContent.trim().isEmpty()) {
                 return AgentResult.failure(task.getId(), "FALLBACK: No text content provided for summarization");

@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.model.discovery;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -19,7 +20,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DiscoveredPaper {
+public class DiscoveredPaper implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     private String id;
     private String title;

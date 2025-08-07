@@ -74,7 +74,7 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
             }
             
             // Generate summary based on type
-            SummaryResult summaryResult = generateSummary(textContent, summaryType, paperId);
+            SummaryResult summaryResult = generateSummary(textContent, summaryType, paperId, task);
             
             // Create result data
             Map<String, Object> resultData = new HashMap<>();
@@ -88,6 +88,18 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
             
             return AgentResult.success(task.getId(), resultData);
             
+        } catch (RuntimeException e) {
+            // Let retryable exceptions (like rate limits) bubble up to retry policy
+            if (isRetryableException(e)) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Retryable exception occurred, letting retry policy handle: %s", e.getMessage());
+                throw e; // Let retry policy handle this
+            }
+            
+            // Only catch non-retryable exceptions
+            LoggingUtil.error(LOG, "processWithConfig", "Failed to generate summary", e);
+            return AgentResult.failure(task.getId(), "Summary generation failed: " + e.getMessage());
+            
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processWithConfig", "Failed to generate summary", e);
             return AgentResult.failure(task.getId(), "Summary generation failed: " + e.getMessage());
@@ -96,8 +108,9 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
     
     /**
      * Generates summary using Anthropic Claude based on type.
+     * This method will throw exceptions on AI provider failures to trigger circuit breaker.
      */
-    private SummaryResult generateSummary(String content, String summaryType, String paperId) {
+    private SummaryResult generateSummary(String content, String summaryType, String paperId, AgentTask task) {
         LoggingUtil.info(LOG, "generateSummary", "Generating %s summary for paper %s", summaryType, paperId);
         
         // Clean content to avoid template parsing issues
@@ -111,7 +124,9 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
         String summaryPrompt = buildSummaryPrompt(summaryType, cleanContent);
         
         Prompt prompt = optimizePromptForAnthropic(summaryPrompt, variables);
-        ChatResponse response = executePromptWithRetry(prompt).join();
+        
+        // Use direct prompt execution - let agent-level retry policy handle retries and fallback
+        ChatResponse response = executePrompt(prompt);
         
         String aiResponse = response.getResult().getOutput().getText();
         

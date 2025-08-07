@@ -96,6 +96,19 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
             
             return AgentResult.success(task.getId(), result);
             
+        } catch (RuntimeException e) {
+            // Let retryable exceptions (like rate limits) bubble up to retry policy
+            if (isRetryableException(e)) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Retryable exception occurred, letting retry policy handle: %s", e.getMessage());
+                throw e; // Let retry policy handle this
+            }
+            
+            // Only catch non-retryable exceptions
+            LoggingUtil.error(LOG, "processWithConfig", 
+                "Citation formatting failed for task %s", e, task.getId());
+            return AgentResult.failure(task.getId(), e.getMessage());
+            
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processWithConfig", 
                 "Citation formatting failed for task %s", e, task.getId());
@@ -209,11 +222,25 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
         
         try {
             Prompt structurePrompt = new Prompt(promptText);
-            ChatResponse response = chatClient.prompt(structurePrompt).call().chatResponse();
+            
+            // Do NOT catch exceptions here - let them propagate to trigger circuit breaker
+            ChatResponse response;
+            try {
+                response = executePrompt(structurePrompt);
+            } catch (Exception e) {
+                // Log the error but re-throw to ensure circuit breaker sees the failure
+                LoggingUtil.error(LOG, "processCitationBatch", 
+                    "AI provider failed for citation parsing: %s", e.getMessage());
+                throw new RuntimeException("AI provider communication failed: " + e.getMessage(), e);
+            }
+            
             String jsonResponse = response.getResult().getOutput().getText();
             
             return parseCitationStructures(jsonResponse);
             
+        } catch (RuntimeException e) {
+            // Re-throw circuit breaker exceptions
+            throw e;
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processCitationBatch", 
                 "Failed to process citation batch", e);
@@ -283,7 +310,18 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
             """, style.getDisplayName(), citationData, style.getDisplayName(), style.getDisplayName());
         
         Prompt formatPrompt = new Prompt(promptText);
-        ChatResponse response = chatClient.prompt(formatPrompt).call().chatResponse();
+        
+        // Do NOT catch exceptions here - let them propagate to trigger circuit breaker
+        ChatResponse response;
+        try {
+            response = executePrompt(formatPrompt);
+        } catch (Exception e) {
+            // Log the error but re-throw to ensure circuit breaker sees the failure
+            LoggingUtil.error(LOG, "formatBibliography", 
+                "AI provider failed for bibliography formatting: %s", e.getMessage());
+            throw new RuntimeException("AI provider communication failed: " + e.getMessage(), e);
+        }
+        
         String formattedText = response.getResult().getOutput().getText();
         
         List<String> formattedEntries = Arrays.stream(formattedText.split("\n"))

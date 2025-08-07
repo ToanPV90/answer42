@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
 
@@ -83,6 +82,19 @@ public class QualityCheckerAgent extends AnthropicBasedAgent {
                 task.getId(), overallAssessment.getScore());
             
             return AgentResult.success(task.getId(), qualityReport);
+            
+        } catch (RuntimeException e) {
+            // Let retryable exceptions (like rate limits) bubble up to retry policy
+            if (isRetryableException(e)) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Retryable exception occurred, letting retry policy handle: %s", e.getMessage());
+                throw e; // Let retry policy handle this
+            }
+            
+            // Only catch non-retryable exceptions
+            LoggingUtil.error(LOG, "processWithConfig", 
+                "Quality check failed for task %s: %s", e, task.getId(), e.getMessage());
+            return AgentResult.failure(task.getId(), "Quality check failed: " + e.getMessage());
             
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processWithConfig", 
@@ -164,8 +176,8 @@ public class QualityCheckerAgent extends AnthropicBasedAgent {
                 }
                 """, truncatedSource, truncatedGenerated));
             
-            ChatClient.ChatClientRequestSpec response = chatClient.prompt(accuracyPrompt);
-            String result = response.call().content();
+            // Use direct prompt execution - let agent-level retry policy handle retries and fallback
+            String result = executePrompt(accuracyPrompt).getResult().getOutput().getText();
             
             return responseParser.parseQualityCheckResponse(QualityCheckType.ACCURACY, result);
             
@@ -197,8 +209,8 @@ public class QualityCheckerAgent extends AnthropicBasedAgent {
                 Provide assessment as JSON with score, issues array, and summary.
                 """, truncatedContent));
             
-            ChatClient.ChatClientRequestSpec response = chatClient.prompt(consistencyPrompt);
-            String result = response.call().content();
+            // Use direct prompt execution - let agent-level retry policy handle retries and fallback
+            String result = executePrompt(consistencyPrompt).getResult().getOutput().getText();
             
             return responseParser.parseQualityCheckResponse(QualityCheckType.CONSISTENCY, result);
             
@@ -230,8 +242,8 @@ public class QualityCheckerAgent extends AnthropicBasedAgent {
                 Provide assessment as JSON with score, issues array, and summary.
                 """, truncatedContent));
             
-            ChatClient.ChatClientRequestSpec response = chatClient.prompt(biasPrompt);
-            String result = response.call().content();
+            // Use direct prompt execution - let agent-level retry policy handle retries and fallback
+            String result = executePrompt(biasPrompt).getResult().getOutput().getText();
             
             return responseParser.parseQualityCheckResponse(QualityCheckType.BIAS_DETECTION, result);
             
@@ -267,8 +279,8 @@ public class QualityCheckerAgent extends AnthropicBasedAgent {
                 Provide assessment as JSON with score, issues array, and summary.
                 """, truncatedSource, truncatedGenerated));
             
-            ChatClient.ChatClientRequestSpec response = chatClient.prompt(hallucinationPrompt);
-            String result = response.call().content();
+            // Use direct prompt execution - let agent-level retry policy handle retries and fallback
+            String result = executePrompt(hallucinationPrompt).getResult().getOutput().getText();
             
             return responseParser.parseQualityCheckResponse(QualityCheckType.HALLUCINATION_DETECTION, result);
             
@@ -300,8 +312,8 @@ public class QualityCheckerAgent extends AnthropicBasedAgent {
                 Provide assessment as JSON with score, issues array, and summary.
                 """, truncatedContent));
             
-            ChatClient.ChatClientRequestSpec response = chatClient.prompt(coherencePrompt);
-            String result = response.call().content();
+            // Use direct prompt execution - let agent-level retry policy handle retries and fallback
+            String result = executePrompt(coherencePrompt).getResult().getOutput().getText();
             
             return responseParser.parseQualityCheckResponse(QualityCheckType.LOGICAL_COHERENCE, result);
             

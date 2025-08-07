@@ -68,12 +68,20 @@ public class QualityCheckerFallbackAgent extends OllamaBasedAgent {
             "Processing quality check with Ollama fallback for task %s", task.getId());
         
         try {
-            // Extract task input
+            // Extract task input with null safety
             JsonNode input = task.getInput();
-            String itemId = input.get("itemId").asText();
-            String content = input.has("content") ? input.get("content").asText() : "";
-            String checkType = input.has("checkType") ? 
-                input.get("checkType").asText() : "standard";
+            if (input == null) {
+                return AgentResult.failure(task.getId(), "FALLBACK: No input data provided");
+            }
+            
+            JsonNode itemIdNode = input.get("itemId");
+            String itemId = itemIdNode != null ? itemIdNode.asText() : "unknown";
+            
+            JsonNode contentNode = input.get("content");
+            String content = contentNode != null ? contentNode.asText() : "";
+            
+            JsonNode checkTypeNode = input.get("checkType");
+            String checkType = checkTypeNode != null ? checkTypeNode.asText() : "standard";
             
             if (content.isEmpty()) {
                 return AgentResult.failure(task.getId(), 

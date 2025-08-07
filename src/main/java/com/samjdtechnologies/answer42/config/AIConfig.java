@@ -590,46 +590,16 @@ public class AIConfig {
         return ChatClient.builder(openAiChatModel).build();
     }
     
-    /**
-     * Creates an Ollama API client for local model processing.
-     * This bean is conditionally created only when Ollama is enabled.
-     * 
-     * @return An OllamaApi client configured with the specified base URL
-     */
-    @Bean
-    @ConditionalOnProperty(name = "spring.ai.ollama.enabled", havingValue = "true", matchIfMissing = false)
-    public OllamaApi ollamaApi() {
-        return OllamaApi.builder()
-            .baseUrl(ollamaBaseUrl)
-            .build();
-    }
+    // Removed manual Ollama configuration - using Spring Boot auto-configuration instead
+    // This allows all timeout properties from application.properties to be properly applied
+    // The auto-configured beans are available when spring.ai.ollama.enabled=true
     
     /**
-     * Creates and configures an Ollama chat model for local fallback processing.
-     * This bean is conditionally created only when Ollama is enabled.
+     * Creates a chat client using the auto-configured Ollama chat model for local fallback.
+     * This bean is conditionally created only when Ollama is enabled and depends on 
+     * Spring Boot's auto-configuration which properly applies all timeout settings.
      * 
-     * @param ollamaApi The Ollama API client
-     * @return A configured OllamaChatModel for local processing
-     */
-    @Bean
-    @ConditionalOnProperty(name = "spring.ai.ollama.enabled", havingValue = "true", matchIfMissing = false)
-    public OllamaChatModel ollamaChatModel(OllamaApi ollamaApi) {
-        OllamaOptions options = OllamaOptions.builder()
-            .model(ollamaModel)
-            .temperature(ollamaTemperature)
-            .build();
-        
-        return OllamaChatModel.builder()
-            .ollamaApi(ollamaApi)
-            .defaultOptions(options)
-            .build();
-    }
-    
-    /**
-     * Creates a chat client using the Ollama chat model for local fallback.
-     * This bean is conditionally created only when Ollama is enabled.
-     * 
-     * @param ollamaChatModel The configured Ollama chat model
+     * @param ollamaChatModel The auto-configured Ollama chat model with proper timeouts
      * @return A ChatClient that uses the Ollama model for local conversations
      */
     @Bean

@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.model.discovery;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -19,7 +20,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class DiscoveryConfiguration {
+public class DiscoveryConfiguration implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     private Set<DiscoverySource> enabledSources;
     private Set<RelationshipType> targetRelationshipTypes;

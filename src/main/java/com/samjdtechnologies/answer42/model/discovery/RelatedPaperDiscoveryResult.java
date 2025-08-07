@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.model.discovery;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RelatedPaperDiscoveryResult {
+public class RelatedPaperDiscoveryResult implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     private UUID sourcePaperId;
     private List<DiscoveredPaper> discoveredPapers;

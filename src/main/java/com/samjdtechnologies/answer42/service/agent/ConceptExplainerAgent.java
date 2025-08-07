@@ -66,7 +66,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             }
             
             // Step 1: Extract and prioritize technical terms
-            List<TechnicalTerm> prioritizedTerms = extractAndPrioritizeTerms(content);
+            List<TechnicalTerm> prioritizedTerms = extractAndPrioritizeTerms(content, task);
             LoggingUtil.info(LOG, "processWithConfig", 
                 "Prioritized %d technical terms for explanation", prioritizedTerms.size());
             
@@ -81,14 +81,14 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
                     .collect(Collectors.toMap(
                         level -> level,
                         level -> CompletableFuture.supplyAsync(
-                            () -> generateExplanationsForLevel(prioritizedTerms, content, level),
+                            () -> generateExplanationsForLevel(prioritizedTerms, content, level, task),
                             taskExecutor)
                     ));
             
             // Step 3: Generate concept relationship map in parallel
             CompletableFuture<ConceptRelationshipMap> relationshipFuture = 
                 CompletableFuture.supplyAsync(
-                    () -> generateRelationshipMap(prioritizedTerms, content), 
+                    () -> generateRelationshipMap(prioritizedTerms, content, task), 
                     taskExecutor);
             
             // Wait for all tasks to complete
@@ -120,6 +120,19 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             
             return AgentResult.success(task.getId(), result);
             
+        } catch (RuntimeException e) {
+            // Let retryable exceptions (like rate limits) bubble up to retry policy
+            if (isRetryableException(e)) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Retryable exception occurred, letting retry policy handle: %s", e.getMessage());
+                throw e; // Let retry policy handle this
+            }
+            
+            // Only catch non-retryable exceptions
+            LoggingUtil.error(LOG, "processWithConfig", 
+                "Failed to process concept explanation", e);
+            return AgentResult.failure(task.getId(), e.getMessage());
+            
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processWithConfig", 
                 "Failed to process concept explanation", e);
@@ -127,7 +140,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
         }
     }
     
-    private List<TechnicalTerm> extractAndPrioritizeTerms(String content) {
+    private List<TechnicalTerm> extractAndPrioritizeTerms(String content, AgentTask task) {
         String templateString = """
             Extract technical terms from this academic content that would benefit from explanation.
             
@@ -150,27 +163,30 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
         Prompt extractionPrompt = optimizePromptForOpenAI(templateString, 
             Map.of("content", truncateContent(cleanContent, 4000)));
         
+        // Do NOT catch exceptions here - let them propagate to trigger circuit breaker
+        ChatResponse response;
         try {
-            ChatResponse response = executePromptWithRetry(extractionPrompt).join();
-            String responseContent = response.getResult().getOutput().getText();
-            
-            List<TechnicalTerm> terms = responseParser.parseTermsFromResponse(responseContent);
-            
-            // Prioritize terms based on complexity and importance
-            return terms.stream()
-                .sorted((a, b) -> Double.compare(b.getPriorityScore(), a.getPriorityScore()))
-                .limit(20) // Top 20 terms
-                .collect(Collectors.toList());
-            
+            response = executePrompt(extractionPrompt);
         } catch (Exception e) {
+            // Log the error but re-throw to ensure circuit breaker sees the failure
             LoggingUtil.error(LOG, "extractAndPrioritizeTerms", 
-                "Failed to extract technical terms", e);
-            return List.of();
+                "AI provider failed for term extraction: %s", e.getMessage());
+            throw new RuntimeException("AI provider communication failed: " + e.getMessage(), e);
         }
+        
+        String responseContent = response.getResult().getOutput().getText();
+        
+        List<TechnicalTerm> terms = responseParser.parseTermsFromResponse(responseContent);
+        
+        // Prioritize terms based on complexity and importance
+        return terms.stream()
+            .sorted((a, b) -> Double.compare(b.getPriorityScore(), a.getPriorityScore()))
+            .limit(20) // Top 20 terms
+            .collect(Collectors.toList());
     }
     
     private ConceptExplanations generateExplanationsForLevel(
-            List<TechnicalTerm> terms, String content, EducationLevel level) {
+            List<TechnicalTerm> terms, String content, EducationLevel level, AgentTask task) {
         
         LoggingUtil.info(LOG, "generateExplanationsForLevel", 
             "Generating explanations for %s level with %d terms", 
@@ -182,7 +198,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
         
         for (List<TechnicalTerm> batch : termBatches) {
             Map<String, ConceptExplanation> batchExplanations = 
-                generateBatchExplanations(batch, content, level);
+                generateBatchExplanations(batch, content, level, task);
             allExplanations.putAll(batchExplanations);
         }
         
@@ -190,7 +206,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
     }
     
     private Map<String, ConceptExplanation> generateBatchExplanations(
-            List<TechnicalTerm> terms, String content, EducationLevel level) {
+            List<TechnicalTerm> terms, String content, EducationLevel level, AgentTask task) {
         
         String termsList = terms.stream()
             .map(TechnicalTerm::getTerm)
@@ -229,7 +245,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             ));
         
         try {
-            ChatResponse response = executePromptWithRetry(explanationPrompt).join();
+            ChatResponse response = executePrompt(explanationPrompt);
             String responseContent = response.getResult().getOutput().getText();
             
             return responseParser.parseExplanationsFromResponse(responseContent, level);
@@ -242,7 +258,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
     }
     
     private ConceptRelationshipMap generateRelationshipMap(
-            List<TechnicalTerm> terms, String content) {
+            List<TechnicalTerm> terms, String content, AgentTask task) {
         
         String termsList = terms.stream()
             .map(TechnicalTerm::getTerm)
@@ -269,7 +285,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             ));
         
         try {
-            ChatResponse response = executePromptWithRetry(relationshipPrompt).join();
+            ChatResponse response = executePrompt(relationshipPrompt);
             String responseContent = response.getResult().getOutput().getText();
             
             return responseParser.parseRelationshipMapFromResponse(responseContent);

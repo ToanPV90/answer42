@@ -28,11 +28,11 @@ public class AgentCircuitBreaker {
     
     private static final Logger LOG = LoggerFactory.getLogger(AgentCircuitBreaker.class);
     
-    // Phase 1 reliability improvements: Tuned for AI services
-    private static final int FAILURE_THRESHOLD = 3; // Faster protection (was 5)
-    private static final int SUCCESS_THRESHOLD = 3; // Require 3 consecutive successes to close circuit
-    private static final Duration TIMEOUT_DURATION = Duration.ofMinutes(5); // Longer recovery for AI services (was 2)
-    private static final Duration HALF_OPEN_TIMEOUT = Duration.ofSeconds(45); // More time for AI operations (was 30)
+    // Enhanced reliability for OpenAI timeout issues: More tolerant thresholds
+    private static final int FAILURE_THRESHOLD = 5; // Allow more failures before opening (was 3)
+    private static final int SUCCESS_THRESHOLD = 2; // Faster recovery with fewer required successes (was 3)
+    private static final Duration TIMEOUT_DURATION = Duration.ofMinutes(3); // Faster recovery for API issues (was 5)
+    private static final Duration HALF_OPEN_TIMEOUT = Duration.ofSeconds(30); // Standard timeout for API operations (was 45)
     
     private final Map<AgentType, CircuitBreakerState> circuitStates = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);

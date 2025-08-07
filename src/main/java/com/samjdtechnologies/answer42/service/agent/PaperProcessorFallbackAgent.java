@@ -58,12 +58,24 @@ public class PaperProcessorFallbackAgent extends OllamaBasedAgent {
             "Processing paper with Ollama fallback for task %s", task.getId());
         
         try {
-            // Extract task input
+            // Extract task input with null safety
             JsonNode input = task.getInput();
-            String paperId = input.get("paperId").asText();
-            String rawContent = input.has("rawContent") ? input.get("rawContent").asText() : "";
-            String processingMode = input.has("processingMode") ? 
-                input.get("processingMode").asText() : "standard";
+            if (input == null) {
+                return AgentResult.failure(task.getId(), "FALLBACK: No input data provided");
+            }
+            
+            JsonNode paperIdNode = input.get("paperId");
+            String paperId = paperIdNode != null ? paperIdNode.asText() : "unknown";
+            
+            // Handle both field names - tasklet uses "textContent", fallback agent expects "rawContent"
+            JsonNode rawContentNode = input.get("rawContent");
+            if (rawContentNode == null) {
+                rawContentNode = input.get("textContent");
+            }
+            String rawContent = rawContentNode != null ? rawContentNode.asText() : "";
+            
+            JsonNode processingModeNode = input.get("processingMode");
+            String processingMode = processingModeNode != null ? processingModeNode.asText() : "standard";
             
             if (rawContent.isEmpty()) {
                 return AgentResult.failure(task.getId(), 

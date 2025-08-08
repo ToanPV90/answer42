@@ -23,6 +23,11 @@ import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.PaperContentRepository;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
+import com.samjdtechnologies.answer42.repository.PaperSectionRepository;
+import com.samjdtechnologies.answer42.repository.PaperTagRepository;
+import com.samjdtechnologies.answer42.repository.TagRepository;
 import com.samjdtechnologies.answer42.service.agent.PaperProcessorAgent.StructuredDocument;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
@@ -49,6 +54,21 @@ public class PaperProcessorAgentTest {
     
     @Mock
     private OpenAiChatModel mockOpenAiChatModel;
+    
+    @Mock
+    private PaperRepository mockPaperRepository;
+    
+    @Mock
+    private PaperContentRepository mockPaperContentRepository;
+    
+    @Mock
+    private PaperSectionRepository mockPaperSectionRepository;
+    
+    @Mock
+    private TagRepository mockTagRepository;
+    
+    @Mock
+    private PaperTagRepository mockPaperTagRepository;
 
     private PaperProcessorAgent agent;
 
@@ -62,7 +82,9 @@ public class PaperProcessorAgentTest {
         when(mockAiConfig.openAiChatClient(mockOpenAiChatModel)).thenReturn(mockChatClient);
         
         agent = new PaperProcessorAgent(mockAiConfig, mockThreadConfig, 
-            mockRetryPolicy, mockRateLimiter);
+            mockRetryPolicy, mockRateLimiter,
+            mockPaperRepository, mockPaperContentRepository, 
+            mockPaperSectionRepository, mockTagRepository, mockPaperTagRepository);
     }
 
     @Test

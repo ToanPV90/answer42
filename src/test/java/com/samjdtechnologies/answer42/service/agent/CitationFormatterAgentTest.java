@@ -46,6 +46,9 @@ public class CitationFormatterAgentTest {
     
     @Mock
     private OpenAiChatModel mockOpenAiChatModel;
+    
+    @Mock
+    private com.samjdtechnologies.answer42.repository.CitationRepository mockCitationRepository;
 
     private CitationFormatterAgent agent;
 
@@ -59,7 +62,7 @@ public class CitationFormatterAgentTest {
         when(mockAiConfig.openAiChatClient(mockOpenAiChatModel)).thenReturn(mockChatClient);
         
         agent = new CitationFormatterAgent(mockAiConfig, mockThreadConfig, 
-            mockRetryPolicy, mockRateLimiter);
+            mockRetryPolicy, mockRateLimiter, mockCitationRepository);
     }
 
     @Test

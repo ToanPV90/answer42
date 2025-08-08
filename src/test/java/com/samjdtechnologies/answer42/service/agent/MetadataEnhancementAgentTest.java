@@ -60,6 +60,9 @@ public class MetadataEnhancementAgentTest {
     
     @Mock
     private ChatClient.CallResponseSpec mockCallResponseSpec;
+    
+    @Mock
+    private com.samjdtechnologies.answer42.repository.MetadataVerificationRepository mockMetadataVerificationRepository;
 
     private MetadataEnhancementAgent agent;
 
@@ -73,7 +76,7 @@ public class MetadataEnhancementAgentTest {
         when(mockAiConfig.openAiChatClient(mockOpenAiChatModel)).thenReturn(mockChatClient);
         
         agent = new MetadataEnhancementAgent(mockAiConfig, mockThreadConfig, 
-            mockRetryPolicy, mockRateLimiter);
+            mockRetryPolicy, mockRateLimiter, mockMetadataVerificationRepository);
     }
 
     @Test

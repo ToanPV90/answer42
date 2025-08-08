@@ -1,22 +1,31 @@
 package com.samjdtechnologies.answer42.service.agent;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.MetadataVerification;
+import com.samjdtechnologies.answer42.model.db.Paper;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.MetadataVerificationRepository;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
@@ -51,9 +60,17 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
         "Psychology", "Environmental Science", "Materials Science", "Economics"
     );
     
+    private final PaperRepository paperRepository;
+    private final MetadataVerificationRepository metadataVerificationRepository;
+    private final ObjectMapper objectMapper;
+    
     public MetadataEnhancementFallbackAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
-                                           APIRateLimiter rateLimiter) {
+                                           APIRateLimiter rateLimiter, PaperRepository paperRepository,
+                                           MetadataVerificationRepository metadataVerificationRepository) {
         super(aiConfig, threadConfig, rateLimiter);
+        this.paperRepository = paperRepository;
+        this.metadataVerificationRepository = metadataVerificationRepository;
+        this.objectMapper = new ObjectMapper();
     }
     
     @Override
@@ -127,6 +144,11 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
             // Add fallback processing note
             String fallbackNote = createFallbackProcessingNote("Metadata Enhancement");
             metadata.put("processingNote", fallbackNote);
+            
+            // Save metadata verification to database
+            if (!paperId.equals("unknown")) {
+                saveMetadataVerification(paperId, title, doi, authors, metadata, enhancementType);
+            }
             
             // Create result data with fallback indicators
             Map<String, Object> resultData = new HashMap<>();
@@ -562,6 +584,102 @@ public class MetadataEnhancementFallbackAgent extends OllamaBasedAgent {
         }
         
         return Duration.ofSeconds(30); // Conservative estimate for local processing
+    }
+    
+    /**
+     * Saves metadata verification record to the database.
+     * 
+     * @param paperId The paper ID
+     * @param title The paper title
+     * @param doi The paper DOI
+     * @param authors The paper authors
+     * @param metadata The enhanced metadata
+     * @param enhancementType The type of enhancement performed
+     */
+    @Transactional
+    private void saveMetadataVerification(String paperId, String title, String doi, 
+                                        String authors, Map<String, Object> metadata, 
+                                        String enhancementType) {
+        try {
+            // Parse paper ID to UUID
+            UUID paperUuid;
+            try {
+                paperUuid = UUID.fromString(paperId);
+            } catch (IllegalArgumentException e) {
+                LoggingUtil.warn(LOG, "saveMetadataVerification", 
+                    "Invalid paper UUID format: %s", paperId);
+                return;
+            }
+            
+            // Check if paper exists
+            Optional<Paper> paperOpt = paperRepository.findById(paperUuid);
+            if (paperOpt.isEmpty()) {
+                LoggingUtil.warn(LOG, "saveMetadataVerification", 
+                    "Paper not found for UUID: %s", paperId);
+                return;
+            }
+            
+            Paper paper = paperOpt.get();
+            
+            // Create metadata verification record using actual database schema
+            MetadataVerification verification = new MetadataVerification();
+            verification.setPaper(paper);  // paper_id foreign key
+            verification.setSource("OLLAMA_FALLBACK");  // source column
+            verification.setConfidence(0.7);  // confidence score for local processing
+            verification.setVerifiedAt(Instant.now());  // verified_at timestamp
+            verification.setMatchedBy("title_doi_match");  // matched_by identifier
+            verification.setIdentifierUsed(doi.isEmpty() ? title : doi);  // identifier_used
+            
+            // Create comprehensive metadata JSONB object
+            Map<String, Object> metadataJson = new HashMap<>();
+            metadataJson.put("originalTitle", title);
+            metadataJson.put("originalDoi", doi);
+            metadataJson.put("originalAuthors", authors);
+            metadataJson.put("enhancementType", enhancementType);
+            metadataJson.put("fallbackUsed", true);
+            metadataJson.put("fallbackReason", "Cloud providers unavailable - using Ollama fallback");
+            metadataJson.put("processingNotes", "Local metadata enhancement using " + enhancementType + " mode");
+            
+            // Add all enhanced metadata
+            if (metadata.containsKey("keywords")) {
+                metadataJson.put("extractedKeywords", metadata.get("keywords"));
+            }
+            
+            if (metadata.containsKey("categories")) {
+                metadataJson.put("extractedCategories", metadata.get("categories"));
+            }
+            
+            if (metadata.containsKey("summaryTags")) {
+                metadataJson.put("extractedTags", metadata.get("summaryTags"));
+            }
+            
+            if (metadata.containsKey("readabilityScore")) {
+                metadataJson.put("readabilityScore", metadata.get("readabilityScore"));
+            }
+            
+            if (metadata.containsKey("technicalLevel")) {
+                metadataJson.put("technicalLevel", metadata.get("technicalLevel"));
+            }
+            
+            // Add processing metadata
+            metadataJson.put("enhancementQuality", metadata.get("enhancementQuality"));
+            metadataJson.put("processingMethod", metadata.get("processingMethod"));
+            
+            // Convert Map to JsonNode for JSONB column
+            JsonNode metadataJsonNode = objectMapper.valueToTree(metadataJson);
+            verification.setMetadata(metadataJsonNode);  // metadata JSONB column
+            
+            // Save to database
+            metadataVerificationRepository.save(verification);
+            
+            LoggingUtil.info(LOG, "saveMetadataVerification", 
+                "Saved metadata verification record for paper %s with enhancement type %s", 
+                paperId, enhancementType);
+                
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveMetadataVerification", 
+                "Failed to save metadata verification for paper %s", e, paperId);
+        }
     }
     
     /**

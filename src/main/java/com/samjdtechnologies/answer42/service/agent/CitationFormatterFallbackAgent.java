@@ -1,10 +1,13 @@
 package com.samjdtechnologies.answer42.service.agent;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,13 +15,21 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.Citation;
+import com.samjdtechnologies.answer42.model.db.CitationVerification;
+import com.samjdtechnologies.answer42.model.db.Paper;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.CitationRepository;
+import com.samjdtechnologies.answer42.repository.CitationVerificationRepository;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
@@ -57,9 +68,22 @@ public class CitationFormatterFallbackAgent extends OllamaBasedAgent {
     private static final Pattern URL_PATTERN = Pattern.compile(
         "https?://[^\\s]+");
     
+    private final CitationRepository citationRepository;
+    private final CitationVerificationRepository citationVerificationRepository;
+    private final PaperRepository paperRepository;
+    private final ObjectMapper objectMapper;
+    
     public CitationFormatterFallbackAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
-                                         APIRateLimiter rateLimiter) {
+                                         APIRateLimiter rateLimiter,
+                                         CitationRepository citationRepository,
+                                         CitationVerificationRepository citationVerificationRepository,
+                                         PaperRepository paperRepository,
+                                         ObjectMapper objectMapper) {
         super(aiConfig, threadConfig, rateLimiter);
+        this.citationRepository = citationRepository;
+        this.citationVerificationRepository = citationVerificationRepository;
+        this.paperRepository = paperRepository;
+        this.objectMapper = objectMapper;
     }
     
     @Override
@@ -116,6 +140,17 @@ public class CitationFormatterFallbackAgent extends OllamaBasedAgent {
             // Add fallback processing note
             String fallbackNote = createFallbackProcessingNote("Citation Formatting");
             formattingResults.put("processingNote", fallbackNote);
+            
+            // Save citation verification records to database
+            try {
+                saveCitationVerifications(itemId, formattingResults);
+                LoggingUtil.info(LOG, "processWithConfig", 
+                    "Successfully saved citation verification records for task %s", task.getId());
+            } catch (Exception e) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Failed to save citation verification records for task %s: %s", task.getId(), e.getMessage());
+                // Continue processing - don't fail the entire task for database issues
+            }
             
             // Create result data with fallback indicators
             Map<String, Object> resultData = new HashMap<>();
@@ -600,6 +635,201 @@ public class CitationFormatterFallbackAgent extends OllamaBasedAgent {
         }
         
         return Duration.ofSeconds(30); // Default estimate for local processing
+    }
+    
+    /**
+     * Saves citation verification records to the database.
+     * This method creates citation and citation verification records based on the formatting results.
+     *
+     * @param itemId The paper/item ID being processed
+     * @param formattingResults The formatting results containing citation information
+     */
+    @Transactional
+    private void saveCitationVerifications(String itemId, Map<String, Object> formattingResults) {
+        LoggingUtil.info(LOG, "saveCitationVerifications", 
+            "Saving citation verification records for item: %s", itemId);
+        
+        try {
+            // Parse itemId as UUID to find the associated paper
+            UUID paperId;
+            try {
+                paperId = UUID.fromString(itemId);
+            } catch (IllegalArgumentException e) {
+                LoggingUtil.warn(LOG, "saveCitationVerifications", 
+                    "Invalid UUID format for itemId %s, cannot save verification records", itemId);
+                return;
+            }
+            
+            // Find the paper
+            Optional<Paper> paperOptional = paperRepository.findById(paperId);
+            if (paperOptional.isEmpty()) {
+                LoggingUtil.warn(LOG, "saveCitationVerifications", 
+                    "Paper not found for ID %s, cannot save citation verification records", paperId);
+                return;
+            }
+            
+            Paper paper = paperOptional.get();
+            
+            // Extract formatted citations from results
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> formattedCitations = 
+                (List<Map<String, Object>>) formattingResults.get("formattedCitations");
+            
+            if (formattedCitations == null || formattedCitations.isEmpty()) {
+                LoggingUtil.info(LOG, "saveCitationVerifications", 
+                    "No formatted citations found for paper %s", paperId);
+                return;
+            }
+            
+            int savedCount = 0;
+            Instant verificationTime = Instant.now();
+            
+            // Process each formatted citation
+            for (Map<String, Object> citationData : formattedCitations) {
+                try {
+                    Citation savedCitation = saveCitationRecord(paper, citationData);
+                    if (savedCitation != null) {
+                        CitationVerification verification = createCitationVerification(
+                            savedCitation, paper, citationData, verificationTime);
+                        citationVerificationRepository.save(verification);
+                        savedCount++;
+                    }
+                } catch (Exception e) {
+                    LoggingUtil.warn(LOG, "saveCitationVerifications", 
+                        "Failed to save citation verification for item %s: %s", itemId, e.getMessage());
+                    // Continue processing other citations
+                }
+            }
+            
+            LoggingUtil.info(LOG, "saveCitationVerifications", 
+                "Successfully saved %d citation verification records for paper %s", savedCount, paperId);
+                
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveCitationVerifications", 
+                "Error saving citation verifications for item %s", e, itemId);
+            throw e; // Re-throw to allow caller to handle
+        }
+    }
+    
+    /**
+     * Saves a citation record to the database.
+     *
+     * @param paper The paper containing the citation
+     * @param citationData The citation data from formatting results
+     * @return The saved Citation entity, or null if saving failed
+     */
+    private Citation saveCitationRecord(Paper paper, Map<String, Object> citationData) {
+        try {
+            // Extract citation text (formatted or original)
+            String formattedCitation = (String) citationData.get("formattedCitation");
+            String originalCitation = (String) citationData.get("originalCitation");
+            String citationText = formattedCitation != null ? formattedCitation : originalCitation;
+            
+            if (citationText == null || citationText.trim().isEmpty()) {
+                LoggingUtil.warn(LOG, "saveCitationRecord", 
+                    "No citation text found for paper %s", paper.getId());
+                return null;
+            }
+            
+            // Build structured citation data
+            Map<String, Object> structuredData = new HashMap<>();
+            
+            // Extract components if available
+            @SuppressWarnings("unchecked")
+            Map<String, String> components = (Map<String, String>) citationData.get("components");
+            if (components != null) {
+                structuredData.put("doi", components.get("doi"));
+                structuredData.put("title", components.get("title"));
+                structuredData.put("authors", components.get("author") != null ? 
+                    List.of(components.get("author")) : List.of());
+                structuredData.put("year", components.get("year"));
+                structuredData.put("url", components.get("url"));
+            }
+            
+            // Add formatting metadata
+            structuredData.put("formattingMethod", citationData.get("formattingMethod"));
+            structuredData.put("style", citationData.get("style"));
+            structuredData.put("fallbackProcessed", true);
+            structuredData.put("confidence", 0.7); // Default confidence for local processing
+            structuredData.put("formattedText", formattedCitation);
+            structuredData.put("originalText", originalCitation);
+            
+            // Convert to JsonNode
+            JsonNode citationDataNode = objectMapper.valueToTree(structuredData);
+            
+            // Create citation using constructor
+            Citation citation = new Citation(paper.getId(), citationDataNode, citationText);
+            
+            return citationRepository.save(citation);
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveCitationRecord", 
+                "Error saving citation record for paper %s", e, paper.getId());
+            return null;
+        }
+    }
+    
+    /**
+     * Creates a citation verification record.
+     *
+     * @param citation The saved citation entity
+     * @param paper The paper containing the citation
+     * @param citationData The citation data from formatting results
+     * @param verificationTime The verification timestamp
+     * @return The created CitationVerification entity
+     */
+    private CitationVerification createCitationVerification(Citation citation, Paper paper, 
+                                                          Map<String, Object> citationData, 
+                                                          Instant verificationTime) {
+        CitationVerification verification = new CitationVerification();
+        verification.setCitation(citation);
+        verification.setPaperId(paper.getId());
+        verification.setVerificationDate(verificationTime);
+        verification.setVerificationSource("ollama_fallback");
+        
+        // Extract DOI and other identifiers from components
+        @SuppressWarnings("unchecked")
+        Map<String, String> components = (Map<String, String>) citationData.get("components");
+        if (components != null) {
+            verification.setDoi(components.get("doi"));
+            // Note: semantic_scholar_id and arxiv_id would need more sophisticated extraction
+        }
+        
+        // Set verification status and confidence based on formatting method
+        String formattingMethod = (String) citationData.get("formattingMethod");
+        if ("ollama_model".equals(formattingMethod)) {
+            verification.setVerified(true);
+            verification.setConfidence(0.7); // Moderate confidence for local processing
+        } else if ("rule_based_fallback".equals(formattingMethod)) {
+            verification.setVerified(true);
+            verification.setConfidence(0.5); // Lower confidence for rule-based processing
+        } else {
+            verification.setVerified(false);
+            verification.setConfidence(0.3); // Low confidence for unknown methods
+        }
+        
+        // Create merged metadata combining citation and verification info
+        Map<String, Object> mergedMetadata = new HashMap<>();
+        mergedMetadata.put("formattingMethod", formattingMethod);
+        mergedMetadata.put("originalCitation", citationData.get("originalCitation"));
+        mergedMetadata.put("formattedCitation", citationData.get("formattedCitation"));
+        mergedMetadata.put("processingAgent", "CitationFormatterFallbackAgent");
+        mergedMetadata.put("fallbackProcessing", true);
+        mergedMetadata.put("verificationTime", verificationTime.toString());
+        
+        if (components != null) {
+            mergedMetadata.putAll(components);
+        }
+        
+        try {
+            JsonNode metadataNode = objectMapper.valueToTree(mergedMetadata);
+            verification.setMergedMetadata(metadataNode);
+        } catch (Exception e) {
+            LoggingUtil.warn(LOG, "createCitationVerification", 
+                "Failed to serialize verification metadata: %s", e.getMessage());
+        }
+        
+        return verification;
     }
     
     /**

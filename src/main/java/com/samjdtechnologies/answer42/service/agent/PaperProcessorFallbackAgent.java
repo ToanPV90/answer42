@@ -1,20 +1,35 @@
 package com.samjdtechnologies.answer42.service.agent;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.PaperContent;
+import com.samjdtechnologies.answer42.model.db.PaperSection;
+import com.samjdtechnologies.answer42.model.db.PaperTag;
+import com.samjdtechnologies.answer42.model.db.Tag;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.PaperContentRepository;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
+import com.samjdtechnologies.answer42.repository.PaperSectionRepository;
+import com.samjdtechnologies.answer42.repository.PaperTagRepository;
+import com.samjdtechnologies.answer42.repository.TagRepository;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
@@ -42,9 +57,25 @@ public class PaperProcessorFallbackAgent extends OllamaBasedAgent {
         "full", "Complete paper processing with local constraints"
     );
     
+    private final PaperRepository paperRepository;
+    private final PaperContentRepository paperContentRepository;
+    private final PaperSectionRepository paperSectionRepository;
+    private final TagRepository tagRepository;
+    private final PaperTagRepository paperTagRepository;
+    
     public PaperProcessorFallbackAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
-                                      APIRateLimiter rateLimiter) {
+                                      APIRateLimiter rateLimiter,
+                                      PaperRepository paperRepository,
+                                      PaperContentRepository paperContentRepository,
+                                      PaperSectionRepository paperSectionRepository,
+                                      TagRepository tagRepository,
+                                      PaperTagRepository paperTagRepository) {
         super(aiConfig, threadConfig, rateLimiter);
+        this.paperRepository = paperRepository;
+        this.paperContentRepository = paperContentRepository;
+        this.paperSectionRepository = paperSectionRepository;
+        this.tagRepository = tagRepository;
+        this.paperTagRepository = paperTagRepository;
     }
     
     @Override
@@ -99,15 +130,21 @@ public class PaperProcessorFallbackAgent extends OllamaBasedAgent {
             Map<String, Object> processedData = performLocalPaperProcessing(
                 paperId, rawContent, processingMode);
             
+            // **CRITICAL: Save processed data to database tables (matching original PaperProcessorAgent)**
+            saveFallbackResultsToDatabase(paperId, processedData, rawContent);
+            
             // Add fallback processing note
             String fallbackNote = createFallbackProcessingNote("Paper Processing");
             processedData.put("processingNote", fallbackNote);
             
-            // Create result data with fallback indicators
+            // Create result data with fallback indicators (matching original agent structure)
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("paperId", paperId);
-            resultData.put("processingMode", processingMode);
-            resultData.put("processedData", processedData);
+            resultData.put("extractedText", processedData.get("cleanedText"));
+            resultData.put("structure", processedData.get("structure"));
+            resultData.put("sections", processedData.get("sections"));
+            resultData.put("metadata", processedData.get("metadata"));
+            resultData.put("processingNotes", processedData.get("processingNote"));
             resultData.put("fallbackUsed", true);
             resultData.put("fallbackProvider", "OLLAMA");
             resultData.put("primaryFailureReason", "Cloud providers temporarily unavailable");
@@ -163,6 +200,11 @@ public class PaperProcessorFallbackAgent extends OllamaBasedAgent {
             processedData.put("processingMethod", "ollama_fallback");
             processedData.put("contentLength", rawContent.length());
             processedData.put("truncated", rawContent.length() > MAX_LOCAL_CONTENT_LENGTH);
+            
+            // Add cleaned text and structure for database operations
+            processedData.put("cleanedText", cleanTextFallback(rawContent));
+            processedData.put("structure", createBasicStructure(processedData));
+            processedData.put("metadata", createProcessingMetadata(processedData));
             
             return processedData;
             
@@ -571,6 +613,266 @@ public class PaperProcessorFallbackAgent extends OllamaBasedAgent {
         }
         
         return Duration.ofSeconds(45); // Conservative estimate for local processing
+    }
+    
+    /**
+     * Cleans and normalizes text content (fallback version).
+     */
+    private String cleanTextFallback(String text) {
+        if (text == null) return "";
+        
+        return text.trim()
+            .replaceAll("\\s+", " ")           // Collapse multiple spaces
+            .replaceAll("\\n{3,}", "\n\n")     // Collapse multiple newlines
+            .replaceAll("\\r", "")             // Remove carriage returns
+            .replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", ""); // Remove control chars
+    }
+    
+    /**
+     * Creates basic structure data for database storage.
+     */
+    private Map<String, Object> createBasicStructure(Map<String, Object> processedData) {
+        Map<String, Object> structure = new HashMap<>();
+        structure.put("type", "fallback_processed");
+        structure.put("processingMode", "ollama_fallback");
+        structure.put("qualityLevel", "local_processing");
+        
+        // Extract structure indicators from processed data
+        @SuppressWarnings("unchecked")
+        List<String> sections = (List<String>) processedData.get("sections");
+        if (sections != null) {
+            structure.put("sectionCount", sections.size());
+            structure.put("hasIntroduction", sections.stream().anyMatch(s -> s.toLowerCase().contains("introduction")));
+            structure.put("hasConclusion", sections.stream().anyMatch(s -> s.toLowerCase().contains("conclusion")));
+            structure.put("hasMethods", sections.stream().anyMatch(s -> s.toLowerCase().contains("method")));
+        }
+        
+        return structure;
+    }
+    
+    /**
+     * Creates processing metadata for database storage.
+     */
+    private Map<String, Object> createProcessingMetadata(Map<String, Object> processedData) {
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("processingTimestamp", System.currentTimeMillis());
+        metadata.put("processor", "PaperProcessorFallbackAgent");
+        metadata.put("aiProvider", "OLLAMA");
+        metadata.put("processingMode", "fallback");
+        metadata.put("contentLength", processedData.get("contentLength"));
+        metadata.put("truncated", processedData.get("truncated"));
+        
+        return metadata;
+    }
+    
+    /**
+     * **CRITICAL: Save fallback results to database tables (matching original PaperProcessorAgent).**
+     * This ensures the fallback agent populates the same database tables as the original.
+     */
+    @Transactional
+    private void saveFallbackResultsToDatabase(String paperId, Map<String, Object> processedData, String rawContent) {
+        try {
+            UUID paperUuid = UUID.fromString(paperId);
+            Optional<Paper> paperOpt = paperRepository.findById(paperUuid);
+            
+            if (paperOpt.isEmpty()) {
+                LoggingUtil.warn(LOG, "saveFallbackResultsToDatabase", 
+                    "Paper not found with ID %s, skipping database save", paperId);
+                return;
+            }
+            
+            Paper paper = paperOpt.get();
+            
+            // Save processed content to paper_content table
+            saveFallbackPaperContent(paper, processedData);
+            
+            // Save paper sections to paper_sections table  
+            saveFallbackPaperSections(paper, processedData);
+            
+            // Extract and save technical terms as tags to tags and paper_tags tables
+            saveFallbackContentTags(paper, processedData, rawContent);
+            
+            LoggingUtil.info(LOG, "saveFallbackResultsToDatabase", 
+                "Successfully saved fallback processed content for paper %s", paperId);
+                
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveFallbackResultsToDatabase", 
+                "Failed to save fallback processed content for paper %s", e, paperId);
+            // Don't rethrow - this is supplementary data, main processing should continue
+        }
+    }
+    
+    /**
+     * Saves the processed content to paper_content table (fallback version).
+     */
+    private void saveFallbackPaperContent(Paper paper, Map<String, Object> processedData) {
+        String cleanedText = (String) processedData.getOrDefault("cleanedText", "");
+        
+        // Check if content already exists by paper ID
+        Optional<PaperContent> existingContent = paperContentRepository.findByPaperId(paper.getId());
+        
+        if (existingContent.isPresent()) {
+            // Update existing content
+            PaperContent paperContent = existingContent.get();
+            paperContent.setContent(cleanedText);
+            paperContentRepository.save(paperContent);
+        } else {
+            // Create new content
+            PaperContent paperContent = new PaperContent(paper.getId(), cleanedText);
+            paperContentRepository.save(paperContent);
+        }
+        
+        LoggingUtil.info(LOG, "saveFallbackPaperContent", 
+            "Saved fallback paper content for paper %s", paper.getId());
+    }
+    
+    /**
+     * Saves individual paper sections to paper_sections table (fallback version).
+     */
+    private void saveFallbackPaperSections(Paper paper, Map<String, Object> processedData) {
+        // Delete existing sections by paper ID first
+        paperSectionRepository.deleteByPaperId(paper.getId());
+        
+        @SuppressWarnings("unchecked")
+        List<String> sections = (List<String>) processedData.get("sections");
+        if (sections == null || sections.isEmpty()) {
+            return;
+        }
+        
+        List<PaperSection> paperSections = new ArrayList<>();
+        
+        int sectionIndex = 1;
+        for (String sectionTitle : sections) {
+            if (sectionTitle != null && !sectionTitle.trim().isEmpty()) {
+                // For fallback, we don't have detailed section content, so use title as content
+                PaperSection section = new PaperSection(
+                    paper.getId(), 
+                    sectionTitle, 
+                    "Section identified by fallback processing: " + sectionTitle, 
+                    sectionIndex++
+                );
+                paperSections.add(section);
+            }
+        }
+        
+        if (!paperSections.isEmpty()) {
+            paperSectionRepository.saveAll(paperSections);
+            LoggingUtil.info(LOG, "saveFallbackPaperSections", 
+                "Saved %d fallback sections for paper %s", paperSections.size(), paper.getId());
+        }
+    }
+    
+    /**
+     * Extracts and saves technical terms as tags (fallback version).
+     */
+    private void saveFallbackContentTags(Paper paper, Map<String, Object> processedData, String rawContent) {
+        try {
+            List<String> technicalTerms = extractTechnicalTermsFallback(rawContent, processedData);
+            
+            for (String term : technicalTerms) {
+                if (term.length() >= 3 && term.length() <= 50) { // Reasonable tag length
+                    String normalizedTerm = term.toLowerCase().trim();
+                    
+                    // Find or create tag (system-generated, no user)
+                    Optional<Tag> existingTag = tagRepository.findByNameIgnoreCase(normalizedTerm);
+                    Tag tag = existingTag.orElseGet(() -> {
+                        Tag newTag = new Tag(normalizedTerm, "#6B7280"); // Default color
+                        return tagRepository.save(newTag);
+                    });
+                    
+                    // Create paper-tag relationship if it doesn't exist
+                    if (!paperTagRepository.existsByIdPaperIdAndIdTagId(paper.getId(), tag.getId())) {
+                        PaperTag paperTag = new PaperTag(paper.getId(), tag.getId());
+                        paperTagRepository.save(paperTag);
+                    }
+                }
+            }
+            
+            LoggingUtil.info(LOG, "saveFallbackContentTags", 
+                "Processed %d technical terms for paper %s", technicalTerms.size(), paper.getId());
+                
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveFallbackContentTags", 
+                "Failed to save fallback content tags for paper %s", e, paper.getId());
+        }
+    }
+    
+    /**
+     * Extracts technical terms and concepts from the processed content (fallback version).
+     */
+    private List<String> extractTechnicalTermsFallback(String rawContent, Map<String, Object> processedData) {
+        List<String> terms = new ArrayList<>();
+        
+        // Extract from research domain and complexity info
+        String domain = (String) processedData.get("researchDomain");
+        if (domain != null) {
+            terms.add(domain.toLowerCase());
+        }
+        
+        String complexity = (String) processedData.get("complexity");
+        if (complexity != null) {
+            terms.add(complexity + " complexity");
+        }
+        
+        // Extract terms from content using simple heuristics
+        String[] words = rawContent.toLowerCase().split("\\s+");
+        
+        for (String word : words) {
+            // Clean the word
+            word = word.replaceAll("[^a-zA-Z\\-]", "").trim();
+            
+            if (word.length() >= 4 && word.length() <= 25) {
+                // Add words that look like technical terms
+                if (isTechnicalTermFallback(word)) {
+                    terms.add(word);
+                }
+            }
+        }
+        
+        // Remove duplicates and limit to reasonable number
+        return terms.stream()
+                   .distinct()
+                   .limit(20) // Limit for fallback processing
+                   .toList();
+    }
+    
+    /**
+     * Simple heuristic to identify potential technical terms (fallback version).
+     */
+    private boolean isTechnicalTermFallback(String word) {
+        // Skip common words
+        if (isCommonWordFallback(word)) {
+            return false;
+        }
+        
+        // Look for technical patterns
+        return word.contains("algorithm") || word.contains("neural") || 
+               word.contains("machine") || word.contains("learning") ||
+               word.contains("method") || word.contains("analysis") ||
+               word.contains("model") || word.contains("system") ||
+               word.contains("research") || word.contains("data") ||
+               word.endsWith("tion") || word.endsWith("ing") ||
+               (word.length() > 6 && !word.matches(".*[aeiou]{3,}.*")); // Complex words
+    }
+    
+    /**
+     * Checks if a word is a common non-technical word (fallback version).
+     */
+    private boolean isCommonWordFallback(String word) {
+        String[] commonWords = {
+            "the", "and", "for", "are", "but", "not", "you", "all", "can", "had", 
+            "her", "was", "one", "our", "out", "day", "had", "his", "how", "man",
+            "new", "now", "old", "see", "two", "way", "who", "boy", "did", "its",
+            "let", "put", "say", "she", "too", "use", "this", "that", "with", "from",
+            "have", "been", "were", "said", "each", "which", "their", "time", "will"
+        };
+        
+        for (String common : commonWords) {
+            if (word.equals(common)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**

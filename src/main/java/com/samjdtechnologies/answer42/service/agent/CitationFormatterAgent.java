@@ -36,8 +36,6 @@ import com.samjdtechnologies.answer42.repository.CitationRepository;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
-import java.util.Optional;
-import com.samjdtechnologies.answer42.repository.PaperRepository;
 
 /**
  * Citation formatter agent using OpenAI for citation processing and formatting.

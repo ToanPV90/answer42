@@ -35,6 +35,7 @@ import com.samjdtechnologies.answer42.service.agent.MetadataEnhancementFallbackA
 import com.samjdtechnologies.answer42.service.agent.PaperProcessorFallbackAgent;
 import com.samjdtechnologies.answer42.service.agent.QualityCheckerFallbackAgent;
 import com.samjdtechnologies.answer42.service.agent.CitationFormatterFallbackAgent;
+import com.samjdtechnologies.answer42.service.agent.CitationVerifierFallbackAgent;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
@@ -61,6 +62,7 @@ public class AgentRetryPolicy {
     private final PaperProcessorFallbackAgent paperProcessorFallback;
     private final QualityCheckerFallbackAgent qualityCheckerFallback;
     private final CitationFormatterFallbackAgent citationFormatterFallback;
+    private final CitationVerifierFallbackAgent citationVerifierFallback;
     
     // Statistics tracking
     private final AtomicLong totalAttempts = new AtomicLong(0);
@@ -88,7 +90,8 @@ public class AgentRetryPolicy {
                            MetadataEnhancementFallbackAgent metadataEnhancementFallback,
                            PaperProcessorFallbackAgent paperProcessorFallback,
                            QualityCheckerFallbackAgent qualityCheckerFallback,
-                           CitationFormatterFallbackAgent citationFormatterFallback) {
+                           CitationFormatterFallbackAgent citationFormatterFallback,
+                           CitationVerifierFallbackAgent citationVerifierFallback) {
         this.taskExecutor = threadConfig.taskExecutor();
         this.circuitBreaker = circuitBreaker;
         this.contentSummarizerFallback = contentSummarizerFallback;
@@ -97,6 +100,7 @@ public class AgentRetryPolicy {
         this.paperProcessorFallback = paperProcessorFallback;
         this.qualityCheckerFallback = qualityCheckerFallback;
         this.citationFormatterFallback = citationFormatterFallback;
+        this.citationVerifierFallback = citationVerifierFallback;
         
         LoggingUtil.info(LOG, "constructor", 
             "AgentRetryPolicy initialized with direct fallback agent injection");
@@ -360,6 +364,8 @@ public class AgentRetryPolicy {
                 return qualityCheckerFallback;
             case CITATION_FORMATTER:
                 return citationFormatterFallback;
+            case CITATION_VERIFIER:
+                return citationVerifierFallback;
             default:
                 return null;
         }
@@ -512,6 +518,7 @@ public class AgentRetryPolicy {
         if (paperProcessorFallback != null) { availableAgents++; availableTypes.add("PAPER_PROCESSOR"); }
         if (qualityCheckerFallback != null) { availableAgents++; availableTypes.add("QUALITY_CHECKER"); }
         if (citationFormatterFallback != null) { availableAgents++; availableTypes.add("CITATION_FORMATTER"); }
+        if (citationVerifierFallback != null) { availableAgents++; availableTypes.add("CITATION_VERIFIER"); }
         
         stats.put("fallbackEnabled", availableAgents > 0);
         stats.put("availableFallbackAgents", availableAgents);

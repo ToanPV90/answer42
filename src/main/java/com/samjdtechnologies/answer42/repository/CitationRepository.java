@@ -76,7 +76,7 @@ public interface CitationRepository extends JpaRepository<Citation, UUID> {
      * Search citations by title (case-insensitive).
      */
     @Query("SELECT c FROM Citation c WHERE c.paperId = :paperId " +
-           "AND LOWER(JSON_EXTRACT(c.citationData, '$.title')) LIKE LOWER(CONCAT('%', :title, '%'))")
+           "AND LOWER(CAST(JSON_EXTRACT(c.citationData, '$.title') AS STRING)) LIKE LOWER(CONCAT('%', :title, '%'))")
     List<Citation> findByPaperIdAndTitleContaining(@Param("paperId") UUID paperId, 
                                                   @Param("title") String title);
     

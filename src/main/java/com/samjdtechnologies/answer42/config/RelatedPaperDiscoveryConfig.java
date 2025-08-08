@@ -10,6 +10,8 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.repository.AgentMemoryStoreRepository;
+import com.samjdtechnologies.answer42.repository.DiscoveredPaperRepository;
+import com.samjdtechnologies.answer42.repository.PaperRelationshipRepository;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
 import com.samjdtechnologies.answer42.service.agent.RelatedPaperDiscoveryAgent;
 import com.samjdtechnologies.answer42.service.discovery.DiscoveryCoordinator;
@@ -58,7 +60,9 @@ public class RelatedPaperDiscoveryConfig {
             AgentRetryPolicy retryPolicy,
             APIRateLimiter rateLimiter,
             DiscoveryCoordinator discoveryCoordinator,
-            PaperRepository paperRepository) {
+            PaperRepository paperRepository,
+            DiscoveredPaperRepository discoveredPaperRepository,
+            PaperRelationshipRepository paperRelationshipRepository) {
         
         return new RelatedPaperDiscoveryAgent(
             aiConfig, 
@@ -66,7 +70,9 @@ public class RelatedPaperDiscoveryConfig {
             retryPolicy,
             rateLimiter,
             discoveryCoordinator, 
-            paperRepository
+            paperRepository,
+            discoveredPaperRepository,
+            paperRelationshipRepository
         );
     }
 

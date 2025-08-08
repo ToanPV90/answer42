@@ -1,19 +1,34 @@
 package com.samjdtechnologies.answer42.service.agent;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.PaperContent;
+import com.samjdtechnologies.answer42.model.db.PaperSection;
+import com.samjdtechnologies.answer42.model.db.PaperTag;
+import com.samjdtechnologies.answer42.model.db.Tag;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.PaperContentRepository;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
+import com.samjdtechnologies.answer42.repository.PaperSectionRepository;
+import com.samjdtechnologies.answer42.repository.PaperTagRepository;
+import com.samjdtechnologies.answer42.repository.TagRepository;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -25,10 +40,25 @@ import com.samjdtechnologies.answer42.util.LoggingUtil;
 @Component
 public class PaperProcessorAgent extends OpenAIBasedAgent {
     
+    private final PaperRepository paperRepository;
+    private final PaperContentRepository paperContentRepository;
+    private final PaperSectionRepository paperSectionRepository;
+    private final TagRepository tagRepository;
+    private final PaperTagRepository paperTagRepository;
     
     public PaperProcessorAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
-                              AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+                              AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
+                              PaperRepository paperRepository,
+                              PaperContentRepository paperContentRepository,
+                              PaperSectionRepository paperSectionRepository,
+                              TagRepository tagRepository,
+                              PaperTagRepository paperTagRepository) {
         super(aiConfig, threadConfig, retryPolicy, rateLimiter);
+        this.paperRepository = paperRepository;
+        this.paperContentRepository = paperContentRepository;
+        this.paperSectionRepository = paperSectionRepository;
+        this.tagRepository = tagRepository;
+        this.paperTagRepository = paperTagRepository;
     }
     
     @Override
@@ -52,6 +82,9 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
             
             // Analyze document structure using OpenAI
             StructuredDocument structuredDoc = analyzeDocumentStructure(textContent, paperId, task);
+            
+            // Save processed content to database tables
+            saveToDatabaseTables(structuredDoc);
             
             // Create result with structured data
             Map<String, Object> resultData = new HashMap<>();
@@ -303,6 +336,207 @@ public class PaperProcessorAgent extends OpenAIBasedAgent {
         structure.put("hasTables", lowerResponse.contains("table"));
         
         return structure;
+    }
+    
+    /**
+     * Saves the processed content to database tables.
+     * Simplified to work with actual database schema.
+     */
+    @Transactional
+    private void saveToDatabaseTables(StructuredDocument structuredDoc) {
+        try {
+            UUID paperUuid = UUID.fromString(structuredDoc.getPaperId());
+            Optional<Paper> paperOpt = paperRepository.findById(paperUuid);
+            
+            if (paperOpt.isEmpty()) {
+                LoggingUtil.warn(LOG, "saveToDatabaseTables", 
+                    "Paper not found with ID %s, skipping database save", structuredDoc.getPaperId());
+                return;
+            }
+            
+            Paper paper = paperOpt.get();
+            
+            // Save processed content
+            savePaperContent(paper, structuredDoc);
+            
+            // Save paper sections
+            savePaperSections(paper, structuredDoc);
+            
+            // Extract and save tags from technical terms
+            saveContentTags(paper, structuredDoc);
+            
+            LoggingUtil.info(LOG, "saveToDatabaseTables", 
+                "Successfully saved processed content for paper %s", structuredDoc.getPaperId());
+                
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveToDatabaseTables", 
+                "Failed to save processed content for paper %s", e, structuredDoc.getPaperId());
+            // Don't rethrow - this is supplementary data, main processing should continue
+        }
+    }
+    
+    /**
+     * Saves the main paper content to paper_content table.
+     * Simplified to match actual database schema.
+     */
+    private void savePaperContent(Paper paper, StructuredDocument structuredDoc) {
+        // Check if content already exists by paper ID
+        Optional<PaperContent> existingContent = paperContentRepository.findByPaperId(paper.getId());
+        
+        if (existingContent.isPresent()) {
+            // Update existing content
+            PaperContent paperContent = existingContent.get();
+            paperContent.setContent(structuredDoc.getCleanedText());
+            paperContentRepository.save(paperContent);
+        } else {
+            // Create new content
+            PaperContent paperContent = new PaperContent(paper.getId(), structuredDoc.getCleanedText());
+            paperContentRepository.save(paperContent);
+        }
+        
+        LoggingUtil.info(LOG, "savePaperContent", 
+            "Saved paper content for paper %s", paper.getId());
+    }
+    
+    /**
+     * Saves individual paper sections to paper_sections table.
+     * Simplified to match actual database schema.
+     */
+    private void savePaperSections(Paper paper, StructuredDocument structuredDoc) {
+        // Delete existing sections by paper ID first
+        paperSectionRepository.deleteByPaperId(paper.getId());
+        
+        Map<String, String> sections = structuredDoc.getSections();
+        List<PaperSection> paperSections = new ArrayList<>();
+        
+        int sectionIndex = 1;
+        for (Map.Entry<String, String> entry : sections.entrySet()) {
+            String sectionTitle = entry.getKey();
+            String content = entry.getValue();
+            
+            if (content != null && !content.trim().isEmpty()) {
+                PaperSection section = new PaperSection(
+                    paper.getId(), 
+                    sectionTitle, 
+                    content.trim(), 
+                    sectionIndex++
+                );
+                paperSections.add(section);
+            }
+        }
+        
+        if (!paperSections.isEmpty()) {
+            paperSectionRepository.saveAll(paperSections);
+            LoggingUtil.info(LOG, "savePaperSections", 
+                "Saved %d sections for paper %s", paperSections.size(), paper.getId());
+        }
+    }
+    
+    /**
+     * Extracts and saves technical terms as tags.
+     * Simplified to match actual database schema.
+     */
+    private void saveContentTags(Paper paper, StructuredDocument structuredDoc) {
+        try {
+            List<String> technicalTerms = extractTechnicalTerms(structuredDoc);
+            
+            for (String term : technicalTerms) {
+                if (term.length() >= 3 && term.length() <= 50) { // Reasonable tag length
+                    String normalizedTerm = term.toLowerCase().trim();
+                    
+                    // Find or create tag (system-generated, no user)
+                    Optional<Tag> existingTag = tagRepository.findByNameIgnoreCase(normalizedTerm);
+                    Tag tag = existingTag.orElseGet(() -> {
+                        Tag newTag = new Tag(normalizedTerm, "#6B7280"); // Default color
+                        return tagRepository.save(newTag);
+                    });
+                    
+                    // Create paper-tag relationship if it doesn't exist
+                    if (!paperTagRepository.existsByIdPaperIdAndIdTagId(paper.getId(), tag.getId())) {
+                        PaperTag paperTag = new PaperTag(paper.getId(), tag.getId());
+                        paperTagRepository.save(paperTag);
+                    }
+                }
+            }
+            
+            LoggingUtil.info(LOG, "saveContentTags", 
+                "Processed %d technical terms for paper %s", technicalTerms.size(), paper.getId());
+                
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveContentTags", 
+                "Failed to save content tags for paper %s", e, paper.getId());
+        }
+    }
+    
+    /**
+     * Extracts technical terms and concepts from the processed content.
+     */
+    private List<String> extractTechnicalTerms(StructuredDocument structuredDoc) {
+        List<String> terms = new ArrayList<>();
+        
+        // Extract from cleaned text and sections
+        String allContent = structuredDoc.getCleanedText() + " " + 
+                           String.join(" ", structuredDoc.getSections().values());
+        
+        // Simple extraction of potential technical terms
+        // Look for capitalized terms, terms with specific patterns, etc.
+        String[] words = allContent.toLowerCase().split("\\s+");
+        
+        for (String word : words) {
+            // Clean the word
+            word = word.replaceAll("[^a-zA-Z\\-]", "").trim();
+            
+            if (word.length() >= 3 && word.length() <= 30) {
+                // Add words that look like technical terms
+                if (isTechnicalTerm(word)) {
+                    terms.add(word);
+                }
+            }
+        }
+        
+        // Remove duplicates and limit to reasonable number
+        return terms.stream()
+                   .distinct()
+                   .limit(50) // Limit to top 50 terms
+                   .toList();
+    }
+    
+    /**
+     * Simple heuristic to identify potential technical terms.
+     */
+    private boolean isTechnicalTerm(String word) {
+        // Skip common words
+        if (isCommonWord(word)) {
+            return false;
+        }
+        
+        // Look for technical patterns
+        return word.contains("algorithm") || word.contains("neural") || 
+               word.contains("machine") || word.contains("learning") ||
+               word.contains("method") || word.contains("analysis") ||
+               word.contains("model") || word.contains("system") ||
+               word.contains("process") || word.contains("technique") ||
+               word.endsWith("tion") || word.endsWith("ing") ||
+               (word.length() > 6 && !word.matches(".*[aeiou]{3,}.*")); // Complex words
+    }
+    
+    /**
+     * Checks if a word is a common non-technical word.
+     */
+    private boolean isCommonWord(String word) {
+        String[] commonWords = {
+            "the", "and", "for", "are", "but", "not", "you", "all", "can", "had", 
+            "her", "was", "one", "our", "out", "day", "had", "his", "how", "man",
+            "new", "now", "old", "see", "two", "way", "who", "boy", "did", "its",
+            "let", "put", "say", "she", "too", "use", "this", "that", "with", "from"
+        };
+        
+        for (String common : commonWords) {
+            if (word.equals(common)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**

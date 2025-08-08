@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.db.Paper;
-import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaperResult;
 import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.model.discovery.RelatedPaperDiscoveryResult;
 import com.samjdtechnologies.answer42.model.enums.DiscoverySource;
@@ -62,9 +62,9 @@ public class DiscoveryCoordinator {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 // Execute discovery from enabled sources with separate futures
-                List<DiscoveredPaper> crossrefPapers = new ArrayList<>();
-                List<DiscoveredPaper> semanticScholarPapers = new ArrayList<>();
-                List<DiscoveredPaper> perplexityPapers = new ArrayList<>();
+                List<DiscoveredPaperResult> crossrefPapers = new ArrayList<>();
+                List<DiscoveredPaperResult> semanticScholarPapers = new ArrayList<>();
+                List<DiscoveredPaperResult> perplexityPapers = new ArrayList<>();
 
                 // Create futures for each enabled source
                 List<CompletableFuture<Void>> sourceFutures = new ArrayList<>();
@@ -81,14 +81,14 @@ public class DiscoveryCoordinator {
                             } catch (Exception e) {
                                 LoggingUtil.error(LOG, "coordinateDiscovery", 
                                     "Crossref discovery failed", e);
-                                return List.<DiscoveredPaper>of();
+                                return List.<DiscoveredPaperResult>of();
                             }
                         }, threadConfig.taskExecutor())
                         .orTimeout(serviceTimeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
                         .exceptionally(ex -> {
                             LoggingUtil.warn(LOG, "coordinateDiscovery", 
                                 "Crossref discovery timed out or failed: %s", ex.getMessage());
-                            return List.<DiscoveredPaper>of();
+                            return List.<DiscoveredPaperResult>of();
                         })
                         .thenAccept(crossrefPapers::addAll);
                     sourceFutures.add(crossrefFuture);
@@ -103,14 +103,14 @@ public class DiscoveryCoordinator {
                             } catch (Exception e) {
                                 LoggingUtil.error(LOG, "coordinateDiscovery", 
                                     "Semantic Scholar discovery failed", e);
-                                return List.<DiscoveredPaper>of();
+                                return List.<DiscoveredPaperResult>of();
                             }
                         }, threadConfig.taskExecutor())
                         .orTimeout(serviceTimeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
                         .exceptionally(ex -> {
                             LoggingUtil.warn(LOG, "coordinateDiscovery", 
                                 "Semantic Scholar discovery timed out or failed: %s", ex.getMessage());
-                            return List.<DiscoveredPaper>of();
+                            return List.<DiscoveredPaperResult>of();
                         })
                         .thenAccept(semanticScholarPapers::addAll);
                     sourceFutures.add(semanticFuture);
@@ -125,14 +125,14 @@ public class DiscoveryCoordinator {
                             } catch (Exception e) {
                                 LoggingUtil.error(LOG, "coordinateDiscovery", 
                                     "Perplexity discovery failed", e);
-                                return List.<DiscoveredPaper>of();
+                                return List.<DiscoveredPaperResult>of();
                             }
                         }, threadConfig.taskExecutor())
                         .orTimeout(serviceTimeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
                         .exceptionally(ex -> {
                             LoggingUtil.warn(LOG, "coordinateDiscovery", 
                                 "Perplexity discovery timed out or failed: %s", ex.getMessage());
-                            return List.<DiscoveredPaper>of();
+                            return List.<DiscoveredPaperResult>of();
                         })
                         .thenAccept(perplexityPapers::addAll);
                     sourceFutures.add(perplexityFuture);
@@ -165,7 +165,7 @@ public class DiscoveryCoordinator {
                         "AI synthesis completed: %d final papers", result.getDiscoveredPapers().size());
                 } else {
                     // Simple combination without AI synthesis
-                    List<DiscoveredPaper> allPapers = new ArrayList<>();
+                    List<DiscoveredPaperResult> allPapers = new ArrayList<>();
                     allPapers.addAll(crossrefPapers);
                     allPapers.addAll(semanticScholarPapers);
                     allPapers.addAll(perplexityPapers);

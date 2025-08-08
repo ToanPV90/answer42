@@ -4,10 +4,13 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
@@ -15,8 +18,12 @@ import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.agent.SummaryResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.Summary;
 import com.samjdtechnologies.answer42.model.agent.SummaryConfig;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
+import com.samjdtechnologies.answer42.repository.SummaryRepository;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -41,9 +48,15 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
         "detailed", new SummaryConfig(300, 400, "Comprehensive analysis with methodology, results, and implications")
     );
     
+    private final PaperRepository paperRepository;
+    private final SummaryRepository summaryRepository;
+    
     public ContentSummarizerAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
-                                 AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+                                 AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
+                                 PaperRepository paperRepository, SummaryRepository summaryRepository) {
         super(aiConfig, threadConfig, retryPolicy, rateLimiter);
+        this.paperRepository = paperRepository;
+        this.summaryRepository = summaryRepository;
     }
     
     @Override
@@ -130,7 +143,14 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
         
         String aiResponse = response.getResult().getOutput().getText();
         
-        return parseSummaryResponse(aiResponse, summaryType, content);
+        SummaryResult summaryResult = parseSummaryResponse(aiResponse, summaryType, content);
+        
+        // Save summary to database
+        if (paperId != null) {
+            saveSummaryToDatabase(paperId, summaryType, summaryResult.getContent());
+        }
+        
+        return summaryResult;
     }
     
     /**
@@ -353,6 +373,46 @@ public class ContentSummarizerAgent extends AnthropicBasedAgent {
             .replace("\t", " ")     // Replace tabs with spaces
             .replaceAll("\\s+", " ") // Normalize whitespace
             .trim();
+    }
+    
+    /**
+     * Saves the generated summary to the database.
+     * Creates or updates summary entry for the paper.
+     */
+    @Transactional
+    private void saveSummaryToDatabase(String paperId, String summaryType, String summaryContent) {
+        try {
+            UUID paperUuid = UUID.fromString(paperId);
+            
+            // Verify paper exists
+            Optional<Paper> paperOpt = paperRepository.findById(paperUuid);
+            if (paperOpt.isEmpty()) {
+                LoggingUtil.warn(LOG, "saveSummaryToDatabase", 
+                    "Paper not found with ID %s, skipping summary save", paperId);
+                return;
+            }
+            
+            // Find or create summary for this paper
+            Optional<Summary> existingSummary = summaryRepository.findByPaperId(paperUuid);
+            Summary summary = existingSummary.orElse(new Summary(paperUuid));
+            
+            // Set the appropriate summary type
+            summary.setSummaryByType(summaryType, summaryContent);
+            
+            // Save to database
+            summaryRepository.save(summary);
+            
+            LoggingUtil.info(LOG, "saveSummaryToDatabase", 
+                "Successfully saved %s summary for paper %s", summaryType, paperId);
+                
+        } catch (IllegalArgumentException e) {
+            LoggingUtil.error(LOG, "saveSummaryToDatabase", 
+                "Invalid paper ID format %s: %s", paperId, e.getMessage());
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveSummaryToDatabase", 
+                "Failed to save summary to database for paper %s", e, paperId);
+            // Don't rethrow - summary saving is supplementary, main processing should continue
+        }
     }
     
 }

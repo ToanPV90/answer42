@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.db.Paper;
-import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaperResult;
 import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.model.enums.DiscoverySource;
 import com.samjdtechnologies.answer42.model.enums.RelationshipType;
@@ -57,19 +57,19 @@ public class PerplexityDiscoveryService {
     /**
      * Discover related papers using Perplexity API for real-time trends and discussions.
      */
-    public List<DiscoveredPaper> discoverRelatedPapers(Paper sourcePaper, DiscoveryConfiguration config) {
+    public List<DiscoveredPaperResult> discoverRelatedPapers(Paper sourcePaper, DiscoveryConfiguration config) {
         LoggingUtil.info(LOG, "discoverRelatedPapers", 
             "Starting Perplexity discovery for paper %s", sourcePaper.getId());
 
         Instant startTime = Instant.now();
-        List<DiscoveredPaper> allDiscovered = new ArrayList<>();
+        List<DiscoveredPaperResult> allDiscovered = new ArrayList<>();
 
         try {
             // Execute trend discovery
-            CompletableFuture<List<DiscoveredPaper>> trendsFuture = 
+            CompletableFuture<List<DiscoveredPaperResult>> trendsFuture = 
                 discoverTrendsAsync(sourcePaper, config);
 
-            CompletableFuture<List<DiscoveredPaper>> openAccessFuture = 
+            CompletableFuture<List<DiscoveredPaperResult>> openAccessFuture = 
                 discoverOpenAccessAsync(sourcePaper, config);
 
             // Wait for discovery operations with timeout
@@ -98,17 +98,17 @@ public class PerplexityDiscoveryService {
     /**
      * Discover trending papers and current discussions using Perplexity AI.
      */
-    private CompletableFuture<List<DiscoveredPaper>> discoverTrendsAsync(
+    private CompletableFuture<List<DiscoveredPaperResult>> discoverTrendsAsync(
             Paper sourcePaper, DiscoveryConfiguration config) {
         
         return CompletableFuture.supplyAsync(() -> {
-            List<DiscoveredPaper> trendingPapers = new ArrayList<>();
+            List<DiscoveredPaperResult> trendingPapers = new ArrayList<>();
 
             try {
                 String trendQuery = buildTrendSearchQuery(sourcePaper);
                 String perplexityResponse = queryPerplexityForTrends(trendQuery);
                 
-                List<DiscoveredPaper> trends = parseTrendResponse(perplexityResponse, sourcePaper);
+                List<DiscoveredPaperResult> trends = parseTrendResponse(perplexityResponse, sourcePaper);
                 trends.forEach(paper -> paper.setRelationshipType(RelationshipType.TRENDING));
                 
                 trendingPapers.addAll(trends);
@@ -128,17 +128,17 @@ public class PerplexityDiscoveryService {
     /**
      * Discover open access papers related to the source paper.
      */
-    private CompletableFuture<List<DiscoveredPaper>> discoverOpenAccessAsync(
+    private CompletableFuture<List<DiscoveredPaperResult>> discoverOpenAccessAsync(
             Paper sourcePaper, DiscoveryConfiguration config) {
         
         return CompletableFuture.supplyAsync(() -> {
-            List<DiscoveredPaper> openAccessPapers = new ArrayList<>();
+            List<DiscoveredPaperResult> openAccessPapers = new ArrayList<>();
 
             try {
                 String openAccessQuery = buildOpenAccessSearchQuery(sourcePaper);
                 String perplexityResponse = queryPerplexityForOpenAccess(openAccessQuery);
                 
-                List<DiscoveredPaper> openAccess = parseOpenAccessResponse(perplexityResponse, sourcePaper);
+                List<DiscoveredPaperResult> openAccess = parseOpenAccessResponse(perplexityResponse, sourcePaper);
                 openAccess.forEach(paper -> paper.setRelationshipType(RelationshipType.OPEN_ACCESS));
                 
                 openAccessPapers.addAll(openAccess);
@@ -229,8 +229,8 @@ public class PerplexityDiscoveryService {
     /**
      * Parse Perplexity response for trending papers.
      */
-    private List<DiscoveredPaper> parseTrendResponse(String response, Paper sourcePaper) {
-        List<DiscoveredPaper> papers = new ArrayList<>();
+    private List<DiscoveredPaperResult> parseTrendResponse(String response, Paper sourcePaper) {
+        List<DiscoveredPaperResult> papers = new ArrayList<>();
         
         try {
             String[] lines = response.split("\n");
@@ -295,8 +295,8 @@ public class PerplexityDiscoveryService {
     /**
      * Parse Perplexity response for open access papers.
      */
-    private List<DiscoveredPaper> parseOpenAccessResponse(String response, Paper sourcePaper) {
-        List<DiscoveredPaper> papers = new ArrayList<>();
+    private List<DiscoveredPaperResult> parseOpenAccessResponse(String response, Paper sourcePaper) {
+        List<DiscoveredPaperResult> papers = new ArrayList<>();
         
         try {
             String[] lines = response.split("\n");
@@ -314,7 +314,7 @@ public class PerplexityDiscoveryService {
                 if (isNewPaperLine(line)) {
                     // Save previous paper if we have one
                     if (currentTitle != null) {
-                        DiscoveredPaper paper = createDiscoveredPaper(currentTitle, currentAuthors, null, 
+                        DiscoveredPaperResult paper = createDiscoveredPaper(currentTitle, currentAuthors, null, 
                                                                     RelationshipType.OPEN_ACCESS, currentUrl, 
                                                                     currentVenue, currentDoi, currentYear);
                         papers.add(paper);
@@ -343,7 +343,7 @@ public class PerplexityDiscoveryService {
             
             // Add the last paper
             if (currentTitle != null) {
-                DiscoveredPaper paper = createDiscoveredPaper(currentTitle, currentAuthors, null, 
+                DiscoveredPaperResult paper = createDiscoveredPaper(currentTitle, currentAuthors, null, 
                                                             RelationshipType.OPEN_ACCESS, currentUrl, 
                                                             currentVenue, currentDoi, currentYear);
                 papers.add(paper);
@@ -359,7 +359,7 @@ public class PerplexityDiscoveryService {
     /**
      * Enhanced method to create a DiscoveredPaper from parsed information with comprehensive metadata.
      */
-    private DiscoveredPaper createDiscoveredPaper(String title, String authors, String description, 
+    private DiscoveredPaperResult createDiscoveredPaper(String title, String authors, String description, 
                                                 RelationshipType relationshipType, String url, 
                                                 String venue, String doi, Integer year) {
         
@@ -378,7 +378,7 @@ public class PerplexityDiscoveryService {
         // Calculate relevance score based on relationship type and metadata completeness
         double relevanceScore = calculateRelevanceScore(relationshipType, doi, url, venue, authorList.size());
         
-        return DiscoveredPaper.builder()
+        return DiscoveredPaperResult.builder()
             .id(paperId)
             .title(cleanTitle(title))
             .authors(authorList)

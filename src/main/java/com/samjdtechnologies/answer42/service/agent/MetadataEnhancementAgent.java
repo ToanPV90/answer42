@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,7 +23,9 @@ import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.MetadataVerification;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.MetadataVerificationRepository;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -44,9 +48,13 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     private static final Pattern AUTHOR_COUNT_PATTERN = Pattern.compile("(?i)author[s]?\\s*count\\s*[:\"]?\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern CITATION_COUNT_PATTERN = Pattern.compile("(?i)citation[s]?\\s*count\\s*[:\"]?\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
     
+    private final MetadataVerificationRepository metadataVerificationRepository;
+    
     public MetadataEnhancementAgent(AIConfig aiConfig, ThreadConfig threadConfig,
-                                   AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+                                   AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
+                                   MetadataVerificationRepository metadataVerificationRepository) {
         super(aiConfig, threadConfig, retryPolicy, rateLimiter);
+        this.metadataVerificationRepository = metadataVerificationRepository;
     }
     
     @Override
@@ -55,6 +63,7 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     }
     
     @Override
+    @Transactional
     protected AgentResult processWithConfig(AgentTask task) {
         LoggingUtil.info(LOG, "processWithConfig", "Processing metadata enhancement for task %s", task.getId());
         
@@ -62,6 +71,7 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             // Extract task input
             JsonNode input = task.getInput();
             String paperId = input.get("paperId").asText();
+            UUID paperUuid = UUID.fromString(paperId);
             String title = input.has("title") ? input.get("title").asText() : null;
             String doi = input.has("doi") ? input.get("doi").asText() : null;
             JsonNode authors = input.has("authors") ? input.get("authors") : null;
@@ -71,9 +81,12 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             }
             
             // Execute parallel metadata enhancement from multiple sources
-            EnhancementResult enhancementResult = enhanceMetadataFromSources(paperId, title, doi, authors, task);
+            EnhancementResult enhancementResult = enhanceMetadataFromSources(paperUuid, title, doi, authors, task);
             
-            // Create result data
+            // Save metadata verifications to database
+            List<MetadataVerification> savedVerifications = saveMetadataVerifications(paperUuid, enhancementResult.getSources());
+            
+            // Create result data with saved verification info
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("paperId", paperId);
             resultData.put("enhancedMetadata", enhancementResult.getMetadata());
@@ -81,6 +94,14 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             resultData.put("confidence", enhancementResult.getConfidence());
             resultData.put("conflicts", enhancementResult.getConflicts());
             resultData.put("processingNotes", enhancementResult.getProcessingNotes());
+            resultData.put("verificationsStored", savedVerifications.size());
+            resultData.put("verificationIds", savedVerifications.stream()
+                .map(MetadataVerification::getId)
+                .collect(Collectors.toList()));
+            
+            LoggingUtil.info(LOG, "processWithConfig", 
+                "Successfully saved %d metadata verifications for paper %s", 
+                savedVerifications.size(), paperId);
             
             return AgentResult.success(task.getId(), resultData);
             
@@ -103,9 +124,127 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     }
     
     /**
+     * Saves metadata verifications to the database.
+     */
+    private List<MetadataVerification> saveMetadataVerifications(UUID paperId, List<MetadataSource> sources) {
+        LoggingUtil.info(LOG, "saveMetadataVerifications", 
+            "Saving %d metadata verifications for paper %s", sources.size(), paperId);
+        
+        List<MetadataVerification> verifications = sources.stream()
+            .map(source -> createMetadataVerification(paperId, source))
+            .collect(Collectors.toList());
+        
+        return metadataVerificationRepository.saveAll(verifications);
+    }
+    
+    /**
+     * Creates a MetadataVerification entity from a MetadataSource.
+     */
+    private MetadataVerification createMetadataVerification(UUID paperId, MetadataSource source) {
+        try {
+            // Convert source data to JsonNode for storage
+            JsonNode metadata = objectMapper.valueToTree(source.getData());
+            
+            // Extract matching information from source data
+            String matchedBy = extractMatchedBy(source);
+            String identifierUsed = extractIdentifierUsed(source);
+            
+            MetadataVerification verification = new MetadataVerification(
+                paperId, 
+                source.getName(), 
+                source.getConfidence(), 
+                matchedBy,
+                identifierUsed
+            );
+            
+            verification.updateMetadata(metadata);
+            
+            LoggingUtil.debug(LOG, "createMetadataVerification", 
+                "Created verification for source %s with confidence %.2f", 
+                source.getName(), source.getConfidence());
+            
+            return verification;
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "createMetadataVerification", 
+                "Failed to create metadata verification for source %s", source.getName(), e);
+            
+            // Create basic verification without metadata
+            return new MetadataVerification(paperId, source.getName(), source.getConfidence(), "error");
+        }
+    }
+    
+    /**
+     * Extracts the matching method from source data.
+     */
+    private String extractMatchedBy(MetadataSource source) {
+        Map<String, Object> data = source.getData();
+        
+        // Check if DOI was used for matching
+        if (data.containsKey("doi") && data.get("doi") != null) {
+            return "doi";
+        }
+        
+        // Check if title was used
+        if (data.containsKey("title") && data.get("title") != null) {
+            return "title";
+        }
+        
+        // Check if author information was used
+        if (data.containsKey("authors") || data.containsKey("authorCount")) {
+            return "author_title";
+        }
+        
+        // Default matching method based on source
+        String sourceName = source.getName();
+        switch (sourceName) {
+            case "crossref":
+                return "crossref_api";
+            case "semantic_scholar":
+                return "semantic_scholar_api";
+            case "doi_resolution":
+                return "doi";
+            case "author_disambiguation":
+                return "author_orcid";
+            default:
+                return "unknown";
+        }
+    }
+    
+    /**
+     * Extracts the identifier used for matching from source data.
+     */
+    private String extractIdentifierUsed(MetadataSource source) {
+        Map<String, Object> data = source.getData();
+        
+        // Try DOI first
+        if (data.containsKey("doi") && data.get("doi") != null) {
+            return data.get("doi").toString();
+        }
+        
+        // Try Semantic Scholar ID
+        if (data.containsKey("semanticScholarId") && data.get("semanticScholarId") != null) {
+            return "S2:" + data.get("semanticScholarId").toString();
+        }
+        
+        // Try arXiv ID
+        if (data.containsKey("arxivId") && data.get("arxivId") != null) {
+            return "arXiv:" + data.get("arxivId").toString();
+        }
+        
+        // Try title as last resort
+        if (data.containsKey("title") && data.get("title") != null) {
+            String title = data.get("title").toString();
+            return "title:" + (title.length() > 50 ? title.substring(0, 50) + "..." : title);
+        }
+        
+        return null;
+    }
+    
+    /**
      * Enhances metadata using multiple external sources in parallel.
      */
-    private EnhancementResult enhanceMetadataFromSources(String paperId, String title, String doi, JsonNode authors, AgentTask task) {
+    private EnhancementResult enhanceMetadataFromSources(UUID paperId, String title, String doi, JsonNode authors, AgentTask task) {
         LoggingUtil.info(LOG, "enhanceMetadataFromSources", "Enhancing metadata for paper %s", paperId);
         
         // Execute multiple enhancement sources in parallel using ThreadConfig executor

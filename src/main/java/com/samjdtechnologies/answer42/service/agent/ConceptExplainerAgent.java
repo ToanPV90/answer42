@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -13,6 +15,7 @@ import java.util.stream.Stream;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
@@ -24,8 +27,14 @@ import com.samjdtechnologies.answer42.model.concept.ConceptExplanations;
 import com.samjdtechnologies.answer42.model.concept.ConceptRelationshipMap;
 import com.samjdtechnologies.answer42.model.concept.TechnicalTerm;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.PaperTag;
+import com.samjdtechnologies.answer42.model.db.Tag;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.enums.EducationLevel;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
+import com.samjdtechnologies.answer42.repository.PaperTagRepository;
+import com.samjdtechnologies.answer42.repository.TagRepository;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.ConceptResponseParser;
@@ -39,12 +48,21 @@ import com.samjdtechnologies.answer42.util.LoggingUtil;
 public class ConceptExplainerAgent extends OpenAIBasedAgent {
     
     private final ConceptResponseParser responseParser;
+    private final PaperRepository paperRepository;
+    private final TagRepository tagRepository;
+    private final PaperTagRepository paperTagRepository;
     
     public ConceptExplainerAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
                                 AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
-                                ConceptResponseParser responseParser) {
+                                ConceptResponseParser responseParser,
+                                PaperRepository paperRepository,
+                                TagRepository tagRepository,
+                                PaperTagRepository paperTagRepository) {
         super(aiConfig, threadConfig, retryPolicy, rateLimiter);
         this.responseParser = responseParser;
+        this.paperRepository = paperRepository;
+        this.tagRepository = tagRepository;
+        this.paperTagRepository = paperTagRepository;
     }
     
     @Override
@@ -113,6 +131,11 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             result.addMetadata("paperId", paperId);
             result.addMetadata("termCount", prioritizedTerms.size());
             result.addMetadata("processingTimeMs", System.currentTimeMillis());
+            
+            // Save technical terms as tags to database
+            if (paperId != null) {
+                saveTechnicalTermsAsTags(paperId, prioritizedTerms);
+            }
             
             LoggingUtil.info(LOG, "processWithConfig", 
                 "Generated concept explanations with quality score: %.2f", 
@@ -369,5 +392,70 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             batches.add(list.subList(i, Math.min(i + batchSize, list.size())));
         }
         return batches;
+    }
+    
+    /**
+     * Saves technical terms as tags in the database.
+     * Creates tag entities and paper-tag relationships.
+     */
+    @Transactional
+    private void saveTechnicalTermsAsTags(String paperId, List<TechnicalTerm> technicalTerms) {
+        try {
+            UUID paperUuid = UUID.fromString(paperId);
+            Optional<Paper> paperOpt = paperRepository.findById(paperUuid);
+            
+            if (paperOpt.isEmpty()) {
+                LoggingUtil.warn(LOG, "saveTechnicalTermsAsTags", 
+                    "Paper not found with ID %s, skipping tag save", paperId);
+                return;
+            }
+            
+            Paper paper = paperOpt.get();
+            
+            // Extract term strings and limit to reasonable number
+            List<String> termStrings = technicalTerms.stream()
+                .map(TechnicalTerm::getTerm)
+                .filter(term -> term != null && term.length() >= 3 && term.length() <= 50)
+                .map(term -> term.toLowerCase().trim())
+                .distinct()
+                .limit(30) // Limit to top 30 terms
+                .toList();
+            
+            int savedCount = 0;
+            for (String termString : termStrings) {
+                try {
+                    // Find or create tag
+                    Optional<Tag> existingTag = tagRepository.findByNameIgnoreCase(termString);
+                    Tag tag = existingTag.orElseGet(() -> {
+                        Tag newTag = new Tag(termString, "#8B5CF6"); // Purple color for concept tags
+                        return tagRepository.save(newTag);
+                    });
+                    
+                    // Create paper-tag relationship if it doesn't exist
+                    if (!paperTagRepository.existsByIdPaperIdAndIdTagId(paper.getId(), tag.getId())) {
+                        PaperTag paperTag = new PaperTag(paper.getId(), tag.getId());
+                        paperTagRepository.save(paperTag);
+                        savedCount++;
+                    }
+                    
+                } catch (Exception e) {
+                    LoggingUtil.warn(LOG, "saveTechnicalTermsAsTags", 
+                        "Failed to save tag '%s' for paper %s: %s", 
+                        termString, paperId, e.getMessage());
+                }
+            }
+            
+            LoggingUtil.info(LOG, "saveTechnicalTermsAsTags", 
+                "Successfully saved %d technical terms as tags for paper %s", 
+                savedCount, paperId);
+                
+        } catch (IllegalArgumentException e) {
+            LoggingUtil.error(LOG, "saveTechnicalTermsAsTags", 
+                "Invalid paper ID format %s: %s", paperId, e.getMessage());
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveTechnicalTermsAsTags", 
+                "Failed to save technical terms as tags for paper %s", e, paperId);
+            // Don't rethrow - this is supplementary data, main processing should continue
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.samjdtechnologies.answer42.service.agent;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,10 +21,15 @@ import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.PaperRelationship;
+import com.samjdtechnologies.answer42.model.db.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaperResult;
 import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.model.discovery.RelatedPaperDiscoveryResult;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.DiscoveredPaperRepository;
+import com.samjdtechnologies.answer42.repository.PaperRelationshipRepository;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
 import com.samjdtechnologies.answer42.service.discovery.DiscoveryCoordinator;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
@@ -39,14 +45,20 @@ public class RelatedPaperDiscoveryAgent extends AbstractConfigurableAgent {
 
     private final DiscoveryCoordinator discoveryCoordinator;
     private final PaperRepository paperRepository;
+    private final DiscoveredPaperRepository discoveredPaperRepository;
+    private final PaperRelationshipRepository paperRelationshipRepository;
     private final ObjectMapper objectMapper;
 
     public RelatedPaperDiscoveryAgent(AIConfig aiConfig, ThreadConfig threadConfig,
             AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
-            DiscoveryCoordinator discoveryCoordinator, PaperRepository paperRepository) {
+            DiscoveryCoordinator discoveryCoordinator, PaperRepository paperRepository,
+            DiscoveredPaperRepository discoveredPaperRepository,
+            PaperRelationshipRepository paperRelationshipRepository) {
         super(aiConfig, threadConfig, retryPolicy, rateLimiter);
         this.discoveryCoordinator = discoveryCoordinator;
         this.paperRepository = paperRepository;
+        this.discoveredPaperRepository = discoveredPaperRepository;
+        this.paperRelationshipRepository = paperRelationshipRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -136,15 +148,25 @@ public class RelatedPaperDiscoveryAgent extends AbstractConfigurableAgent {
                 "Discovery completed for paper %s: %s (Found: %d papers)", 
                 sourcePaper.getId(), result.getDiscoverySummary(), papersFound);
 
+            // Save discovered papers as relationships to database
+            int savedRelationships = 0;
+            if (hasResults) {
+                savedRelationships = savePaperRelationships(sourcePaper, result);
+                LoggingUtil.info(LOG, "processWithConfig", 
+                    "Saved %d paper relationships for source paper %s", savedRelationships, sourcePaper.getId());
+            }
+
             // Prepare result data
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("result", result);
             resultData.put("hasResults", hasResults);
             resultData.put("papersFound", papersFound);
+            resultData.put("relationshipsSaved", savedRelationships);
             
             if (hasResults) {
                 LoggingUtil.info(LOG, "processWithConfig", 
-                    "Discovery successful for paper %s - found %d papers", sourcePaper.getId(), papersFound);
+                    "Discovery successful for paper %s - found %d papers, saved %d relationships", 
+                    sourcePaper.getId(), papersFound, savedRelationships);
                 return AgentResult.success(task.getId(), resultData, createProcessingMetrics(startTime));
             } else {
                 LoggingUtil.warn(LOG, "processWithConfig", 
@@ -449,6 +471,260 @@ public class RelatedPaperDiscoveryAgent extends AbstractConfigurableAgent {
         }
 
         return Math.min(additionalMinutes, 6); // Cap at 6 additional minutes
+    }
+
+    /**
+     * Saves discovered papers to database and creates relationships.
+     * Uses the actual database schema fields.
+     */
+    private int savePaperRelationships(Paper sourcePaper, RelatedPaperDiscoveryResult result) {
+        if (result.getDiscoveredPapers() == null || result.getDiscoveredPapers().isEmpty()) {
+            LoggingUtil.debug(LOG, "savePaperRelationships", 
+                "No discovered papers to save for source paper %s", sourcePaper.getId());
+            return 0;
+        }
+
+        int savedCount = 0;
+        try {
+            for (DiscoveredPaperResult discoveryPaper : result.getDiscoveredPapers()) {
+                try {
+                    // Step 1: Save discovered paper to database
+                    DiscoveredPaper savedPaper = 
+                        saveDiscoveredPaperToDatabase(sourcePaper, discoveryPaper);
+                    
+                    if (savedPaper != null) {
+                        // Step 2: Create paper relationship
+                        PaperRelationship relationship = createPaperRelationship(sourcePaper, savedPaper);
+                        
+                        if (relationship != null && !relationshipExists(sourcePaper.getId(), savedPaper.getId())) {
+                            paperRelationshipRepository.save(relationship);
+                            savedCount++;
+                            
+                            LoggingUtil.debug(LOG, "savePaperRelationships", 
+                                "Saved relationship: %s -> %s (type: %s)", 
+                                sourcePaper.getId(), savedPaper.getId(), relationship.getRelationshipType());
+                        }
+                    }
+                } catch (Exception e) {
+                    LoggingUtil.warn(LOG, "savePaperRelationships", 
+                        "Failed to save discovered paper %s: %s", 
+                        discoveryPaper.getTitle(), e.getMessage());
+                }
+            }
+            
+            LoggingUtil.info(LOG, "savePaperRelationships", 
+                "Successfully saved %d paper relationships for source paper %s", 
+                savedCount, sourcePaper.getId());
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "savePaperRelationships", 
+                "Failed to save paper relationships for source paper %s", e, sourcePaper.getId());
+        }
+        
+        return savedCount;
+    }
+
+    /**
+     * Saves discovered paper to database using proper field mapping.
+     */
+    private com.samjdtechnologies.answer42.model.db.DiscoveredPaper saveDiscoveredPaperToDatabase(
+            Paper sourcePaper, DiscoveredPaperResult discoveryPaper) {
+        try {
+            // Create database entity with proper field mapping
+            com.samjdtechnologies.answer42.model.db.DiscoveredPaper dbPaper = 
+                new com.samjdtechnologies.answer42.model.db.DiscoveredPaper();
+
+            // Set source paper and user (use null for user since agent doesn't have user context)
+            dbPaper.setSourcePaper(sourcePaper);
+            dbPaper.setUser(null);
+
+            // Basic required fields
+            dbPaper.setTitle(discoveryPaper.getTitle());
+            dbPaper.setDiscoverySource(getDiscoverySourceString(discoveryPaper));
+            dbPaper.setRelationshipType(getRelationshipTypeString(discoveryPaper));
+            dbPaper.setRelevanceScore(getRelevanceScoreValue(discoveryPaper));
+
+            // Map additional fields
+            if (discoveryPaper.getAuthors() != null) {
+                dbPaper.setAuthors(discoveryPaper.getAuthors());
+            }
+            if (discoveryPaper.getDoi() != null) {
+                dbPaper.setDoi(discoveryPaper.getDoi());
+            }
+            if (discoveryPaper.getId() != null) {
+                dbPaper.setExternalId(discoveryPaper.getId());
+            }
+            if (discoveryPaper.getAbstractText() != null) {
+                dbPaper.setPaperAbstract(discoveryPaper.getAbstractText());
+            }
+            if (discoveryPaper.getJournal() != null) {
+                dbPaper.setJournal(discoveryPaper.getJournal());
+            }
+            if (discoveryPaper.getYear() != null) {
+                dbPaper.setYear(discoveryPaper.getYear());
+            }
+            if (discoveryPaper.getVenue() != null) {
+                dbPaper.setVenue(discoveryPaper.getVenue());
+            }
+            if (discoveryPaper.getCitationCount() != null) {
+                dbPaper.setCitationCount(discoveryPaper.getCitationCount());
+            }
+            if (discoveryPaper.getUrl() != null) {
+                dbPaper.setAccessUrl(discoveryPaper.getUrl());
+            }
+            if (discoveryPaper.getPublishedDate() != null) {
+                dbPaper.setPublicationDate(discoveryPaper.getPublishedDate());
+            }
+
+            // Set discovery metadata as JSON
+            dbPaper.setDiscoveryMetadata(createDiscoveryMetadataJson(discoveryPaper));
+            
+            // Save to database
+            return discoveredPaperRepository.save(dbPaper);
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveDiscoveredPaperToDatabase", 
+                "Failed to save discovered paper %s", e, discoveryPaper.getTitle());
+            return null;
+        }
+    }
+
+    /**
+     * Creates a PaperRelationship linking source paper to discovered paper.
+     */
+    private PaperRelationship createPaperRelationship(Paper sourcePaper, 
+            com.samjdtechnologies.answer42.model.db.DiscoveredPaper discoveredPaper) {
+        try {
+            PaperRelationship relationship = new PaperRelationship();
+            
+            // Set proper field names matching the entity
+            relationship.setSourcePaperId(sourcePaper.getId());
+            relationship.setDiscoveredPaperId(discoveredPaper.getId());
+            
+            // Set relationship details
+            relationship.setRelationshipType(discoveredPaper.getRelationshipType());
+            relationship.setRelationshipStrength(discoveredPaper.getRelevanceScore());
+            relationship.setConfidenceScore(discoveredPaper.getConfidenceScore());
+            relationship.setDiscoverySource(discoveredPaper.getDiscoverySource());
+            relationship.setDiscoveryMethod("multi_source_discovery");
+            
+            // Set discovery context
+            relationship.setDiscoveryContext(createRelationshipContextJson(discoveredPaper));
+            
+            return relationship;
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "createPaperRelationship", 
+                "Failed to create relationship for discovered paper %s", e, discoveredPaper.getTitle());
+            return null;
+        }
+    }
+
+    /**
+     * Helper methods to safely extract values from discovery paper
+     */
+    private String getDiscoverySourceString(DiscoveredPaperResult discoveryPaper) {
+        if (discoveryPaper.getSource() != null) {
+            return discoveryPaper.getSource().toString().toUpperCase();
+        }
+        return "UNKNOWN";
+    }
+
+    private String getRelationshipTypeString(DiscoveredPaperResult discoveryPaper) {
+        if (discoveryPaper.getRelationshipType() != null) {
+            return discoveryPaper.getRelationshipType().toString();
+        }
+        
+        // Determine from source
+        String source = getDiscoverySourceString(discoveryPaper);
+        return switch (source) {
+            case "CROSSREF" -> "CITATION";
+            case "SEMANTIC_SCHOLAR" -> "SEMANTIC_SIMILARITY";
+            case "PERPLEXITY" -> "RESEARCH_CONTEXT";
+            default -> "RELATED";
+        };
+    }
+
+    private Double getRelevanceScoreValue(DiscoveredPaperResult discoveryPaper) {
+        if (discoveryPaper.getRelevanceScore() != null) {
+            return discoveryPaper.getRelevanceScore();
+        }
+        return 0.5;
+    }
+
+    /**
+     * Creates discovery metadata JSON.
+     */
+    private JsonNode createDiscoveryMetadataJson(DiscoveredPaperResult discoveryPaper) {
+        try {
+            Map<String, Object> metadata = new HashMap<>();
+            
+            if (discoveryPaper.getId() != null) {
+                metadata.put("externalId", discoveryPaper.getId());
+            }
+            if (discoveryPaper.getInfluenceScore() != null) {
+                metadata.put("influenceScore", discoveryPaper.getInfluenceScore());
+            }
+            if (discoveryPaper.getRelationshipDescription() != null) {
+                metadata.put("relationshipDescription", discoveryPaper.getRelationshipDescription());
+            }
+            if (discoveryPaper.getKeywords() != null) {
+                metadata.put("keywords", discoveryPaper.getKeywords());
+            }
+            
+            metadata.put("discoveredAt", java.time.Instant.now().toString());
+            metadata.put("discoveryAgent", "RelatedPaperDiscoveryAgent");
+            
+            return objectMapper.valueToTree(metadata);
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "createDiscoveryMetadataJson", "Failed to create metadata JSON", e);
+            return objectMapper.createObjectNode();
+        }
+    }
+
+    /**
+     * Creates relationship context JSON.
+     */
+    private JsonNode createRelationshipContextJson(com.samjdtechnologies.answer42.model.db.DiscoveredPaper discoveredPaper) {
+        try {
+            Map<String, Object> context = new HashMap<>();
+            
+            context.put("discoveredPaperId", discoveredPaper.getId().toString());
+            context.put("discoveredPaperTitle", discoveredPaper.getTitle());
+            context.put("relationshipCreatedAt", java.time.Instant.now().toString());
+            context.put("relationshipAgent", "RelatedPaperDiscoveryAgent");
+            
+            if (discoveredPaper.getAuthors() != null) {
+                context.put("authors", discoveredPaper.getAuthors());
+            }
+            if (discoveredPaper.getJournal() != null) {
+                context.put("journal", discoveredPaper.getJournal());
+            }
+            if (discoveredPaper.getYear() != null) {
+                context.put("year", discoveredPaper.getYear());
+            }
+            
+            return objectMapper.valueToTree(context);
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "createRelationshipContextJson", "Failed to create context JSON", e);
+            return objectMapper.createObjectNode();
+        }
+    }
+
+    /**
+     * Checks if relationship already exists.
+     */
+    private boolean relationshipExists(UUID sourcePaperId, UUID discoveredPaperId) {
+        try {
+            List<PaperRelationship> existing = paperRelationshipRepository.findBySourcePaperId(sourcePaperId);
+            return existing.stream()
+                    .anyMatch(rel -> rel.getDiscoveredPaperId().equals(discoveredPaperId));
+        } catch (Exception e) {
+            LoggingUtil.warn(LOG, "relationshipExists", "Error checking relationship existence: %s", e.getMessage());
+            return false;
+        }
     }
 
     /**

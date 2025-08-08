@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DiscoveredPaper implements Serializable {
+public class DiscoveredPaperResult implements Serializable {
     
     private static final long serialVersionUID = 1L;
 
@@ -46,8 +46,8 @@ public class DiscoveredPaper implements Serializable {
     /**
      * Creates a DiscoveredPaper with minimal required information.
      */
-    public static DiscoveredPaper minimal(String id, String title, DiscoverySource source) {
-        return DiscoveredPaper.builder()
+    public static DiscoveredPaperResult minimal(String id, String title, DiscoverySource source) {
+        return DiscoveredPaperResult.builder()
             .id(id)
             .title(title)
             .source(source)
@@ -61,10 +61,10 @@ public class DiscoveredPaper implements Serializable {
     /**
      * Creates a DiscoveredPaper for citation relationships.
      */
-    public static DiscoveredPaper forCitation(String id, String title, List<String> authors, 
+    public static DiscoveredPaperResult forCitation(String id, String title, List<String> authors, 
             String journal, Integer year, String doi, RelationshipType relationshipType, 
             DiscoverySource source) {
-        return DiscoveredPaper.builder()
+        return DiscoveredPaperResult.builder()
             .id(id)
             .title(title)
             .authors(authors)
@@ -82,9 +82,9 @@ public class DiscoveredPaper implements Serializable {
     /**
      * Creates a DiscoveredPaper for semantic similarity relationships.
      */
-    public static DiscoveredPaper forSemantic(String id, String title, List<String> authors,
+    public static DiscoveredPaperResult forSemantic(String id, String title, List<String> authors,
             String abstractText, Double similarityScore, DiscoverySource source) {
-        return DiscoveredPaper.builder()
+        return DiscoveredPaperResult.builder()
             .id(id)
             .title(title)
             .authors(authors)

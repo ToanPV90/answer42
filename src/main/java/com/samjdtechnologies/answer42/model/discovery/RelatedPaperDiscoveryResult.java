@@ -24,7 +24,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private UUID sourcePaperId;
-    private List<DiscoveredPaper> discoveredPapers;
+    private List<DiscoveredPaperResult> discoveredPapers;
     private Map<String, Integer> discoveryStatistics;
     private Instant discoveryStartTime;
     private Instant discoveryEndTime;
@@ -57,7 +57,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
      * Creates a successful discovery result.
      */
     public static RelatedPaperDiscoveryResult success(UUID sourcePaperId, 
-            List<DiscoveredPaper> papers, DiscoveryConfiguration config) {
+            List<DiscoveredPaperResult> papers, DiscoveryConfiguration config) {
         return RelatedPaperDiscoveryResult.builder()
             .sourcePaperId(sourcePaperId)
             .discoveredPapers(papers)
@@ -77,7 +77,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
      * Creates a partial success result with some errors.
      */
     public static RelatedPaperDiscoveryResult partial(UUID sourcePaperId, 
-            List<DiscoveredPaper> papers, List<String> errors, List<String> warnings) {
+            List<DiscoveredPaperResult> papers, List<String> errors, List<String> warnings) {
         return RelatedPaperDiscoveryResult.builder()
             .sourcePaperId(sourcePaperId)
             .discoveredPapers(papers)
@@ -102,7 +102,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
     /**
      * Gets papers discovered from a specific source.
      */
-    public List<DiscoveredPaper> getPapersBySource(String sourceId) {
+    public List<DiscoveredPaperResult> getPapersBySource(String sourceId) {
         if (discoveredPapers == null) {
             return List.of();
         }
@@ -116,7 +116,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
     /**
      * Gets papers by relationship type.
      */
-    public List<DiscoveredPaper> getPapersByRelationshipType(String relationshipId) {
+    public List<DiscoveredPaperResult> getPapersByRelationshipType(String relationshipId) {
         if (discoveredPapers == null) {
             return List.of();
         }
@@ -130,7 +130,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
     /**
      * Gets the top N papers by relevance score.
      */
-    public List<DiscoveredPaper> getTopPapersByRelevance(int limit) {
+    public List<DiscoveredPaperResult> getTopPapersByRelevance(int limit) {
         if (discoveredPapers == null) {
             return List.of();
         }
@@ -146,7 +146,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
     /**
      * Calculates discovery statistics from the papers.
      */
-    private static Map<String, Integer> calculateStatistics(List<DiscoveredPaper> papers) {
+    private static Map<String, Integer> calculateStatistics(List<DiscoveredPaperResult> papers) {
         if (papers == null || papers.isEmpty()) {
             return Map.of("total", 0);
         }
@@ -155,7 +155,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
         stats.put("total", papers.size());
 
         // Count by source
-        for (DiscoveredPaper paper : papers) {
+        for (DiscoveredPaperResult paper : papers) {
             if (paper.getSource() != null) {
                 String sourceKey = "source_" + paper.getSource().getSourceId();
                 stats.put(sourceKey, stats.getOrDefault(sourceKey, 0) + 1);
@@ -163,7 +163,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
         }
 
         // Count by relationship type
-        for (DiscoveredPaper paper : papers) {
+        for (DiscoveredPaperResult paper : papers) {
             if (paper.getRelationshipType() != null) {
                 String relKey = "relationship_" + paper.getRelationshipType().getRelationshipId();
                 stats.put(relKey, stats.getOrDefault(relKey, 0) + 1);
@@ -176,14 +176,14 @@ public class RelatedPaperDiscoveryResult implements Serializable {
     /**
      * Calculates overall confidence score from individual paper scores.
      */
-    private static Double calculateOverallConfidence(List<DiscoveredPaper> papers) {
+    private static Double calculateOverallConfidence(List<DiscoveredPaperResult> papers) {
         if (papers == null || papers.isEmpty()) {
             return 0.0;
         }
 
         double totalScore = papers.stream()
             .filter(paper -> paper.getRelevanceScore() != null)
-            .mapToDouble(DiscoveredPaper::getRelevanceScore)
+            .mapToDouble(DiscoveredPaperResult::getRelevanceScore)
             .average()
             .orElse(0.0);
 
@@ -193,7 +193,7 @@ public class RelatedPaperDiscoveryResult implements Serializable {
     /**
      * Determines if user review is required based on paper metadata.
      */
-    private static Boolean determineReviewRequired(List<DiscoveredPaper> papers) {
+    private static Boolean determineReviewRequired(List<DiscoveredPaperResult> papers) {
         if (papers == null || papers.isEmpty()) {
             return false;
         }

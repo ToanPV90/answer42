@@ -30,7 +30,7 @@ What is Answer42?
 Answer42 is a comprehensive research assistant that helps academics work with scientific papers through:
 
 * **Intelligent Paper Processing**: Upload PDFs and extract full text, metadata, and structured information
-* **Multi-Agent Processing Pipeline**: Eight specialized AI agents for comprehensive paper analysis
+* **Multi-Agent Processing Pipeline**: Nine specialized AI agents for comprehensive paper analysis
 * **Related Papers Discovery**: Multi-source intelligent discovery of related academic papers
 * **Multi-Modal AI Chat**: Three specialized chat modes using different AI providers for various research needs
 * **Comprehensive Analysis**: Generate summaries, extract key findings, identify methodologies, and create glossaries
@@ -84,7 +84,7 @@ Technology Stack
 Answer42 now features a fully operational **local AI fallback system** powered by **Ollama** that ensures uninterrupted research workflows:
 
 **✅ **Automatic Fallback**: When cloud providers fail, the system automatically switches to local Ollama models**
-**✅ **Complete Agent Coverage**: All 6 core AI agents have fully implemented local fallback agents**
+**✅ **Complete Agent Coverage**: All 7 core AI agents have fully implemented local fallback agents**
 **✅ **Intelligent Retry Logic**: Advanced retry policies with circuit breaker protection and fallback factory**
 **✅ **Performance Monitoring**: Comprehensive fallback metrics via FallbackMetricsService**
 **✅ **Quality Assurance**: Local models optimized for academic content processing (8K char limit)**
@@ -97,6 +97,7 @@ Answer42 now features a fully operational **local AI fallback system** powered b
 - 🔧 **PaperProcessorFallbackAgent** - Comprehensive paper analysis with fallback methods
 - ✅ **QualityCheckerFallbackAgent** - Quality scoring with letter grades (A-F)
 - 📖 **CitationFormatterFallbackAgent** - Multi-style formatting with regex fallback
+- 🔍 **CitationVerifierFallbackAgent** - Citation validation and accuracy verification
 
 **Complete Docker Deployment:**
 
@@ -433,7 +434,7 @@ Multi-Agent Processing Pipeline
 
 [](https://github.com/samjd-zz/answer42#multi-agent-processing-pipeline)
 
-🆕 **NEW FEATURE**: Answer42 now features a sophisticated multi-agent processing pipeline powered by **Spring Batch** that automatically analyzes papers using eight specialized AI agents.
+🆕 **NEW FEATURE**: Answer42 now features a sophisticated multi-agent processing pipeline powered by **Spring Batch** that automatically analyzes papers using nine specialized AI agents.
 
 ### Pipeline Architecture
 
@@ -614,6 +615,13 @@ flowchart TD
 * Perplexity API integration for real-time research trends and discussions
 * Result synthesis and deduplication across all sources
 * Discovery metadata tracking and storage
+
+**🔍 Citation Verifier Agent** (🆕 **NEW!**) (OpenAI GPT-4)
+
+* Citation accuracy verification and validation
+* DOI resolution and bibliographic cross-checking
+* Reference completeness assessment
+* Academic integrity scoring and verification
 
 **🔬 Perplexity Research Agent** (🆕 **NEW!**) (Perplexity API)
 

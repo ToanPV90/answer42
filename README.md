@@ -1392,53 +1392,118 @@ This refactoring will significantly improve system reliability, performance moni
 
 **AI Provider Settings**
 
-    # Anthropic Configuration
-    spring.ai.anthropic.api-key=${ANTHROPIC_API_KEY}
-    spring.ai.anthropic.chat.options.model=claude-3-7-sonnet-latest
+    # Anthropic Configuration (Production-optimized with Haiku for speed and reliability)
+    spring.ai.anthropic.api-key=${ANTHROPIC_API_KEY:dummy-key}
+    spring.ai.anthropic.chat.options.model=claude-3-haiku-20240307
     spring.ai.anthropic.chat.options.temperature=0.7
+    spring.ai.anthropic.chat.options.max-tokens=4000
+    spring.ai.anthropic.http.connect-timeout=120s
+    spring.ai.anthropic.http.read-timeout=600s
+    spring.ai.anthropic.http.write-timeout=120s
     
-    # OpenAI Configuration  
-    spring.ai.openai.api-key=${OPENAI_API_KEY}
-    spring.ai.openai.chat.options.model=gpt-4o
+    # OpenAI Configuration (Production-optimized with GPT-3.5-turbo for high-volume use)
+    spring.ai.openai.api-key=${OPENAI_API_KEY:dummy-key}
+    spring.ai.openai.chat.options.model=gpt-3.5-turbo
     spring.ai.openai.chat.options.temperature=0.7
+    spring.ai.openai.chat.options.max-completion-tokens=4000
+    spring.ai.openai.http.connect-timeout=300s
+    spring.ai.openai.http.read-timeout=1200s
+    spring.ai.openai.http.write-timeout=300s
     
-    # Perplexity Configuration
-    spring.ai.perplexity.api-key=${PERPLEXITY_API_KEY}
-    spring.ai.perplexity.chat.options.model=llama-3.1-sonar-small-128k-online
+    # Perplexity Configuration (Extended timeouts for research operations)
+    spring.ai.perplexity.api-key=${PERPLEXITY_API_KEY:dummy-key}
+    spring.ai.perplexity.chat.options.model=sonar-pro
+    spring.ai.perplexity.chat.options.temperature=0.7
+    spring.ai.perplexity.chat.options.max-tokens=4000
+    spring.ai.perplexity.http.connect-timeout=300s
+    spring.ai.perplexity.http.read-timeout=1800s
+    spring.ai.perplexity.http.write-timeout=300s
 
 **Discovery API Configuration**
 
-    # Discovery System Configuration
-    discovery.enabled=true
+    # Related Paper Discovery Configuration (Environment-aware)
+    discovery.enabled=${DISCOVERY_ENABLED:true}
+    discovery.semantic-scholar.api-key=${SEMANTIC_SCHOLAR_API_KEY:}
     discovery.semantic-scholar.base-url=https://api.semanticscholar.org/graph/v1
     discovery.crossref.base-url=https://api.crossref.org/works
-    discovery.max-papers-per-source=50
-    discovery.cache.duration-hours=24
-    discovery.rate-limit.enabled=true
+    discovery.max-papers-per-source=${DISCOVERY_MAX_PAPERS_PER_SOURCE:50}
+    discovery.cache.duration-hours=${DISCOVERY_CACHE_DURATION_HOURS:24}
+    discovery.rate-limit.enabled=${DISCOVERY_RATE_LIMIT_ENABLED:true}
     discovery.rate-limit.crossref.requests-per-second=45
     discovery.rate-limit.semantic-scholar.requests-per-minute=100
     discovery.rate-limit.perplexity.requests-per-minute=10
 
 **Ollama Local Fallback Configuration** (🆕 **NEW!**)
 
-    # Ollama Local Processing Configuration (for fallback)
+    # Ollama Local Processing Configuration (Extended timeouts for laptop processing)
     spring.ai.ollama.enabled=${OLLAMA_ENABLED:true}
     spring.ai.ollama.base-url=${OLLAMA_BASE_URL:http://localhost:11434}
     spring.ai.ollama.chat.options.model=${OLLAMA_MODEL:llama3.1:8b}
     spring.ai.ollama.chat.options.temperature=0.7
     spring.ai.ollama.chat.options.max-tokens=4000
-    spring.ai.ollama.timeout=30000
+    spring.ai.ollama.timeout=1800000
+    spring.ai.ollama.http.connect-timeout=300s
+    spring.ai.ollama.http.read-timeout=1800s
+    spring.ai.ollama.http.write-timeout=300s
     
-    # Fallback Configuration
+    # Fallback Configuration (Environment-aware)
     spring.ai.fallback.enabled=${FALLBACK_ENABLED:true}
-    spring.ai.fallback.retry-after-failures=3
-    spring.ai.fallback.timeout-seconds=60
+    spring.ai.fallback.retry-after-failures=${FALLBACK_RETRY_AFTER_FAILURES:3}
+    spring.ai.fallback.timeout-seconds=${FALLBACK_TIMEOUT_SECONDS:60}
+    spring.ai.fallback.connection-check-timeout=${FALLBACK_CONNECTION_CHECK_TIMEOUT:5000}
+    spring.ai.fallback.health-check-interval=${FALLBACK_HEALTH_CHECK_INTERVAL:30000}
 
-**Database Configuration**
+**Database Configuration** (Environment-aware with connection pooling)
 
-    spring.datasource.url=jdbc:postgresql://localhost:54322/postgres
+    # PostgreSQL Connection
+    spring.datasource.url=${DATABASE_URL:jdbc:postgresql://localhost:54322/postgres?ssl=false&sslmode=disable}
+    spring.datasource.username=${DATABASE_USERNAME:postgres}
+    spring.datasource.password=${DATABASE_PASSWORD:postgres}
+    
+    # JPA / Hibernate Configuration
     spring.jpa.properties.hibernate.default_schema=answer42
-    spring.jpa.hibernate.ddl-auto=update
+    spring.jpa.hibernate.ddl-auto=${HIBERNATE_DDL_AUTO:update}
+    spring.jpa.show-sql=false
+    spring.jpa.open-in-view=false
+    
+    # Connection Pool Settings (HikariCP)
+    spring.datasource.hikari.maximum-pool-size=${HIKARI_MAXIMUM_POOL_SIZE:10}
+    spring.datasource.hikari.minimum-idle=${HIKARI_MINIMUM_IDLE:5}
+    spring.datasource.hikari.connection-timeout=${HIKARI_CONNECTION_TIMEOUT:20000}
+    spring.datasource.hikari.idle-timeout=${HIKARI_IDLE_TIMEOUT:300000}
+    spring.datasource.hikari.max-lifetime=${HIKARI_MAX_LIFETIME:1200000}
+
+**Additional Configuration**
+
+    # Vaadin Configuration
+    vaadin.productionMode=false
+    vaadin.closeIdleSessions=true
+    vaadin.heartbeatInterval=60
+    vaadin.push.transport=websocket
+    
+    # File Upload Configuration
+    spring.servlet.multipart.max-file-size=${MAX_FILE_SIZE:50MB}
+    spring.servlet.multipart.max-request-size=${MAX_REQUEST_SIZE:60MB}
+    upload.large-file-threshold=${LARGE_FILE_THRESHOLD:52428800}
+    
+    # JWT Authentication
+    app.auth.jwt.secret=${JWT_SECRET:}
+    app.auth.jwt.expiration=86400000
+    app.auth.jwt.header=Authorization
+    app.auth.jwt.prefix=Bearer
+    
+    # Spring Batch Configuration
+    spring.batch.job.enabled=false
+    spring.batch.jdbc.initialize-schema=never
+    spring.batch.jdbc.table-prefix=answer42.BATCH_
+    
+    # Thread Management
+    spring.task.execution.thread-name-prefix=answer42-exec-
+    spring.task.scheduling.thread-name-prefix=answer42-sched-
+    
+    # Metrics Export (5-minute intervals)
+    management.metrics.export.logging.enabled=true
+    management.metrics.export.logging.step=PT5M
 
 💝 Support the Project
 

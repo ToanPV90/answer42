@@ -6,21 +6,16 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
 import com.samjdtechnologies.answer42.model.agent.AgentRetryStatistics;
@@ -36,6 +31,8 @@ import com.samjdtechnologies.answer42.service.agent.PaperProcessorFallbackAgent;
 import com.samjdtechnologies.answer42.service.agent.QualityCheckerFallbackAgent;
 import com.samjdtechnologies.answer42.service.agent.CitationFormatterFallbackAgent;
 import com.samjdtechnologies.answer42.service.agent.CitationVerifierFallbackAgent;
+import com.samjdtechnologies.answer42.service.agent.RelatedPaperDiscoveryFallbackAgent;
+import com.samjdtechnologies.answer42.service.agent.PerplexityResearchFallbackAgent;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
 /**
@@ -48,11 +45,8 @@ public class AgentRetryPolicy {
     
     private static final Logger LOG = LoggerFactory.getLogger(AgentRetryPolicy.class);
     
-    private static final int DEFAULT_MAX_RETRIES = 3;
-    private static final Duration DEFAULT_INITIAL_DELAY = Duration.ofSeconds(1);
     private static final double JITTER_FACTOR = 0.1; // 10% jitter
     
-    private final Executor taskExecutor;
     private final AgentCircuitBreaker circuitBreaker;
     
     // Fallback agents injected directly
@@ -63,6 +57,8 @@ public class AgentRetryPolicy {
     private final QualityCheckerFallbackAgent qualityCheckerFallback;
     private final CitationFormatterFallbackAgent citationFormatterFallback;
     private final CitationVerifierFallbackAgent citationVerifierFallback;
+    private final RelatedPaperDiscoveryFallbackAgent relatedPaperDiscoveryFallback;
+    private final PerplexityResearchFallbackAgent perplexityResearchFallback;
     
     // Statistics tracking
     private final AtomicLong totalAttempts = new AtomicLong(0);
@@ -80,9 +76,6 @@ public class AgentRetryPolicy {
     private final Map<AgentType, RetryMetrics> agentMetrics = new ConcurrentHashMap<>();
     private final ZonedDateTime startTime = ZonedDateTime.now();
     
-    // Retry configurations for different agent types
-    private final Map<AgentType, RetryConfiguration> retryConfigs = new ConcurrentHashMap<>();
-    private static final RetryConfiguration DEFAULT_CONFIG = new RetryConfiguration(DEFAULT_MAX_RETRIES, DEFAULT_INITIAL_DELAY);
     
     public AgentRetryPolicy(ThreadConfig threadConfig, AgentCircuitBreaker circuitBreaker,
                            ContentSummarizerFallbackAgent contentSummarizerFallback,
@@ -91,8 +84,9 @@ public class AgentRetryPolicy {
                            PaperProcessorFallbackAgent paperProcessorFallback,
                            QualityCheckerFallbackAgent qualityCheckerFallback,
                            CitationFormatterFallbackAgent citationFormatterFallback,
-                           CitationVerifierFallbackAgent citationVerifierFallback) {
-        this.taskExecutor = threadConfig.taskExecutor();
+                           CitationVerifierFallbackAgent citationVerifierFallback,
+                           RelatedPaperDiscoveryFallbackAgent relatedPaperDiscoveryFallback,
+                           PerplexityResearchFallbackAgent perplexityResearchFallback) {
         this.circuitBreaker = circuitBreaker;
         this.contentSummarizerFallback = contentSummarizerFallback;
         this.conceptExplainerFallback = conceptExplainerFallback;
@@ -101,9 +95,11 @@ public class AgentRetryPolicy {
         this.qualityCheckerFallback = qualityCheckerFallback;
         this.citationFormatterFallback = citationFormatterFallback;
         this.citationVerifierFallback = citationVerifierFallback;
+        this.relatedPaperDiscoveryFallback = relatedPaperDiscoveryFallback;
+        this.perplexityResearchFallback = perplexityResearchFallback;
         
         LoggingUtil.info(LOG, "constructor", 
-            "AgentRetryPolicy initialized with direct fallback agent injection");
+            "AgentRetryPolicy initialized with 9 fallback agents including RelatedPaperDiscovery and PerplexityResearch");
     }
     
     /**
@@ -230,30 +226,6 @@ public class AgentRetryPolicy {
     }
     
     /**
-     * Create a fallback task with context about the primary failure.
-     */
-    private AgentTask createFallbackTask(AgentType agentType, Throwable primaryFailure) {
-        String fallbackTaskId = "fallback-" + System.currentTimeMillis();
-        
-        // Create input JSON with fallback context
-        ObjectNode inputJson = JsonNodeFactory.instance.objectNode();
-        inputJson.put("content", "Fallback processing due to primary agent failure: " + primaryFailure.getMessage());
-        inputJson.put("isFallback", true);
-        inputJson.put("primaryFailure", primaryFailure.getMessage());
-        inputJson.put("fallbackReason", "All cloud providers failed");
-        inputJson.put("agentType", agentType.toString());
-        
-        return AgentTask.builder()
-            .id(fallbackTaskId)
-            .agentId(agentType.toString().toLowerCase().replace("_", "-"))
-            .userId(java.util.UUID.randomUUID()) // Fallback user ID - in real implementation would use actual user
-            .input(inputJson)
-            .status("pending")
-            .createdAt(java.time.Instant.now())
-            .build();
-    }
-    
-    /**
      * Record successful operation outcome.
      */
     private void recordSuccess(AgentType agentType, boolean isRetry) {
@@ -366,6 +338,10 @@ public class AgentRetryPolicy {
                 return citationFormatterFallback;
             case CITATION_VERIFIER:
                 return citationVerifierFallback;
+            case RELATED_PAPER_DISCOVERY:
+                return relatedPaperDiscoveryFallback;
+            case PERPLEXITY_RESEARCHER:
+                return perplexityResearchFallback;
             default:
                 return null;
         }
@@ -373,16 +349,9 @@ public class AgentRetryPolicy {
 
     /**
      * Check if fallback is available for the specified agent type.
-     * Phase 3: Fallback integration logic.
+     * Phase 3: Fallback integration logic updated for complete 9/9 coverage.
      */
     private boolean isFallbackAvailable(AgentType agentType) {
-        // Special agents that don't have fallbacks (require external APIs)
-        if (agentType == AgentType.RELATED_PAPER_DISCOVERY) {
-            LoggingUtil.debug(LOG, "isFallbackAvailable", 
-                "No fallback available for %s - requires external APIs", agentType);
-            return false;
-        }
-        
         AIAgent fallbackAgent = getFallbackAgent(agentType);
         boolean available = fallbackAgent != null && 
             (!(fallbackAgent instanceof com.samjdtechnologies.answer42.service.agent.OllamaBasedAgent) || 
@@ -519,6 +488,8 @@ public class AgentRetryPolicy {
         if (qualityCheckerFallback != null) { availableAgents++; availableTypes.add("QUALITY_CHECKER"); }
         if (citationFormatterFallback != null) { availableAgents++; availableTypes.add("CITATION_FORMATTER"); }
         if (citationVerifierFallback != null) { availableAgents++; availableTypes.add("CITATION_VERIFIER"); }
+        if (relatedPaperDiscoveryFallback != null) { availableAgents++; availableTypes.add("RELATED_PAPER_DISCOVERY"); }
+        if (perplexityResearchFallback != null) { availableAgents++; availableTypes.add("PERPLEXITY_RESEARCHER"); }
         
         stats.put("fallbackEnabled", availableAgents > 0);
         stats.put("availableFallbackAgents", availableAgents);

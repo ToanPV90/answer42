@@ -84,13 +84,13 @@ Technology Stack
 Answer42 now features a fully operational **local AI fallback system** powered by **Ollama** that ensures uninterrupted research workflows:
 
 **✅ **Automatic Fallback**: When cloud providers fail, the system automatically switches to local Ollama models**
-**✅ **Complete Agent Coverage**: All 7 core AI agents have fully implemented local fallback agents**
+**✅ **Complete Agent Coverage**: All 9 AI agents have fully implemented local fallback agents**
 **✅ **Intelligent Retry Logic**: Advanced retry policies with circuit breaker protection and fallback factory**
 **✅ **Performance Monitoring**: Comprehensive fallback metrics via FallbackMetricsService**
 **✅ **Quality Assurance**: Local models optimized for academic content processing (8K char limit)**
 **✅ **Docker Integration**: Production-ready Ollama service with health checks and improved monitoring**
 
-**Fallback Agents Implemented (Phase 2 Complete):**
+**Fallback Agents Implemented (Complete 9/9 Coverage):**
 - 📝 **ContentSummarizerFallbackAgent** - Multi-level summarization with truncation support
 - 🧠 **ConceptExplainerFallbackAgent** - Simplified explanations for local models
 - 📚 **MetadataEnhancementFallbackAgent** - Keywords, categories, and summary tags
@@ -98,6 +98,8 @@ Answer42 now features a fully operational **local AI fallback system** powered b
 - ✅ **QualityCheckerFallbackAgent** - Quality scoring with letter grades (A-F)
 - 📖 **CitationFormatterFallbackAgent** - Multi-style formatting with regex fallback
 - 🔍 **CitationVerifierFallbackAgent** - Citation validation and accuracy verification
+- 🔗 **RelatedPaperDiscoveryFallbackAgent** - Multi-source paper discovery with AI synthesis and rule-based fallback
+- 🔬 **PerplexityResearchFallbackAgent** - Local research analysis with fact verification and synthesis
 
 **Complete Docker Deployment:**
 

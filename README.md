@@ -85,7 +85,7 @@ Answer42 now features a fully operational **local AI fallback system** powered b
 
 **✅ **Automatic Fallback**: When cloud providers fail, the system automatically switches to local Ollama models**
 **✅ **Complete Agent Coverage**: All 9 AI agents have fully implemented local fallback agents**
-**✅ **Intelligent Retry Logic**: Advanced retry policies with circuit breaker protection and fallback factory**
+**✅ **Intelligent Retry Logic**: Advanced retry policies with circuit breaker protection managed by Spring**
 **✅ **Performance Monitoring**: Comprehensive fallback metrics via FallbackMetricsService**
 **✅ **Quality Assurance**: Local models optimized for academic content processing (8K char limit)**
 **✅ **Docker Integration**: Production-ready Ollama service with health checks and improved monitoring**

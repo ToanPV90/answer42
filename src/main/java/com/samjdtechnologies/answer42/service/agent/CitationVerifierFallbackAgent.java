@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
@@ -24,14 +23,10 @@ import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.db.Citation;
 import com.samjdtechnologies.answer42.model.db.CitationVerification;
 import com.samjdtechnologies.answer42.model.db.Paper;
-import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaperResult;
-import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.repository.CitationRepository;
 import com.samjdtechnologies.answer42.repository.CitationVerificationRepository;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
-import com.samjdtechnologies.answer42.service.helpers.SemanticScholarApiHelper;
-import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
@@ -63,22 +58,16 @@ public class CitationVerifierFallbackAgent extends OllamaBasedAgent {
     private final CitationRepository citationRepository;
     private final CitationVerificationRepository citationVerificationRepository;
     private final PaperRepository paperRepository;
-    private final SemanticScholarApiHelper semanticScholarApiHelper;
-    private final ObjectMapper objectMapper;
     
     public CitationVerifierFallbackAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
-                                       AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
+                                       APIRateLimiter rateLimiter,
                                        CitationRepository citationRepository,
                                        CitationVerificationRepository citationVerificationRepository,
-                                       PaperRepository paperRepository,
-                                       SemanticScholarApiHelper semanticScholarApiHelper,
-                                       ObjectMapper objectMapper) {
+                                       PaperRepository paperRepository) {
         super(aiConfig, threadConfig, rateLimiter);
         this.citationRepository = citationRepository;
         this.citationVerificationRepository = citationVerificationRepository;
         this.paperRepository = paperRepository;
-        this.semanticScholarApiHelper = semanticScholarApiHelper;
-        this.objectMapper = objectMapper;
     }
     
     @Override

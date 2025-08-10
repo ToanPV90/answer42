@@ -1,15 +1,36 @@
 {
   "name": "design-document",
-  "version": "1.0.0",
-  "description": "Transform PRD.md into comprehensive technical design documents following the AI-TDD methodology",
-  "purpose": "Transform PRD.md into comprehensive technical design documents following the AI-TDD methodology",
+  "version": "2.0.0",
+  "description": "Transform PRD.md into comprehensive technical design documents following the AI-TDD methodology for Answer42 platform",
+  "purpose": "Transform PRD.md into comprehensive technical design documents following the AI-TDD methodology for Answer42 academic research platform",
+  "project_context": {
+    "platform": "Answer42 - AI-Powered Academic Research Platform",
+    "core_features": [
+      "Multi-agent processing pipeline (9 specialized AI agents)",
+      "Related papers discovery system",
+      "Multi-modal AI chat (3 chat modes)",
+      "Credit-based subscription system",
+      "Local AI fallback with Ollama"
+    ],
+    "technology_stack": {
+      "backend": "Java 21, Spring Boot 3.4.5, Spring AI, Spring Batch",
+      "frontend": "Vaadin 24.7.3, Progressive Web App",
+      "database": "PostgreSQL with JSONB, answer42 schema",
+      "ai_providers": ["OpenAI GPT-4", "Anthropic Claude", "Perplexity", "Ollama Local"],
+      "external_apis": ["Crossref API", "Semantic Scholar API", "Supabase MCP"]
+    },
+    "architecture": "Multi-agent processing pipeline with Spring Batch orchestration"
+  },
   "capabilities": [
-    "Analyze PRD requirements and constraints",
-    "Design system architecture",
-    "Define API contracts and interfaces",
-    "Create database schemas",
-    "Specify integration patterns",
-    "Document technical decisions",
+    "Analyze PRD requirements and constraints for Answer42 features",
+    "Design system architecture aligned with Answer42 multi-agent pipeline",
+    "Define API contracts and interfaces for Answer42 services",
+    "Create database schemas for PostgreSQL with JSONB (answer42 schema)",
+    "Specify integration patterns for Answer42 systems",
+    "Document technical decisions following Answer42 coding standards",
+    "Design multi-agent system component interactions",
+    "Plan credit system integration and cost tracking",
+    "Design discovery system enhancements and integrations",
     "Ensure all generated documents stay under 300 lines"
   ],
   "file_size_management": {
@@ -19,13 +40,15 @@
       "Split large design documents into Part1.md, Part2.md, etc.",
       "Create separate files for Architecture, Database, API sections",
       "Use focused sections with clear boundaries",
-      "Maintain logical flow between document parts"
+      "Maintain logical flow between document parts",
+      "Split by Answer42 system domains (agents, UI, discovery, credit, chat, database)"
     ],
     "document_organization": [
       "Architecture Overview -> design-architecture.md",
-      "Database Design -> design-database.md", 
+      "Database Design -> design-database.md",
       "API Specifications -> design-api.md",
       "Integration Points -> design-integration.md",
+      "Agent System Design -> design-agents.md",
       "Always create a main design.md with references to parts"
     ]
   },
@@ -33,38 +56,43 @@
     {
       "step": 1,
       "action": "parse_prd_requirements",
-      "description": "Parse PRD.md for functional and non-functional requirements"
+      "description": "Parse PRD.md for functional and non-functional requirements",
+      "answer42_context": "Focus on Answer42-specific requirements: agent processing, research workflows, credit system"
     },
     {
       "step": 2,
       "action": "design_architecture",
-      "description": "Design high-level architecture"
+      "description": "Design high-level architecture for Answer42 integration",
+      "answer42_context": "Consider multi-agent pipeline, Spring Batch orchestration, and Answer42 service patterns"
     },
     {
       "step": 3,
       "action": "define_components",
-      "description": "Define component interactions"
+      "description": "Define component interactions within Answer42 ecosystem",
+      "answer42_context": "Include agent coordination, credit tracking, discovery integration, and chat system components"
     },
     {
       "step": 4,
       "action": "specify_data_models",
-      "description": "Specify data models and schemas"
+      "description": "Specify data models and database schemas for answer42 schema",
+      "answer42_context": "Use PostgreSQL with JSONB, UUID primary keys, and proper Answer42 naming conventions"
     },
     {
       "step": 5,
       "action": "document_apis",
-      "description": "Document API endpoints and contracts"
+      "description": "Document API endpoints and contracts for Answer42 services",
+      "answer42_context": "Follow Answer42 REST patterns, Spring Boot controllers, and Vaadin integration"
     },
     {
       "step": 6,
       "action": "generate_design_document",
-      "description": "Generate design.md document"
+      "description": "Generate comprehensive design.md with Answer42 integration details"
     }
   ],
   "commands": [
     {
       "name": "create_design_from_prd",
-      "description": "Create design document from PRD",
+      "description": "Create Answer42 design document from PRD",
       "parameters": {
         "prd_file": {
           "type": "string",
@@ -77,12 +105,18 @@
           "required": false,
           "default": "./ai-tdd-docs/[feature-name]/design.md",
           "description": "Path where the design document should be created (in feature-specific folder)"
+        },
+        "answer42_integration": {
+          "type": "array",
+          "required": false,
+          "default": ["agents", "discovery", "credit", "chat", "ui"],
+          "description": "Answer42 systems to consider for integration"
         }
       }
     },
     {
       "name": "generate_technical_design",
-      "description": "Generate technical design for PRD file",
+      "description": "Generate Answer42 technical design for PRD file",
       "parameters": {
         "prd_path": {
           "type": "string",
@@ -92,46 +126,85 @@
         "architecture_style": {
           "type": "string",
           "required": false,
-          "enum": ["microservices", "monolithic", "event-driven", "layered"],
-          "default": "layered",
-          "description": "Preferred architecture style"
+          "enum": ["layered", "event-driven", "multi-agent"],
+          "default": "multi-agent",
+          "description": "Preferred architecture style for Answer42"
+        },
+        "technology_focus": {
+          "type": "array",
+          "required": false,
+          "default": ["spring_boot", "vaadin", "postgresql", "spring_ai"],
+          "description": "Technology components to focus on in design"
         }
       }
     },
     {
       "name": "design_architecture_from_requirements",
-      "description": "Design architecture from requirements",
+      "description": "Design Answer42 architecture from requirements",
       "parameters": {
         "feature_name": {
           "type": "string",
           "required": true,
-          "description": "Name of the feature being designed"
+          "description": "Name of the Answer42 feature being designed"
         },
-        "technology_stack": {
-          "type": "object",
+        "integration_complexity": {
+          "type": "string",
           "required": false,
-          "description": "Preferred technology stack components"
+          "enum": ["low", "medium", "high"],
+          "default": "medium",
+          "description": "Expected complexity level of Answer42 system integration"
+        },
+        "agent_involvement": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Whether the feature involves Answer42 multi-agent system"
         }
       }
     }
   ],
-  "template": {
+  "answer42_template": {
     "sections": [
       "Technical Design Document: [Feature Name]",
       "Architecture Overview",
+      "Answer42 System Integration",
       "Component Design",
-      "Data Model",
+      "Data Model (answer42 schema)",
       "API Design",
-      "Integration Points",
+      "Agent System Integration",
+      "Credit System Integration",
+      "Discovery System Integration",
+      "UI/UX Design (Vaadin)",
       "Security Considerations",
       "Performance Considerations",
       "Error Handling"
     ],
     "component_structure": {
       "name": "Component name",
-      "responsibility": "What it does",
-      "interfaces": "How it interacts",
-      "dependencies": "What it depends on"
+      "responsibility": "What it does in Answer42 context",
+      "interfaces": "How it interacts with Answer42 systems",
+      "dependencies": "Answer42 services and external APIs it depends on"
+    },
+    "answer42_specific_sections": {
+      "system_integration": [
+        "Multi-agent pipeline integration points",
+        "Agent coordination and communication patterns",
+        "Agent memory and context management",
+        "Credit system cost tracking integration",
+        "Discovery system enhancements",
+        "Chat system integration (3 modes)",
+        "Real-time updates and WebSocket integration",
+        "External API integration (Crossref, Semantic Scholar)"
+      ],
+      "data_model_considerations": [
+        "answer42 schema table design",
+        "UUID primary key patterns",
+        "JSONB field usage for flexible metadata",
+        "snake_case database naming, camelCase Java entities",
+        "Proper JPA annotations and fetch strategies",
+        "Database indexing for performance",
+        "Relationship modeling for research data"
+      ]
     }
   },
   "execution": {
@@ -140,34 +213,171 @@
     "output_format": "markdown",
     "output_file": "design.md",
     "quality_checks": [
-      "Architecture addresses all functional requirements",
-      "Component responsibilities are clearly defined",
-      "API contracts are well-specified",
-      "Database schema supports all data requirements",
-      "Security considerations are documented",
-      "Performance requirements are addressed"
+      "Architecture addresses all Answer42 functional requirements",
+      "Component responsibilities align with Answer42 system patterns",
+      "API contracts follow Answer42 REST and Vaadin integration patterns",
+      "Database schema supports Answer42 research data requirements",
+      "Security considerations include Answer42-specific concerns",
+      "Performance requirements address Answer42 multi-agent processing",
+      "Integration with existing Answer42 systems is clearly defined",
+      "Answer42 coding standards from CLAUDE.md are followed"
     ]
   },
-  "design_patterns": {
+  "answer42_design_patterns": {
     "architectural": [
-      "MVC (Model-View-Controller)",
-      "Repository Pattern",
-      "Service Layer",
-      "Dependency Injection",
-      "Observer Pattern"
+      "Multi-Agent Pipeline Pattern (Answer42 core)",
+      "AbstractConfigurableAgent Pattern",
+      "Spring Batch Orchestration Pattern",
+      "Credit-Aware Service Pattern",
+      "Discovery Integration Pattern",
+      "MVC with Vaadin Views Pattern",
+      "Repository Pattern with JPA",
+      "Service Layer with @Transactional",
+      "Dependency Injection via Spring",
+      "Event-Driven Agent Communication"
     ],
     "integration": [
-      "REST API",
-      "Event-Driven",
-      "Message Queues",
-      "Database Integration",
-      "External Service Integration"
+      "Spring AI Provider Integration",
+      "External API Rate-Limited Integration",
+      "WebSocket Real-time Updates",
+      "Supabase MCP Integration",
+      "Ollama Fallback Integration",
+      "Agent Memory Store Integration",
+      "Credit Service Integration"
+    ],
+    "data_access": [
+      "answer42 Schema Repository Pattern",
+      "JSONB Field Mapping with @JdbcTypeCode",
+      "UUID Primary Key Generation",
+      "Optimized JPA Fetch Strategies",
+      "Connection Pooling (HikariCP)",
+      "Transaction Management"
     ]
   },
-  "technology_considerations": {
-    "backend": ["Spring Boot", "Java", "PostgreSQL", "Redis"],
-    "frontend": ["Vaadin", "JavaScript", "CSS", "HTML"],
-    "infrastructure": ["Docker", "AWS", "Kubernetes", "CI/CD"],
-    "monitoring": ["Logging", "Metrics", "Health Checks", "Alerts"]
+  "answer42_technology_considerations": {
+    "backend": {
+      "java_21": ["Records", "Pattern matching", "Virtual threads"],
+      "spring_boot_3_4_5": ["Native compilation", "@ConfigurationProperties", "Observability"],
+      "spring_ai": ["Provider abstraction", "Chat models", "Embedding models"],
+      "spring_batch": ["Job orchestration", "Step coordination", "Error recovery"],
+      "postgresql": ["JSONB support", "Full-text search", "Advanced indexing"]
+    },
+    "frontend": {
+      "vaadin_24_7_3": ["Lumo design system", "Progressive Web App", "Type-safe routing"],
+      "progressive_web_app": ["Offline capabilities", "Mobile optimization", "Push notifications"],
+      "real_time": ["WebSocket integration", "Server push", "Live updates"]
+    },
+    "infrastructure": {
+      "supabase": ["Managed PostgreSQL", "Real-time subscriptions", "Row-level security"],
+      "ollama": ["Local AI processing", "Fallback mechanisms", "Cost optimization"],
+      "docker": ["Containerization", "Development environment", "Production deployment"]
+    },
+    "external_integration": {
+      "ai_providers": ["OpenAI GPT-4", "Anthropic Claude", "Perplexity", "Rate limiting"],
+      "academic_apis": ["Crossref API", "Semantic Scholar API", "Citation networks"],
+      "cost_management": ["Token tracking", "Credit calculation", "Usage optimization"]
+    }
+  },
+  "answer42_security_considerations": {
+    "authentication": [
+      "JWT-based stateless authentication",
+      "User session management",
+      "API key management (user-aware)",
+      "Spring Security integration"
+    ],
+    "authorization": [
+      "Role-based access control",
+      "Subscription tier enforcement",
+      "Credit limit validation",
+      "Feature access control"
+    ],
+    "data_protection": [
+      "Research data encryption",
+      "API key secure storage",
+      "User content privacy",
+      "GDPR compliance considerations"
+    ],
+    "api_security": [
+      "Rate limiting for external APIs",
+      "API key rotation strategies",
+      "Circuit breaker protection",
+      "Input validation and sanitization"
+    ]
+  },
+  "answer42_performance_considerations": {
+    "agent_processing": [
+      "Parallel agent execution",
+      "Agent memory optimization",
+      "Cost-aware processing strategies",
+      "Circuit breaker patterns for AI APIs"
+    ],
+    "database_optimization": [
+      "JSONB indexing strategies",
+      "Query optimization for research data",
+      "Connection pooling configuration",
+      "Read replica considerations"
+    ],
+    "ui_performance": [
+      "Vaadin lazy loading",
+      "Progressive Web App caching",
+      "Real-time update throttling",
+      "Mobile performance optimization"
+    ],
+    "discovery_system": [
+      "Multi-source caching (24-hour duration)",
+      "Result ranking optimization",
+      "API rate limit management",
+      "Deduplication efficiency"
+    ],
+    "scalability": [
+      "Multi-user research team support",
+      "Large paper dataset handling",
+      "Concurrent agent processing",
+      "External API cost optimization"
+    ]
+  },
+  "answer42_integration_specifications": {
+    "multi_agent_pipeline": {
+      "coordination_patterns": [
+        "Spring Batch job orchestration",
+        "Agent task lifecycle management",
+        "Error recovery and retry policies",
+        "Progress tracking and reporting"
+      ],
+      "agent_communication": [
+        "Spring Event-driven messaging",
+        "Agent memory context sharing",
+        "Cost tracking across agents",
+        "Performance monitoring"
+      ]
+    },
+    "credit_system": {
+      "cost_calculation": [
+        "Token-based pricing models",
+        "Subscription tier validation",
+        "Real-time cost tracking",
+        "Usage analytics"
+      ],
+      "integration_points": [
+        "Agent operation cost tracking",
+        "Discovery operation billing",
+        "Chat interaction costing",
+        "Credit exhaustion handling"
+      ]
+    },
+    "discovery_system": {
+      "multi_source_coordination": [
+        "Crossref API integration",
+        "Semantic Scholar API integration",
+        "Perplexity API integration",
+        "Result synthesis and ranking"
+      ],
+      "caching_strategies": [
+        "24-hour result caching",
+        "User-specific cache management",
+        "Cache invalidation policies",
+        "Performance optimization"
+      ]
+    }
   }
 }

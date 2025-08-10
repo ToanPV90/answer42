@@ -1,15 +1,37 @@
 {
   "name": "test-generator",
-  "version": "1.0.0",
-  "description": "Generate comprehensive unit tests using Symflower and ensure code quality through automated testing",
-  "purpose": "Generate comprehensive unit tests using Symflower and ensure code quality through automated testing",
+  "version": "2.0.0",
+  "description": "Generate comprehensive unit tests using Symflower and ensure code quality through automated testing for Answer42 platform",
+  "purpose": "Generate comprehensive unit tests using Symflower and ensure code quality through automated testing for Answer42 academic research platform",
+  "project_context": {
+    "platform": "Answer42 - AI-Powered Academic Research Platform",
+    "core_features": [
+      "Multi-agent processing pipeline (9 specialized AI agents)",
+      "Related papers discovery system",
+      "Multi-modal AI chat (3 chat modes)",
+      "Credit-based subscription system",
+      "Local AI fallback with Ollama"
+    ],
+    "technology_stack": {
+      "backend": "Java 21, Spring Boot 3.4.5, Spring AI, Spring Batch",
+      "frontend": "Vaadin 24.7.3, Progressive Web App",
+      "database": "PostgreSQL with JSONB, answer42 schema",
+      "ai_providers": ["OpenAI GPT-4", "Anthropic Claude", "Perplexity", "Ollama Local"],
+      "external_apis": ["Crossref API", "Semantic Scholar API", "Supabase MCP"]
+    },
+    "architecture": "Multi-agent processing pipeline with Spring Batch orchestration"
+  },
   "capabilities": [
     "Analyze implemented code for test requirements",
-    "Generate unit tests using Symflower",
+    "Generate unit tests using Symflower CLI",
     "Create edge case and error condition tests",
     "Verify test coverage metrics",
     "Add manual tests for complex scenarios",
-    "Ensure all generated test files stay under 300 lines"
+    "Ensure all generated test files stay under 300 lines",
+    "Test Answer42 multi-agent system components",
+    "Validate AI provider integrations",
+    "Test credit system and cost tracking",
+    "Verify agent memory and context management"
   ],
   "file_size_management": {
     "max_lines": 300,
@@ -19,13 +41,17 @@
       "Create separate test classes for different test categories",
       "Use test base classes to reduce code duplication",
       "Organize tests by functionality rather than class size",
-      "Extract test data and utilities to separate classes"
+      "Extract test data and utilities to separate classes",
+      "Split agent tests by functionality (processing, memory, cost tracking)",
+      "Create separate integration test classes for UI components"
     ],
     "test_organization": [
       "Unit Tests: [ClassName]Test.java (core functionality)",
-      "Integration Tests: [ClassName]IntegrationTest.java", 
+      "Integration Tests: [ClassName]IntegrationTest.java",
       "Edge Case Tests: [ClassName]EdgeCaseTest.java",
       "Performance Tests: [ClassName]PerformanceTest.java",
+      "Agent Tests: [AgentName]AgentTest.java",
+      "UI Tests: [ViewName]ViewTest.java",
       "Keep each test file focused on specific test scenarios"
     ]
   },
@@ -33,38 +59,48 @@
     {
       "step": 1,
       "action": "identify_test_requirements",
-      "description": "Identify classes/methods needing tests"
+      "description": "Identify classes/methods needing tests",
+      "answer42_context": "Include agent classes, UI views, service layers, and integration points"
     },
     {
       "step": 2,
       "action": "run_symflower_generation",
-      "description": "Run Symflower test generation"
+      "description": "Run Symflower test generation using CLI",
+      "answer42_context": "Focus on Answer42-specific patterns and agent integrations"
     },
     {
       "step": 3,
       "action": "review_generated_tests",
-      "description": "Review generated tests for completeness"
+      "description": "Review generated tests for completeness",
+      "answer42_context": "Validate agent memory, cost tracking, and UI component tests"
     },
     {
       "step": 4,
       "action": "add_additional_tests",
-      "description": "Add additional test cases as needed"
+      "description": "Add additional test cases as needed",
+      "answer42_context": "Add Answer42-specific scenarios: multi-agent coordination, credit system, discovery integration"
     },
     {
       "step": 5,
       "action": "verify_coverage",
-      "description": "Verify coverage meets requirements (80%+)"
+      "description": "Verify coverage meets Answer42 requirements (80%+)",
+      "coverage_targets": {
+        "unit_tests": 80,
+        "integration_tests": 70,
+        "agent_tests": 90,
+        "critical_path": 100
+      }
     },
     {
       "step": 6,
       "action": "run_all_tests",
-      "description": "Run all tests to ensure passing"
+      "description": "Run all tests to ensure passing with Answer42 quality gates"
     }
   ],
   "commands": [
     {
       "name": "generate_tests_for_latest",
-      "description": "Generate tests for latest implementation",
+      "description": "Generate tests for latest implementation with Answer42 integration",
       "parameters": {
         "target_coverage": {
           "type": "integer",
@@ -75,8 +111,14 @@
         "include_integration_tests": {
           "type": "boolean",
           "required": false,
-          "default": false,
-          "description": "Whether to include integration tests"
+          "default": true,
+          "description": "Whether to include Answer42 integration tests"
+        },
+        "include_agent_tests": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Whether to include multi-agent system tests"
         },
         "output_path": {
           "type": "string",
@@ -88,24 +130,24 @@
     },
     {
       "name": "create_unit_tests_for_class",
-      "description": "Create unit tests for specific class",
+      "description": "Create unit tests for specific Answer42 class",
       "parameters": {
         "class_name": {
           "type": "string",
           "required": true,
-          "description": "Fully qualified class name to test"
+          "description": "Fully qualified class name to test (e.g., com.samjdtechnologies.answer42.service.agent.*)"
         },
         "test_types": {
           "type": "array",
           "required": false,
-          "default": ["unit", "edge_case", "error_condition"],
-          "description": "Types of tests to generate"
+          "default": ["unit", "edge_case", "error_condition", "agent_integration"],
+          "description": "Types of tests to generate including Answer42-specific scenarios"
         }
       }
     },
     {
       "name": "verify_test_coverage",
-      "description": "Verify test coverage requirements",
+      "description": "Verify test coverage requirements for Answer42 standards",
       "parameters": {
         "minimum_coverage": {
           "type": "integer",
@@ -117,29 +159,36 @@
           "type": "boolean",
           "required": false,
           "default": true,
-          "description": "Enforce 100% coverage for critical business logic"
+          "description": "Enforce 100% coverage for critical business logic and agent interactions"
+        },
+        "check_agent_coverage": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Special coverage checks for multi-agent system components"
         }
       }
     },
     {
       "name": "add_edge_case_tests",
-      "description": "Add edge case tests",
+      "description": "Add Answer42-specific edge case tests",
       "parameters": {
         "focus_areas": {
           "type": "array",
           "required": false,
-          "default": ["null_inputs", "boundary_conditions", "concurrency"],
-          "description": "Areas to focus edge case testing on"
+          "default": ["null_inputs", "boundary_conditions", "concurrency", "agent_failures", "credit_exhaustion", "api_failures"],
+          "description": "Areas to focus edge case testing on including Answer42-specific scenarios"
         }
       }
     }
   ],
   "symflower_integration": {
+    "installation_verified": "/usr/local/bin/symflower",
     "direct_cli": {
-      "installation_path": "/usr/local/bin/symflower",
       "commands": [
-        "symflower test --class com.samjdtechnologies.answer42.service.AgentService",
+        "symflower test --class com.samjdtechnologies.answer42.service.agent.*",
         "symflower test --package com.samjdtechnologies.answer42.service",
+        "symflower test --package com.samjdtechnologies.answer42.ui.views",
         "symflower test --coverage"
       ]
     },
@@ -147,10 +196,52 @@
       "preferred_method": true,
       "commands": [
         "./mvnw exec:exec -Dexec.executable=\"symflower\" -Dexec.args=\"test --language=java\"",
-        "./mvnw exec:exec -Dexec.executable=\"symflower\" -Dexec.args=\"test --class com.samjdtechnologies.answer42.service.AgentService\""
+        "./mvnw exec:exec -Dexec.executable=\"symflower\" -Dexec.args=\"test --package com.samjdtechnologies.answer42.service.agent\"",
+        "./mvnw exec:exec -Dexec.executable=\"symflower\" -Dexec.args=\"test --package com.samjdtechnologies.answer42.ui.views\""
       ],
-      "note": "Symflower must be installed separately as it doesn't have a Maven plugin"
+      "note": "Symflower CLI is installed separately at /usr/local/bin/symflower"
     }
+  },
+  "answer42_test_enhancement_guidelines": {
+    "agent_testing_patterns": [
+      "Test AbstractConfigurableAgent implementations",
+      "Mock AI provider responses and test fallback scenarios",
+      "Test agent memory persistence and retrieval",
+      "Validate cost tracking and credit deduction",
+      "Test agent communication via Spring Events",
+      "Verify circuit breaker and retry policy behavior",
+      "Test Ollama fallback integration"
+    ],
+    "ui_testing_patterns": [
+      "Test Vaadin View components extending Div",
+      "Validate BeforeEnterObserver implementations",
+      "Test route navigation using UIConstants",
+      "Validate responsive design behaviors",
+      "Test Progressive Web App features",
+      "Test WebSocket real-time updates"
+    ],
+    "database_integration_patterns": [
+      "Test @Transactional behavior with different isolation levels",
+      "Validate JSONB field serialization/deserialization",
+      "Test UUID primary key generation",
+      "Validate answer42 schema compliance",
+      "Test JPA fetch strategies and N+1 query prevention",
+      "Test connection pooling under load"
+    ],
+    "credit_system_testing": [
+      "Test credit balance calculations",
+      "Validate subscription tier restrictions",
+      "Test credit exhaustion scenarios",
+      "Validate cost tracking accuracy",
+      "Test subscription upgrade/downgrade flows"
+    ],
+    "discovery_system_testing": [
+      "Test multi-source discovery coordination",
+      "Validate discovery result ranking and filtering",
+      "Test discovery caching mechanisms",
+      "Validate external API rate limiting",
+      "Test discovery result deduplication"
+    ]
   },
   "test_enhancement_guidelines": {
     "edge_case_patterns": [
@@ -158,21 +249,28 @@
       "Empty collection handling",
       "Boundary value analysis",
       "Concurrent access scenarios",
-      "Resource exhaustion conditions"
+      "Resource exhaustion conditions",
+      "AI provider API failures",
+      "Agent coordination failures",
+      "Credit system edge cases"
     ],
     "error_condition_patterns": [
       "Invalid configuration testing",
       "Network failure simulation",
       "Database connection failures",
       "External service timeouts",
-      "Security constraint violations"
+      "Security constraint violations",
+      "Agent processing failures",
+      "Subscription validation failures"
     ],
     "integration_scenarios": [
       "Real Spring context testing",
       "Database transaction testing",
       "Multi-agent workflow testing",
       "API endpoint integration",
-      "UI component integration"
+      "UI component integration",
+      "External API integration testing",
+      "WebSocket communication testing"
     ]
   },
   "coverage_requirements": {
@@ -180,13 +278,21 @@
       "unit_test_coverage": 80,
       "critical_path_coverage": 100,
       "error_handling_coverage": 100,
-      "edge_case_coverage": 90
+      "edge_case_coverage": 90,
+      "agent_system_coverage": 90,
+      "ui_component_coverage": 75
     },
     "measurement_tools": [
-      "JaCoCo for Java coverage",
+      "JaCoCo for Java coverage (via Maven)",
       "Symflower coverage reports",
-      "Maven Surefire reports",
-      "SonarQube integration"
+      "Maven Surefire reports"
+    ],
+    "answer42_specific_coverage": [
+      "Agent processing pipelines",
+      "Credit system operations",
+      "Discovery system workflows",
+      "UI navigation flows",
+      "Authentication and authorization"
     ]
   },
   "test_quality_checklist": [
@@ -197,7 +303,11 @@
     "Mocking used appropriately",
     "Tests are independent",
     "Tests are repeatable",
-    "Assertions are meaningful"
+    "Assertions are meaningful",
+    "Agent interactions tested",
+    "Cost tracking validated",
+    "UI components functional",
+    "External API integration mocked appropriately"
   ],
   "execution": {
     "output_format": "java_test_files",
@@ -208,28 +318,44 @@
       "Tests run successfully",
       "Coverage targets are met",
       "No test dependencies or coupling",
-      "Proper test categorization"
+      "Proper test categorization",
+      "Answer42-specific patterns validated"
     ]
   },
   "test_frameworks": {
     "primary": {
       "junit5": {
         "version": "5.x",
-        "annotations": ["@Test", "@BeforeEach", "@AfterEach", "@ParameterizedTest"]
+        "annotations": ["@Test", "@BeforeEach", "@AfterEach", "@ParameterizedTest", "@TestMethodOrder"],
+        "answer42_extensions": ["@TestProfile", "@WithMockUser"]
       },
       "mockito": {
         "version": "4.x",
-        "patterns": ["@Mock", "@InjectMocks", "@Spy", "when().thenReturn()"]
+        "patterns": ["@Mock", "@InjectMocks", "@Spy", "when().thenReturn()", "@MockBean"],
+        "answer42_mocking": ["Mock AI providers", "Mock external APIs", "Mock agent interactions"]
       }
     },
     "integration": {
       "spring_boot_test": {
-        "annotations": ["@SpringBootTest", "@WebMvcTest", "@DataJpaTest"],
-        "profiles": ["test", "integration"]
+        "annotations": ["@SpringBootTest", "@WebMvcTest", "@DataJpaTest", "@TestPropertySource"],
+        "profiles": ["test", "integration"],
+        "answer42_profiles": ["test-agents", "test-ui", "test-discovery"]
       },
       "testcontainers": {
         "containers": ["PostgreSQL", "Redis"],
-        "usage": "Integration test scenarios"
+        "usage": "Integration test scenarios for Answer42 database interactions",
+        "answer42_containers": ["answer42-postgres", "ollama-service"]
+      }
+    },
+    "answer42_specific": {
+      "vaadin_testing": {
+        "framework": "Vaadin TestBench",
+        "patterns": ["Component unit tests", "View integration tests", "Navigation tests"],
+        "focus_areas": ["BeforeEnterObserver", "Route validation", "Component lifecycle"]
+      },
+      "agent_testing": {
+        "patterns": ["Agent workflow tests", "Memory persistence tests", "Cost tracking tests"],
+        "mock_strategies": ["AI provider responses", "External API calls", "Agent communication"]
       }
     }
   },
@@ -238,41 +364,62 @@
       "Update plan.md with test completion status",
       "Run full test suite after generation",
       "Fix any failing tests immediately",
+      "Validate Answer42-specific test coverage",
       "Proceed to quality check phase"
     ],
     "quality_gates": [
       "All tests pass",
-      "Coverage targets met",
+      "Coverage targets met for all Answer42 components",
       "No test smells detected",
-      "Performance tests within limits"
+      "Performance tests within limits",
+      "Agent integration tests functional",
+      "UI component tests passing"
     ]
   },
   "performance_testing": {
     "timeout_constraints": [
       "@Test(timeout = 1000) for unit tests",
+      "@Test(timeout = 5000) for agent processing tests",
+      "@Test(timeout = 10000) for integration tests",
       "Performance benchmarks for algorithms",
-      "Load testing for services",
+      "Load testing for discovery services",
       "Memory usage validation"
     ],
     "benchmarking": [
       "Method execution time limits",
       "Memory allocation constraints",
       "Database query performance",
-      "API response time validation"
+      "API response time validation",
+      "Agent processing pipeline performance",
+      "UI component render times"
     ]
   },
-  "spring_boot_specific": {
+  "answer42_build_integration": {
+    "maven_commands": [
+      "./mvnw clean install",
+      "./mvnw spring-boot:run",
+      "./mvnw test",
+      "./mvnw test -Dtest=TestClassName#testMethodName",
+      "./mvnw clean install -Pproduction"
+    ],
+    "quality_tools": [
+      "./mvnw checkstyle:check",
+      "./mvnw pmd:check",
+      "./mvnw spotbugs:check"
+    ],
     "test_slices": [
       "@WebMvcTest for controller testing",
       "@DataJpaTest for repository testing",
       "@JsonTest for serialization testing",
-      "@TestPropertySource for configuration"
+      "@TestPropertySource for configuration",
+      "@TestConfiguration for Answer42 test beans"
     ],
     "mocking_patterns": [
       "@MockBean for Spring beans",
       "@SpyBean for partial mocking",
       "TestRestTemplate for API testing",
-      "MockMvc for web layer testing"
+      "MockMvc for web layer testing",
+      "@MockBean for Answer42 services (AIConfig, CreditService, AgentMemoryStore)"
     ]
   },
   "vaadin_testing": {
@@ -280,13 +427,75 @@
       "Component unit tests",
       "View navigation testing",
       "Data binding validation",
-      "Event handling verification"
+      "Event handling verification",
+      "BeforeEnterObserver testing",
+      "Route parameter validation"
     ],
     "integration": [
       "Full UI flow testing",
-      "Browser automation with Selenium",
-      "Visual regression testing",
-      "Accessibility testing"
+      "Progressive Web App testing",
+      "WebSocket integration testing",
+      "Mobile compatibility testing"
+    ]
+  },
+  "answer42_specific_test_scenarios": {
+    "multi_agent_pipeline_testing": [
+      "Test complete 9-agent processing workflow",
+      "Validate agent coordination and communication",
+      "Test pipeline failure recovery",
+      "Validate agent memory state management",
+      "Test cost tracking across pipeline stages"
+    ],
+    "discovery_system_testing": [
+      "Test multi-source discovery coordination",
+      "Validate discovery result ranking algorithms",
+      "Test external API integration (Crossref, Semantic Scholar, Perplexity)",
+      "Validate discovery caching mechanisms",
+      "Test discovery feedback integration"
+    ],
+    "chat_system_testing": [
+      "Test three chat modes (Paper, Cross-Reference, Research Explorer)",
+      "Validate chat context preservation",
+      "Test AI provider integration and fallbacks",
+      "Validate chat history persistence",
+      "Test real-time chat updates"
+    ],
+    "credit_system_testing": [
+      "Test credit balance calculations and deductions",
+      "Validate subscription tier enforcement",
+      "Test credit exhaustion handling",
+      "Validate cost tracking accuracy",
+      "Test subscription management workflows"
+    ]
+  },
+  "test_data_management": {
+    "test_fixtures": [
+      "Sample academic papers for processing tests",
+      "Mock AI provider responses",
+      "Test user accounts with different subscription tiers",
+      "Sample discovery results from external APIs",
+      "Test agent memory contexts"
+    ],
+    "data_builders": [
+      "PaperTestDataBuilder for creating test papers",
+      "UserTestDataBuilder for test users",
+      "AgentContextBuilder for agent testing",
+      "DiscoveryResultBuilder for discovery tests",
+      "ChatSessionBuilder for chat testing"
+    ]
+  },
+  "continuous_integration": {
+    "test_execution_strategy": [
+      "Unit tests in every build",
+      "Integration tests in pull requests",
+      "Performance tests in nightly builds",
+      "UI tests in staging deployments"
+    ],
+    "quality_reporting": [
+      "Coverage reports via JaCoCo",
+      "Performance regression detection",
+      "Test failure notifications",
+      "Quality trend tracking via Maven reports"
     ]
   }
 }

@@ -4,7 +4,7 @@ Answer42 - AI-Powered Academic Research Platform
 
 [![Answer42 Logo](https://github.com/samjd-zz/answer42/raw/main/src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)](https://github.com/samjd-zz/answer42/blob/main/src/main/resources/META-INF/resources/frontend/images/answer42-logo.svg)
 
-Answer42 is a sophisticated AI-powered platform for academic researchers, students, and scholars to upload, analyze, and interact with research papers using multiple AI providers. The platform combines advanced paper processing with intelligent chat capabilities, a revolutionary multi-agent processing pipeline, and a comprehensive local AI fallback system using Ollama to ensure continuous operation even when cloud providers fail.
+Answer42 is a sophisticated AI-powered platform for academic researchers, students, and scholars to upload, analyze, and interact with research papers using multiple AI providers. The platform combines advanced paper processing with intelligent chat capabilities, a revolutionary 9-agent multi-agent processing pipeline, and a comprehensive local AI fallback system using Ollama to ensure continuous operation even when cloud providers fail.
 
 ## Table of Contents
 
@@ -442,7 +442,7 @@ Multi-Agent Processing Pipeline
 
 [](https://github.com/samjd-zz/answer42#pipeline-architecture)
 
-The multi-agent system uses **Spring Batch** for enterprise-grade job processing and workflow orchestration, processing papers through coordinated AI agents in a sequential 8-step pipeline:
+The multi-agent system uses **Spring Batch** for enterprise-grade job processing and workflow orchestration, processing papers through coordinated AI agents in a sequential 9-step pipeline:
 
 ```mermaid
 flowchart TD
@@ -1517,7 +1517,7 @@ Your support helps us maintain and expand this platform for the global research 
 
 Your donations directly support:
 
-* 🤖 **AI API Credits** - Keeping all 8 specialized agents running smoothly
+* 🤖 **AI API Credits** - Keeping all 9 specialized agents running smoothly
 * 🚀 **Infrastructure Scaling** - Supporting more researchers worldwide
 * 📚 **Feature Development** - Adding new AI providers and academic integrations
 * 🔧 **Maintenance & Updates** - Ongoing development and bug fixes

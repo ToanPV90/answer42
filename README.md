@@ -233,7 +233,8 @@ graph TB
             A5[✅ Quality Checker]
             A6[📖 Citation Formatter]
             A7[🔍 Related Paper Discovery]
-            A8[🔬 Perplexity Research]
+            A8[🔍 Citation Verifier]
+            A9[🔬 Perplexity Research]
         end
     end
     
@@ -265,7 +266,7 @@ graph TB
     subgraph "Local AI Fallback 🆕"
         OLLAMA[Ollama Local Models]
         FB_FACTORY[Fallback Agent Factory]
-        FB_AGENTS[6 Fallback Agents]
+        FB_AGENTS[9 Fallback Agents]
     end
     
     UI --> CTRL
@@ -283,6 +284,7 @@ graph TB
     A5 --> A6
     A6 --> A7
     A7 --> A8
+    A8 --> A9
     
     PS --> DS
     DS --> CR
@@ -298,7 +300,8 @@ graph TB
     A6 --> GPT
     A7 --> CLAUDE
     A7 --> PERP
-    A8 --> PERP
+    A8 --> GPT
+    A9 --> PERP
     
     AI --> CLAUDE
     
@@ -309,6 +312,9 @@ graph TB
     A4 -.->|Fallback| OLLAMA
     A5 -.->|Fallback| OLLAMA
     A6 -.->|Fallback| OLLAMA
+    A7 -.->|Fallback| OLLAMA
+    A8 -.->|Fallback| OLLAMA
+    A9 -.->|Fallback| OLLAMA
     
     FB_FACTORY --> FB_AGENTS
     FB_AGENTS --> OLLAMA
@@ -483,13 +489,18 @@ flowchart TD
     
     A7 --> A7_RESULT{Success?}
     A7_RESULT -->|No| RETRY7[Retry with Fallback]
-    A7_RESULT -->|Yes| A8[🔬 Perplexity Research Agent<br/>Perplexity API]
+    A7_RESULT -->|Yes| A8[🔍 Citation Verifier Agent<br/>OpenAI GPT-4]
     RETRY7 --> A8
     
     A8 --> A8_RESULT{Success?}
     A8_RESULT -->|No| RETRY8[Retry with Fallback]
-    A8_RESULT -->|Yes| COMPLETE([Processing Complete])
-    RETRY8 --> COMPLETE
+    A8_RESULT -->|Yes| A9[🔬 Perplexity Research Agent<br/>Perplexity API]
+    RETRY8 --> A9
+    
+    A9 --> A9_RESULT{Success?}
+    A9_RESULT -->|No| RETRY9[Retry with Fallback]
+    A9_RESULT -->|Yes| COMPLETE([Processing Complete])
+    RETRY9 --> COMPLETE
     
     subgraph "External APIs"
         CROSSREF[Crossref API]
@@ -520,7 +531,10 @@ flowchart TD
     A6 -.-> OPENAI
     A7 -.-> CLAUDE
     A7 -.-> PERPLEXITY
-    A8 -.-> PERP
+    A8 -.-> OPENAI
+    A9 -.-> PERP
+    
+    AI --> CLAUDE
     
     BATCH -.-> BATCH_DB
     A1 -.-> PAPERS
@@ -531,6 +545,7 @@ flowchart TD
     A6 -.-> PAPERS
     A7 -.-> PAPERS
     A8 -.-> PAPERS
+    A9 -.-> PAPERS
     
     A1 -.-> TASKS
     A2 -.-> TASKS
@@ -540,6 +555,7 @@ flowchart TD
     A6 -.-> TASKS
     A7 -.-> TASKS
     A8 -.-> TASKS
+    A9 -.-> TASKS
     
     A1 -.-> MEMORY
     A2 -.-> MEMORY
@@ -549,6 +565,7 @@ flowchart TD
     A6 -.-> MEMORY
     A7 -.-> MEMORY
     A8 -.-> MEMORY
+    A9 -.-> MEMORY
     
     style START fill:#e1f5fe
     style COMPLETE fill:#e8f5e8
@@ -562,6 +579,8 @@ flowchart TD
     style A6 fill:#e3f2fd
     style A7 fill:#f3e5f5
     style A8 fill:#fff8e1
+    style A9 fill:#fff8e1
+
 ```
 
 ### Specialized AI Agents

@@ -24,7 +24,7 @@ import com.samjdtechnologies.answer42.model.concept.ConceptExplanation;
 import com.samjdtechnologies.answer42.model.concept.ConceptExplanationResult;
 import com.samjdtechnologies.answer42.model.concept.ConceptRelationshipMap;
 import com.samjdtechnologies.answer42.model.concept.TechnicalTerm;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.enums.EducationLevel;
@@ -57,6 +57,15 @@ public class ConceptExplainerAgentTest {
     
     @Mock
     private ConceptResponseParser mockResponseParser;
+    
+    @Mock
+    private com.samjdtechnologies.answer42.repository.PaperRepository mockPaperRepository;
+    
+    @Mock
+    private com.samjdtechnologies.answer42.repository.TagRepository mockTagRepository;
+    
+    @Mock
+    private com.samjdtechnologies.answer42.repository.PaperTagRepository mockPaperTagRepository;
 
     private ConceptExplainerAgent agent;
 
@@ -70,7 +79,8 @@ public class ConceptExplainerAgentTest {
         when(mockAiConfig.openAiChatClient(mockOpenAiChatModel)).thenReturn(mockChatClient);
         
         agent = new ConceptExplainerAgent(mockAiConfig, mockThreadConfig, 
-            mockRetryPolicy, mockRateLimiter, mockResponseParser);
+            mockRetryPolicy, mockRateLimiter, mockResponseParser,
+            mockPaperRepository, mockTagRepository, mockPaperTagRepository);
     }
 
     @Test

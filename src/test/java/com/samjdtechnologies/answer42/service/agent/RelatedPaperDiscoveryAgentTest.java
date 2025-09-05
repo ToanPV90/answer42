@@ -21,12 +21,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
-import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.Paper;
 import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.model.discovery.RelatedPaperDiscoveryResult;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.DiscoveredPaperRepository;
+import com.samjdtechnologies.answer42.repository.PaperRelationshipRepository;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
 import com.samjdtechnologies.answer42.service.discovery.DiscoveryCoordinator;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
@@ -64,6 +66,12 @@ public class RelatedPaperDiscoveryAgentTest {
     @Mock
     private Paper mockPaper;
 
+    @Mock
+    private DiscoveredPaperRepository mockDiscoveredPaperRepository;
+    
+    @Mock
+    private PaperRelationshipRepository mockPaperRelationshipRepository;
+
     private RelatedPaperDiscoveryAgent agent;
 
     @BeforeEach
@@ -76,7 +84,8 @@ public class RelatedPaperDiscoveryAgentTest {
         when(mockAiConfig.anthropicChatClient(mockAnthropicChatModel)).thenReturn(mockChatClient);
         
         agent = new RelatedPaperDiscoveryAgent(mockAiConfig, mockThreadConfig, 
-            mockRetryPolicy, mockRateLimiter, mockDiscoveryCoordinator, mockPaperRepository);
+            mockRetryPolicy, mockRateLimiter, mockDiscoveryCoordinator, mockPaperRepository,
+            mockDiscoveredPaperRepository, mockPaperRelationshipRepository);
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.model.agent;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -11,10 +12,12 @@ import lombok.Data;
 
 /**
  * Metrics collected during agent processing operations.
+ * Implements Serializable for Spring Batch compatibility.
  */
 @Data
 @Builder
-public class ProcessingMetrics {
+public class ProcessingMetrics implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final AgentType agentType;
     private final AIProvider provider;
     private final Instant startTime;
@@ -31,7 +34,8 @@ public class ProcessingMetrics {
      */
     @Data
     @Builder
-    public static class TokenUsage {
+    public static class TokenUsage implements Serializable {
+        private static final long serialVersionUID = 1L;
         private final int inputTokens;
         private final int outputTokens;
         private final int totalTokens;
@@ -45,7 +49,8 @@ public class ProcessingMetrics {
      */
     @Data
     @Builder
-    public static class ThreadPoolLoadStatus {
+    public static class ThreadPoolLoadStatus implements Serializable {
+        private static final long serialVersionUID = 1L;
         private final int activeThreads;
         private final int poolSize;
         private final int maximumPoolSize;
@@ -66,7 +71,8 @@ public class ProcessingMetrics {
      */
     @Data
     @Builder
-    public static class AgentMemoryUsage {
+    public static class AgentMemoryUsage implements Serializable {
+        private static final long serialVersionUID = 1L;
         private final long memoryEntries;
         private final long totalMemorySize;
         private final double memoryEfficiency;

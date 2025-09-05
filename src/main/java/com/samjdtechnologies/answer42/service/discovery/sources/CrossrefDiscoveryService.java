@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.samjdtechnologies.answer42.config.ThreadConfig;
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaperResult;
 import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.model.enums.DiscoverySource;
 import com.samjdtechnologies.answer42.model.enums.RelationshipType;
@@ -49,22 +49,22 @@ public class CrossrefDiscoveryService {
     /**
      * Discover related papers using Crossref API with multiple discovery strategies.
      */
-    public List<DiscoveredPaper> discoverRelatedPapers(Paper sourcePaper, DiscoveryConfiguration config) {
+    public List<DiscoveredPaperResult> discoverRelatedPapers(Paper sourcePaper, DiscoveryConfiguration config) {
         LoggingUtil.info(LOG, "discoverRelatedPapers", 
             "Starting Crossref discovery for paper %s", sourcePaper.getId());
 
         Instant startTime = Instant.now();
-        List<DiscoveredPaper> allDiscovered = new ArrayList<>();
+        List<DiscoveredPaperResult> allDiscovered = new ArrayList<>();
 
         try {
             // Execute multiple discovery strategies in parallel
-            CompletableFuture<List<DiscoveredPaper>> citationsFuture = 
+            CompletableFuture<List<DiscoveredPaperResult>> citationsFuture = 
                 discoverCitationNetworkAsync(sourcePaper, config);
             
-            CompletableFuture<List<DiscoveredPaper>> authorsFuture = 
+            CompletableFuture<List<DiscoveredPaperResult>> authorsFuture = 
                 discoverAuthorNetworkAsync(sourcePaper, config);
             
-            CompletableFuture<List<DiscoveredPaper>> venuesFuture = 
+            CompletableFuture<List<DiscoveredPaperResult>> venuesFuture = 
                 discoverVenueNetworkAsync(sourcePaper, config);
 
             // Wait for all discovery operations with timeout
@@ -97,21 +97,21 @@ public class CrossrefDiscoveryService {
     /**
      * Discover citation networks (forward and backward citations).
      */
-    private CompletableFuture<List<DiscoveredPaper>> discoverCitationNetworkAsync(
+    private CompletableFuture<List<DiscoveredPaperResult>> discoverCitationNetworkAsync(
             Paper sourcePaper, DiscoveryConfiguration config) {
         
         return CompletableFuture.supplyAsync(() -> {
-            List<DiscoveredPaper> citations = new ArrayList<>();
+            List<DiscoveredPaperResult> citations = new ArrayList<>();
 
             try {
                 // Forward citations (papers that cite this work)
                 if (sourcePaper.getDoi() != null && !sourcePaper.getDoi().trim().isEmpty()) {
-                    List<DiscoveredPaper> forwardCitations = findForwardCitations(sourcePaper.getDoi(), config);
+                    List<DiscoveredPaperResult> forwardCitations = findForwardCitations(sourcePaper.getDoi(), config);
                     citations.addAll(forwardCitations);
                 }
 
                 // Backward citations through bibliographic search
-                List<DiscoveredPaper> backwardCitations = findBackwardCitations(sourcePaper, config);
+                List<DiscoveredPaperResult> backwardCitations = findBackwardCitations(sourcePaper, config);
                 citations.addAll(backwardCitations);
 
                 LoggingUtil.debug(LOG, "discoverCitationNetworkAsync", 
@@ -129,11 +129,11 @@ public class CrossrefDiscoveryService {
     /**
      * Discover author networks (other papers by same authors).
      */
-    private CompletableFuture<List<DiscoveredPaper>> discoverAuthorNetworkAsync(
+    private CompletableFuture<List<DiscoveredPaperResult>> discoverAuthorNetworkAsync(
             Paper sourcePaper, DiscoveryConfiguration config) {
         
         return CompletableFuture.supplyAsync(() -> {
-            List<DiscoveredPaper> authorPapers = new ArrayList<>();
+            List<DiscoveredPaperResult> authorPapers = new ArrayList<>();
 
             try {
                 if (sourcePaper.getAuthors() != null && !sourcePaper.getAuthors().isEmpty()) {
@@ -142,7 +142,7 @@ public class CrossrefDiscoveryService {
                     
                     for (int i = 0; i < authorsToProcess; i++) {
                         String author = sourcePaper.getAuthors().get(i);
-                        List<DiscoveredPaper> papers = findPapersByAuthor(author, config);
+                        List<DiscoveredPaperResult> papers = findPapersByAuthor(author, config);
                         
                         // Filter out the source paper itself
                         papers.removeIf(paper -> 
@@ -173,15 +173,15 @@ public class CrossrefDiscoveryService {
     /**
      * Discover venue networks (other papers from same journal/conference).
      */
-    private CompletableFuture<List<DiscoveredPaper>> discoverVenueNetworkAsync(
+    private CompletableFuture<List<DiscoveredPaperResult>> discoverVenueNetworkAsync(
             Paper sourcePaper, DiscoveryConfiguration config) {
         
         return CompletableFuture.supplyAsync(() -> {
-            List<DiscoveredPaper> venuePapers = new ArrayList<>();
+            List<DiscoveredPaperResult> venuePapers = new ArrayList<>();
 
             try {
                 if (sourcePaper.getJournal() != null && !sourcePaper.getJournal().trim().isEmpty()) {
-                    List<DiscoveredPaper> papers = findPapersByVenue(sourcePaper.getJournal(), config);
+                    List<DiscoveredPaperResult> papers = findPapersByVenue(sourcePaper.getJournal(), config);
                     
                     // Filter out the source paper itself
                     papers.removeIf(paper -> 
@@ -206,8 +206,8 @@ public class CrossrefDiscoveryService {
     /**
      * Find papers that cite the given DOI.
      */
-    private List<DiscoveredPaper> findForwardCitations(String doi, DiscoveryConfiguration config) {
-        List<DiscoveredPaper> citations = new ArrayList<>();
+    private List<DiscoveredPaperResult> findForwardCitations(String doi, DiscoveryConfiguration config) {
+        List<DiscoveredPaperResult> citations = new ArrayList<>();
 
         try {
             // Add rate limiting delay
@@ -228,7 +228,7 @@ public class CrossrefDiscoveryService {
                 List<CrossrefWork> works = response.getBody().getMessage().getItems();
                 
                 for (CrossrefWork work : works) {
-                    DiscoveredPaper paper = convertToDiscoveredPaper(work, DiscoverySource.CROSSREF);
+                    DiscoveredPaperResult paper = convertToDiscoveredPaper(work, DiscoverySource.CROSSREF);
                     if (paper != null) {
                         citations.add(paper);
                     }
@@ -246,8 +246,8 @@ public class CrossrefDiscoveryService {
     /**
      * Find papers through backward citation analysis (referenced works).
      */
-    private List<DiscoveredPaper> findBackwardCitations(Paper sourcePaper, DiscoveryConfiguration config) {
-        List<DiscoveredPaper> citations = new ArrayList<>();
+    private List<DiscoveredPaperResult> findBackwardCitations(Paper sourcePaper, DiscoveryConfiguration config) {
+        List<DiscoveredPaperResult> citations = new ArrayList<>();
 
         try {
             // Use title-based search as a proxy for finding related/citing works
@@ -269,8 +269,8 @@ public class CrossrefDiscoveryService {
     /**
      * Find papers by author name.
      */
-    private List<DiscoveredPaper> findPapersByAuthor(String authorName, DiscoveryConfiguration config) {
-        List<DiscoveredPaper> papers = new ArrayList<>();
+    private List<DiscoveredPaperResult> findPapersByAuthor(String authorName, DiscoveryConfiguration config) {
+        List<DiscoveredPaperResult> papers = new ArrayList<>();
 
         try {
             Thread.sleep(100); // Rate limiting
@@ -290,7 +290,7 @@ public class CrossrefDiscoveryService {
                 List<CrossrefWork> works = response.getBody().getMessage().getItems();
                 
                 for (CrossrefWork work : works) {
-                    DiscoveredPaper paper = convertToDiscoveredPaper(work, DiscoverySource.CROSSREF);
+                    DiscoveredPaperResult paper = convertToDiscoveredPaper(work, DiscoverySource.CROSSREF);
                     if (paper != null) {
                         papers.add(paper);
                     }
@@ -308,8 +308,8 @@ public class CrossrefDiscoveryService {
     /**
      * Find papers by venue (journal/conference).
      */
-    private List<DiscoveredPaper> findPapersByVenue(String venueName, DiscoveryConfiguration config) {
-        List<DiscoveredPaper> papers = new ArrayList<>();
+    private List<DiscoveredPaperResult> findPapersByVenue(String venueName, DiscoveryConfiguration config) {
+        List<DiscoveredPaperResult> papers = new ArrayList<>();
 
         try {
             Thread.sleep(100); // Rate limiting
@@ -329,7 +329,7 @@ public class CrossrefDiscoveryService {
                 List<CrossrefWork> works = response.getBody().getMessage().getItems();
                 
                 for (CrossrefWork work : works) {
-                    DiscoveredPaper paper = convertToDiscoveredPaper(work, DiscoverySource.CROSSREF);
+                    DiscoveredPaperResult paper = convertToDiscoveredPaper(work, DiscoverySource.CROSSREF);
                     if (paper != null) {
                         papers.add(paper);
                     }
@@ -347,8 +347,8 @@ public class CrossrefDiscoveryService {
     /**
      * Find papers by keywords/search terms.
      */
-    private List<DiscoveredPaper> findPapersByKeywords(String keywords, DiscoveryConfiguration config, DiscoverySource source) {
-        List<DiscoveredPaper> papers = new ArrayList<>();
+    private List<DiscoveredPaperResult> findPapersByKeywords(String keywords, DiscoveryConfiguration config, DiscoverySource source) {
+        List<DiscoveredPaperResult> papers = new ArrayList<>();
 
         try {
             Thread.sleep(100); // Rate limiting
@@ -368,7 +368,7 @@ public class CrossrefDiscoveryService {
                 List<CrossrefWork> works = response.getBody().getMessage().getItems();
                 
                 for (CrossrefWork work : works) {
-                    DiscoveredPaper paper = convertToDiscoveredPaper(work, source);
+                    DiscoveredPaperResult paper = convertToDiscoveredPaper(work, source);
                     if (paper != null) {
                         papers.add(paper);
                     }
@@ -386,7 +386,7 @@ public class CrossrefDiscoveryService {
     /**
      * Convert Crossref work to DiscoveredPaper.
      */
-    private DiscoveredPaper convertToDiscoveredPaper(CrossrefWork work, DiscoverySource source) {
+    private DiscoveredPaperResult convertToDiscoveredPaper(CrossrefWork work, DiscoverySource source) {
         try {
             if (work.getTitle() == null || work.getTitle().isEmpty()) {
                 return null; // Skip papers without titles
@@ -400,7 +400,7 @@ public class CrossrefDiscoveryService {
             String doi = work.getDOI();
             Integer citationCount = work.getReferencedByCount();
 
-            return DiscoveredPaper.builder()
+            return DiscoveredPaperResult.builder()
                 .title(title)
                 .authors(authors)
                 .journal(journal)
@@ -519,7 +519,7 @@ public class CrossrefDiscoveryService {
     /**
      * Calculate relevance score for discovered paper.
      */
-    private void calculateRelevanceScore(DiscoveredPaper paper, Paper sourcePaper) {
+    private void calculateRelevanceScore(DiscoveredPaperResult paper, Paper sourcePaper) {
         double score = 0.5; // Base score
         
         try {

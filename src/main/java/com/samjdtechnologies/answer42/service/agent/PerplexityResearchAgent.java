@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.research.PerplexityResearchResult;
 import com.samjdtechnologies.answer42.model.research.ResearchParameters;
@@ -71,7 +71,7 @@ public class PerplexityResearchAgent extends PerplexityBasedAgent {
             // Execute research queries in parallel using ThreadConfig executor
             List<CompletableFuture<ResearchResult>> queryFutures = queries.stream()
                 .map(query -> CompletableFuture.supplyAsync(
-                    () -> executeResearchQuery(query), taskExecutor))
+                    () -> executeResearchQuery(query, task), taskExecutor))
                 .collect(Collectors.toList());
 
             // Wait for all queries to complete
@@ -87,10 +87,23 @@ public class PerplexityResearchAgent extends PerplexityBasedAgent {
                 "Completed %d reliable research queries", queryResults.size());
 
             // Synthesize comprehensive research findings
-            PerplexityResearchResult researchResult = synthesizeResearchFindings(queryResults, params);
+            PerplexityResearchResult researchResult = synthesizeResearchFindings(queryResults, params, task);
 
             return AgentResult.success(task.getId(), researchResult, createProcessingMetrics(startTime));
 
+        } catch (RuntimeException e) {
+            // Let retryable exceptions (like rate limits) bubble up to retry policy
+            if (isRetryableException(e)) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Retryable exception occurred, letting retry policy handle: %s", e.getMessage());
+                throw e; // Let retry policy handle this
+            }
+            
+            // Only catch non-retryable exceptions
+            LoggingUtil.error(LOG, "processWithConfig", 
+                "Research analysis failed for task %s: %s", task.getId(), e.getMessage(), e);
+            return AgentResult.failure(task.getId(), e.getMessage());
+            
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processWithConfig", 
                 "Research analysis failed for task %s: %s", task.getId(), e.getMessage(), e);
@@ -548,7 +561,7 @@ public class PerplexityResearchAgent extends PerplexityBasedAgent {
     /**
      * Execute individual research query using Perplexity API.
      */
-    private ResearchResult executeResearchQuery(ResearchQuery query) {
+    private ResearchResult executeResearchQuery(ResearchQuery query, AgentTask task) {
         try {
             LoggingUtil.debug(LOG, "executeResearchQuery", 
                 "Executing research query: %s (type: %s)", query.getQueryText(), query.getType());
@@ -556,7 +569,7 @@ public class PerplexityResearchAgent extends PerplexityBasedAgent {
             // Build optimized prompt for Perplexity
             Prompt researchPrompt = buildPerplexityPrompt(query);
 
-            // Execute query using Perplexity chat client
+            // Use direct prompt execution - let agent-level retry policy handle retries and fallback
             ChatResponse response = executePrompt(researchPrompt);
 
             // Parse response based on query type
@@ -606,7 +619,7 @@ public class PerplexityResearchAgent extends PerplexityBasedAgent {
      * Synthesize research findings into comprehensive result.
      */
     private PerplexityResearchResult synthesizeResearchFindings(
-            List<ResearchResult> queryResults, ResearchParameters params) {
+            List<ResearchResult> queryResults, ResearchParameters params, AgentTask task) {
         
         try {
             // Generate synthesis using AI

@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.enums.LoadStatus;

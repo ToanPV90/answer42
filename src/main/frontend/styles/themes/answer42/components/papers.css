@@ -45,6 +45,9 @@ vaadin-grid {
   justify-content: center;
   padding-left: var(--lumo-space-xs);
   padding-right: var(--lumo-space-xs);
+  min-width: 200px;
+  width: 200px;
+  overflow: visible;
 }
 
 /* Ensure columns use minimal space needed */
@@ -92,17 +95,28 @@ vaadin-grid {
 .papers-action-buttons-container {
   gap: 2px !important;
   justify-content: center;
-  max-width: 120px;
+  width: 100%;
+  min-width: 200px;
+  max-width: 200px;
   padding: 0 !important;
   margin: 0 !important;
+  overflow: visible;
 }
 
-/* Modify content to fit better */
-vaadin-grid [slot^="vaadin-grid-cell-content-"] {
+/* Modify content to fit better - exclude first column (actions) */
+vaadin-grid [slot^="vaadin-grid-cell-content-"]:not(:first-child) {
   width: 100%;
   padding: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Specific styling for actions column cell content */
+.papers-grid vaadin-grid [slot^="vaadin-grid-cell-content-"]:first-child {
+  width: 100%;
+  padding: 0.25rem;
+  overflow: visible;
+  text-overflow: unset;
 }
 
 /* Target all cells and their content */
@@ -122,6 +136,12 @@ vaadin-grid::part(header-cell) {
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+/* Ensure the actions header cell has the same width */
+.papers-grid vaadin-grid::part(header-cell):first-child {
+  min-width: 200px;
+  width: 200px;
 }
 
 /* Add a small shadow to the header to create separation */
@@ -297,4 +317,3 @@ vaadin-upload {
   color: var(--lumo-secondary-text-color);
   margin: 0 var(--lumo-space-s);
 }
-

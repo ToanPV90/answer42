@@ -23,9 +23,9 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.agent.PaperProcessorAgent;
 

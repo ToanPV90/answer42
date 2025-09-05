@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.samjdtechnologies</groupId>
 	<artifactId>answer42</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>answer42</name>
 	<description>
@@ -185,6 +185,13 @@
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-model-anthropic</artifactId>
+			<version>1.0.0-M8</version>
+		</dependency>
+		
+		<!-- ollama for local fallback -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-ollama</artifactId>
 			<version>1.0.0-M8</version>
 		</dependency>
 		

@@ -18,11 +18,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
+import com.samjdtechnologies.answer42.repository.SummaryRepository;
 
 public class ContentSummarizerAgentTest {
 
@@ -46,6 +48,12 @@ public class ContentSummarizerAgentTest {
     
     @Mock
     private AnthropicChatModel mockAnthropicChatModel;
+    
+    @Mock
+    private PaperRepository mockPaperRepository;
+    
+    @Mock
+    private SummaryRepository mockSummaryRepository;
 
     private ContentSummarizerAgent agent;
 
@@ -59,7 +67,7 @@ public class ContentSummarizerAgentTest {
         when(mockAiConfig.anthropicChatClient(mockAnthropicChatModel)).thenReturn(mockChatClient);
         
         agent = new ContentSummarizerAgent(mockAiConfig, mockThreadConfig, 
-            mockRetryPolicy, mockRateLimiter);
+            mockRetryPolicy, mockRateLimiter, mockPaperRepository, mockSummaryRepository);
     }
 
     @Test

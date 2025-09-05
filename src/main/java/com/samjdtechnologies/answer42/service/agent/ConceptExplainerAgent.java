@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -13,6 +15,7 @@ import java.util.stream.Stream;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
@@ -23,9 +26,15 @@ import com.samjdtechnologies.answer42.model.concept.ConceptExplanationResult;
 import com.samjdtechnologies.answer42.model.concept.ConceptExplanations;
 import com.samjdtechnologies.answer42.model.concept.ConceptRelationshipMap;
 import com.samjdtechnologies.answer42.model.concept.TechnicalTerm;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.PaperTag;
+import com.samjdtechnologies.answer42.model.db.Tag;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.enums.EducationLevel;
+import com.samjdtechnologies.answer42.repository.PaperRepository;
+import com.samjdtechnologies.answer42.repository.PaperTagRepository;
+import com.samjdtechnologies.answer42.repository.TagRepository;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.ConceptResponseParser;
@@ -39,12 +48,21 @@ import com.samjdtechnologies.answer42.util.LoggingUtil;
 public class ConceptExplainerAgent extends OpenAIBasedAgent {
     
     private final ConceptResponseParser responseParser;
+    private final PaperRepository paperRepository;
+    private final TagRepository tagRepository;
+    private final PaperTagRepository paperTagRepository;
     
     public ConceptExplainerAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
                                 AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
-                                ConceptResponseParser responseParser) {
+                                ConceptResponseParser responseParser,
+                                PaperRepository paperRepository,
+                                TagRepository tagRepository,
+                                PaperTagRepository paperTagRepository) {
         super(aiConfig, threadConfig, retryPolicy, rateLimiter);
         this.responseParser = responseParser;
+        this.paperRepository = paperRepository;
+        this.tagRepository = tagRepository;
+        this.paperTagRepository = paperTagRepository;
     }
     
     @Override
@@ -66,7 +84,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             }
             
             // Step 1: Extract and prioritize technical terms
-            List<TechnicalTerm> prioritizedTerms = extractAndPrioritizeTerms(content);
+            List<TechnicalTerm> prioritizedTerms = extractAndPrioritizeTerms(content, task);
             LoggingUtil.info(LOG, "processWithConfig", 
                 "Prioritized %d technical terms for explanation", prioritizedTerms.size());
             
@@ -81,14 +99,14 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
                     .collect(Collectors.toMap(
                         level -> level,
                         level -> CompletableFuture.supplyAsync(
-                            () -> generateExplanationsForLevel(prioritizedTerms, content, level),
+                            () -> generateExplanationsForLevel(prioritizedTerms, content, level, task),
                             taskExecutor)
                     ));
             
             // Step 3: Generate concept relationship map in parallel
             CompletableFuture<ConceptRelationshipMap> relationshipFuture = 
                 CompletableFuture.supplyAsync(
-                    () -> generateRelationshipMap(prioritizedTerms, content), 
+                    () -> generateRelationshipMap(prioritizedTerms, content, task), 
                     taskExecutor);
             
             // Wait for all tasks to complete
@@ -114,11 +132,29 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             result.addMetadata("termCount", prioritizedTerms.size());
             result.addMetadata("processingTimeMs", System.currentTimeMillis());
             
+            // Save technical terms as tags to database
+            if (paperId != null) {
+                saveTechnicalTermsAsTags(paperId, prioritizedTerms);
+            }
+            
             LoggingUtil.info(LOG, "processWithConfig", 
                 "Generated concept explanations with quality score: %.2f", 
                 result.getOverallQualityScore());
             
             return AgentResult.success(task.getId(), result);
+            
+        } catch (RuntimeException e) {
+            // Let retryable exceptions (like rate limits) bubble up to retry policy
+            if (isRetryableException(e)) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Retryable exception occurred, letting retry policy handle: %s", e.getMessage());
+                throw e; // Let retry policy handle this
+            }
+            
+            // Only catch non-retryable exceptions
+            LoggingUtil.error(LOG, "processWithConfig", 
+                "Failed to process concept explanation", e);
+            return AgentResult.failure(task.getId(), e.getMessage());
             
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processWithConfig", 
@@ -127,8 +163,8 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
         }
     }
     
-    private List<TechnicalTerm> extractAndPrioritizeTerms(String content) {
-        Prompt extractionPrompt = optimizePromptForOpenAI("""
+    private List<TechnicalTerm> extractAndPrioritizeTerms(String content, AgentTask task) {
+        String templateString = """
             Extract technical terms from this academic content that would benefit from explanation.
             
             Content: {content}
@@ -142,31 +178,38 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             Focus on technical/scientific concepts, acronyms, mathematical terms, methodologies, and tools.
             Exclude common words and basic terms.
             
-            Return as JSON array:
-            [{"term": "neural network", "type": "concept", "complexity": 0.7, "context": "context sentence"}]
-            """, Map.of("content", truncateContent(content, 4000)));
+            Return as JSON array where each object has fields: term, type, complexity, context
+            """;
         
+        // Clean the content to avoid template parsing issues
+        String cleanContent = cleanContentForTemplate(content);
+        Prompt extractionPrompt = optimizePromptForOpenAI(templateString, 
+            Map.of("content", truncateContent(cleanContent, 4000)));
+        
+        // Do NOT catch exceptions here - let them propagate to trigger circuit breaker
+        ChatResponse response;
         try {
-            ChatResponse response = executePrompt(extractionPrompt);
-            String responseContent = response.getResult().getOutput().getText();
-            
-            List<TechnicalTerm> terms = responseParser.parseTermsFromResponse(responseContent);
-            
-            // Prioritize terms based on complexity and importance
-            return terms.stream()
-                .sorted((a, b) -> Double.compare(b.getPriorityScore(), a.getPriorityScore()))
-                .limit(20) // Top 20 terms
-                .collect(Collectors.toList());
-            
+            response = executePrompt(extractionPrompt);
         } catch (Exception e) {
+            // Log the error but re-throw to ensure circuit breaker sees the failure
             LoggingUtil.error(LOG, "extractAndPrioritizeTerms", 
-                "Failed to extract technical terms", e);
-            return List.of();
+                "AI provider failed for term extraction: %s", e.getMessage());
+            throw new RuntimeException("AI provider communication failed: " + e.getMessage(), e);
         }
+        
+        String responseContent = response.getResult().getOutput().getText();
+        
+        List<TechnicalTerm> terms = responseParser.parseTermsFromResponse(responseContent);
+        
+        // Prioritize terms based on complexity and importance
+        return terms.stream()
+            .sorted((a, b) -> Double.compare(b.getPriorityScore(), a.getPriorityScore()))
+            .limit(20) // Top 20 terms
+            .collect(Collectors.toList());
     }
     
     private ConceptExplanations generateExplanationsForLevel(
-            List<TechnicalTerm> terms, String content, EducationLevel level) {
+            List<TechnicalTerm> terms, String content, EducationLevel level, AgentTask task) {
         
         LoggingUtil.info(LOG, "generateExplanationsForLevel", 
             "Generating explanations for %s level with %d terms", 
@@ -178,7 +221,7 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
         
         for (List<TechnicalTerm> batch : termBatches) {
             Map<String, ConceptExplanation> batchExplanations = 
-                generateBatchExplanations(batch, content, level);
+                generateBatchExplanations(batch, content, level, task);
             allExplanations.putAll(batchExplanations);
         }
         
@@ -186,13 +229,13 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
     }
     
     private Map<String, ConceptExplanation> generateBatchExplanations(
-            List<TechnicalTerm> terms, String content, EducationLevel level) {
+            List<TechnicalTerm> terms, String content, EducationLevel level, AgentTask task) {
         
         String termsList = terms.stream()
             .map(TechnicalTerm::getTerm)
             .collect(Collectors.joining(", "));
         
-        Prompt explanationPrompt = optimizePromptForOpenAI("""
+        String templateString = """
             Explain these technical concepts for a {level} education level audience:
             
             Paper Context: {context}
@@ -208,23 +251,20 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             
             Guidelines for {level} level: {guidelines}
             
-            Return as JSON object with each term as a key:
-            {
-              "term_name": {
-                "definition": "clear definition",
-                "analogy": "helpful analogy or empty string",
-                "importance": "why important in this context",
-                "relatedConcepts": ["concept1", "concept2"],
-                "commonMisconceptions": ["misconception1"],
-                "prerequisites": ["prereq1", "prereq2"],
-                "confidence": 0.85
-              }
-            }
-            """, Map.of(
+            Return as JSON object with each term as a key. Each term should have fields:
+            definition, analogy, importance, relatedConcepts (array), commonMisconceptions (array), prerequisites (array), confidence (number)
+            """;
+        
+        // Clean inputs to avoid template parsing issues
+        String cleanContext = cleanContentForTemplate(content);
+        String cleanTerms = cleanContentForTemplate(termsList);
+        String cleanGuidelines = cleanContentForTemplate(getGuidelinesForLevel(level));
+        
+        Prompt explanationPrompt = optimizePromptForOpenAI(templateString, Map.of(
                 "level", level.getDisplayName(),
-                "context", truncateContent(content, 2000),
-                "terms", termsList,
-                "guidelines", getGuidelinesForLevel(level)
+                "context", truncateContent(cleanContext, 2000),
+                "terms", cleanTerms,
+                "guidelines", cleanGuidelines
             ));
         
         try {
@@ -241,13 +281,13 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
     }
     
     private ConceptRelationshipMap generateRelationshipMap(
-            List<TechnicalTerm> terms, String content) {
+            List<TechnicalTerm> terms, String content, AgentTask task) {
         
         String termsList = terms.stream()
             .map(TechnicalTerm::getTerm)
             .collect(Collectors.joining(", "));
         
-        Prompt relationshipPrompt = optimizePromptForOpenAI("""
+        String templateString = """
             Analyze the relationships between these technical concepts in this research context:
             
             Paper Context: {context}
@@ -255,21 +295,16 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
             
             Identify relationships: HIERARCHICAL, CAUSAL, DEPENDENCY, SIMILARITY, OPPOSITION, TEMPORAL, COMPONENT
             
-            Return as JSON:
-            {
-              "nodes": [
-                {"concept": "concept_name", "description": "brief description", "importance": 0.8}
-              ],
-              "edges": [
-                {
-                  "fromConcept": "concept1", "toConcept": "concept2", 
-                  "type": "HIERARCHICAL", "description": "relationship description", "strength": 0.9
-                }
-              ]
-            }
-            """, Map.of(
-                "context", truncateContent(content, 2000),
-                "terms", termsList
+            Return as JSON with nodes array (concept, description, importance) and edges array (fromConcept, toConcept, type, description, strength)
+            """;
+        
+        // Clean inputs to avoid template parsing issues
+        String cleanContext = cleanContentForTemplate(content);
+        String cleanTerms = cleanContentForTemplate(termsList);
+        
+        Prompt relationshipPrompt = optimizePromptForOpenAI(templateString, Map.of(
+                "context", truncateContent(cleanContext, 2000),
+                "terms", cleanTerms
             ));
         
         try {
@@ -332,11 +367,95 @@ public class ConceptExplainerAgent extends OpenAIBasedAgent {
         };
     }
     
+    /**
+     * Clean content to avoid template parsing issues with special characters.
+     */
+    private String cleanContentForTemplate(String content) {
+        if (content == null) {
+            return "";
+        }
+        
+        // Remove or escape characters that might cause template parsing issues
+        return content
+            .replace("\\", "\\\\")  // Escape backslashes
+            .replace("\"", "\\\"")  // Escape quotes
+            .replace("\n", " ")     // Replace newlines with spaces
+            .replace("\r", " ")     // Replace carriage returns with spaces
+            .replace("\t", " ")     // Replace tabs with spaces
+            .replaceAll("\\s+", " ") // Normalize whitespace
+            .trim();
+    }
+    
     private static <T> List<List<T>> partitionList(List<T> list, int batchSize) {
         List<List<T>> batches = new ArrayList<>();
         for (int i = 0; i < list.size(); i += batchSize) {
             batches.add(list.subList(i, Math.min(i + batchSize, list.size())));
         }
         return batches;
+    }
+    
+    /**
+     * Saves technical terms as tags in the database.
+     * Creates tag entities and paper-tag relationships.
+     */
+    @Transactional
+    private void saveTechnicalTermsAsTags(String paperId, List<TechnicalTerm> technicalTerms) {
+        try {
+            UUID paperUuid = UUID.fromString(paperId);
+            Optional<Paper> paperOpt = paperRepository.findById(paperUuid);
+            
+            if (paperOpt.isEmpty()) {
+                LoggingUtil.warn(LOG, "saveTechnicalTermsAsTags", 
+                    "Paper not found with ID %s, skipping tag save", paperId);
+                return;
+            }
+            
+            Paper paper = paperOpt.get();
+            
+            // Extract term strings and limit to reasonable number
+            List<String> termStrings = technicalTerms.stream()
+                .map(TechnicalTerm::getTerm)
+                .filter(term -> term != null && term.length() >= 3 && term.length() <= 50)
+                .map(term -> term.toLowerCase().trim())
+                .distinct()
+                .limit(30) // Limit to top 30 terms
+                .toList();
+            
+            int savedCount = 0;
+            for (String termString : termStrings) {
+                try {
+                    // Find or create tag
+                    Optional<Tag> existingTag = tagRepository.findByNameIgnoreCase(termString);
+                    Tag tag = existingTag.orElseGet(() -> {
+                        Tag newTag = new Tag(termString, "#8B5CF6"); // Purple color for concept tags
+                        return tagRepository.save(newTag);
+                    });
+                    
+                    // Create paper-tag relationship if it doesn't exist
+                    if (!paperTagRepository.existsByIdPaperIdAndIdTagId(paper.getId(), tag.getId())) {
+                        PaperTag paperTag = new PaperTag(paper.getId(), tag.getId());
+                        paperTagRepository.save(paperTag);
+                        savedCount++;
+                    }
+                    
+                } catch (Exception e) {
+                    LoggingUtil.warn(LOG, "saveTechnicalTermsAsTags", 
+                        "Failed to save tag '%s' for paper %s: %s", 
+                        termString, paperId, e.getMessage());
+                }
+            }
+            
+            LoggingUtil.info(LOG, "saveTechnicalTermsAsTags", 
+                "Successfully saved %d technical terms as tags for paper %s", 
+                savedCount, paperId);
+                
+        } catch (IllegalArgumentException e) {
+            LoggingUtil.error(LOG, "saveTechnicalTermsAsTags", 
+                "Invalid paper ID format %s: %s", paperId, e.getMessage());
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveTechnicalTermsAsTags", 
+                "Failed to save technical terms as tags for paper %s", e, paperId);
+            // Don't rethrow - this is supplementary data, main processing should continue
+        }
     }
 }

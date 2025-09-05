@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import org.springframework.context.ApplicationEvent;
 
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentTaskEventType;
 
 import lombok.Getter;

@@ -11,6 +11,7 @@ public enum AgentType {
     CONCEPT_EXPLAINER("concept-explainer", "Concept Explainer"),
     QUALITY_CHECKER("quality-checker", "Quality Checker"),
     CITATION_FORMATTER("citation-formatter", "Citation Formatter"),
+    CITATION_VERIFIER("citation-verifier", "Citation Verifier"),
     PERPLEXITY_RESEARCHER("perplexity-researcher", "Perplexity Researcher"),
     RELATED_PAPER_DISCOVERY("related-paper-discovery", "Related Paper Discovery");
 

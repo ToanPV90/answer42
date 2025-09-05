@@ -101,9 +101,9 @@ class Answer42ApplicationTests {
         assertNotNull(metamodel, "Metamodel should be available");
         
         // Check that our entities are registered
-        assertNotNull(metamodel.entity(com.samjdtechnologies.answer42.model.daos.Paper.class),
+        assertNotNull(metamodel.entity(com.samjdtechnologies.answer42.model.db.Paper.class),
             "Paper entity should be registered");
-        assertNotNull(metamodel.entity(com.samjdtechnologies.answer42.model.daos.User.class),
+        assertNotNull(metamodel.entity(com.samjdtechnologies.answer42.model.db.User.class),
             "User entity should be registered");
     }
 

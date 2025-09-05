@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.IssueType;
 import com.samjdtechnologies.answer42.model.enums.QualityCheckType;
 import com.samjdtechnologies.answer42.model.quality.QualityCheckResult;

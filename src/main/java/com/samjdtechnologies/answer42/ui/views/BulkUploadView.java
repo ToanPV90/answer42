@@ -11,8 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.annotation.Secured;
 
 import com.samjdtechnologies.answer42.model.FileEntry;
-import com.samjdtechnologies.answer42.model.daos.Project;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.Project;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.model.enums.FileStatus;
 import com.samjdtechnologies.answer42.processors.PaperBulkUploadProcessor;
 import com.samjdtechnologies.answer42.service.PaperService;

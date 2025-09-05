@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.samjdtechnologies.answer42.model.daos.AnalysisTask;
+import com.samjdtechnologies.answer42.model.db.AnalysisTask;
 import com.samjdtechnologies.answer42.model.enums.AnalysisType;
 
 /**

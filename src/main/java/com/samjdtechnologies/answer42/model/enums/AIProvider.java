@@ -17,7 +17,12 @@ public enum AIProvider {
     /**
      * Perplexity provider.
      */
-    PERPLEXITY("perplexity");
+    PERPLEXITY("perplexity"),
+    
+    /**
+     * Ollama local provider for fallback processing.
+     */
+    OLLAMA("ollama");
     
     private final String value;
     

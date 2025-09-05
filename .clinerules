@@ -1,0 +1,177 @@
+# Answer42 AI Research Platform - Cline Rules
+# AI-TDD Development Guidelines for Academic Research Platform
+
+## Project Overview
+Answer42 is a sophisticated AI-powered academic research platform built using AI-TDD methodology with Java 21, Spring Boot 3.4.5, Vaadin 24.7.3, and PostgreSQL. The platform features an 8-agent multi-agent pipeline, local AI fallback with Ollama, and comprehensive research discovery systems.
+
+## Core Development Principles
+
+### AI-TDD Methodology
+- Follow the complete AI-TDD document pipeline: idea.md → PRD.md → design.md → plan.md → implementation
+- Always document architectural decisions and maintain traceability
+- Use AI strategically with human oversight at critical quality checkpoints
+- Never "vibe code" - always follow structured development patterns
+
+### Code Quality Standards
+- **NO PLACEHOLDER CODE** - Write complete, production-ready implementations
+- Keep files under 300 lines by creating utility classes and components
+- Use dependency injection extensively via Spring annotations
+- **ALWAYS** use LoggingUtil for all logging operations
+- **NO DEPRECATED METHODS** - Use current Spring Boot 3.4.5 patterns
+- Check your work with static analysis tools: Checkstyle, PMD, SpotBugs
+
+## Build & Test Commands
+
+### Maven Commands
+- Build: `./mvnw clean install`
+- Run: `./mvnw spring-boot:run`
+- Test all: `./mvnw test`
+- Single test: `./mvnw test -Dtest=TestClassName#testMethodName`
+- Production: `./mvnw clean install -Pproduction`
+- Quality checks: `./mvnw clean verify`
+
+### Code Quality
+- Checkstyle: `./mvnw checkstyle:check`
+- PMD: `./mvnw pmd:check`
+- SpotBugs: `./mvnw spotbugs:check`
+
+### Test Generation
+- **Symflower CLI (✅ INSTALLED)**: `symflower test --language=java`
+- **Installation**: `curl -sSLf https://get.symflower.com/install | sh`
+- **Via Maven**: `./mvnw exec:exec -Dexec.executable="symflower" -Dexec.args="test --language=java"`
+- **Location**: `/usr/local/bin/symflower` (v51292)
+- **Usage**: Generate comprehensive unit tests achieving 80%+ coverage automatically
+
+## Architecture Guidelines
+
+### Database Integration
+- Use Supabase MCP to access and review database schema
+- **Schema**: All tables in `answer42` schema with UUID primary keys
+- **Naming**: snake_case in database, camelCase in Java entities
+- **Transactions**: Add @Transactional to service methods (readOnly where appropriate)
+- **JPA**: Use proper fetch strategies, avoid N+1 queries
+
+### Agent System
+- Follow AbstractConfigurableAgent pattern for all AI agents
+- Implement retry policies, circuit breakers, and fallback mechanisms
+- Use FallbackAgentFactory for Ollama local fallback agents
+- Maintain agent memory through AgentMemoryStore
+- Track costs and usage through CreditService integration
+
+### UI Development (Vaadin)
+- **View Pattern**: All Views extend Div implements BeforeEnterObserver
+- Add components directly to the view, NOT to extra container Divs
+- **Routes**: All routes defined in UIConstants class
+- **Styling**: Use external CSS classes in theme, avoid inline styles
+- **Components**: Create reusable components in ui.components package
+- **Responsive**: Ensure mobile compatibility
+
+### Spring AI Integration
+- Use AIConfig for provider management (OpenAI, Anthropic, Perplexity, Ollama)
+- Implement provider-specific optimizations in agent classes
+- Handle API failures gracefully with circuit breaker patterns
+- Track token usage and implement cost controls
+
+## File Organization
+
+### Package Structure
+- `config/`: Spring configuration classes
+- `service/agent/`: AI agent implementations following AbstractConfigurableAgent
+- `service/discovery/`: Multi-source paper discovery system
+- `repository/`: Spring Data JPA repositories
+- `model/db/`: Database entity classes with proper JPA annotations
+- `ui/views/`: Vaadin view classes
+- `ui/components/`: Reusable UI components
+- `batch/tasklets/`: Spring Batch tasklet implementations
+
+### Key Files to Reference
+- `UIConstants.java`: All routes and UI constants
+- `AIConfig.java`: AI provider configurations
+- `CLAUDE.md`: Project-specific coding guidelines
+- `README.md`: High-level project scope and definition
+- `application.properties`: Configuration properties
+- `answer42.schema.sql`: Database schema reference
+
+## Technology-Specific Rules
+
+### Spring Boot 3.4.5
+- Use constructor injection over field injection
+- Leverage Spring Events for loose coupling
+- Use @ConfigurationProperties for configuration binding
+- Implement proper exception handling with @ControllerAdvice
+
+### Vaadin 24.7.3
+- Use Lumo design system variables
+- Implement proper data binding with Binder
+- Create type-safe navigation with RouteParameters
+- Use proper component lifecycle methods
+
+### PostgreSQL with JSONB
+- Use @JdbcTypeCode(SqlTypes.JSON) for JSONB fields
+- Leverage JsonNode for flexible JSON handling
+- Use List<String> for JSON arrays
+- Create proper indexes for JSONB queries
+
+### Multi-Agent Pipeline
+- Follow Spring Batch patterns for pipeline orchestration
+- Implement proper error handling and recovery
+- Use agent memory for context preservation
+- Track processing metrics and costs
+
+## Testing Standards
+- Write comprehensive unit tests for all agents
+- Use TestContainers for integration tests
+- Mock external AI providers in tests
+- Test retry policies and circuit breaker behavior
+- Validate JSON response parsing thoroughly
+
+## Security Guidelines
+- Never log sensitive data (API keys, user content)
+- Use JWT tokens for stateless authentication
+- Implement proper CORS configuration
+- Validate all user inputs and API responses
+- Use SecurityConfig for Spring Security setup
+
+## Performance Considerations
+- Implement caching for discovery results (24-hour duration)
+- Use rate limiting for external API calls
+- Optimize database queries with proper indexing
+- Implement connection pooling for database access
+- Use async processing for long-running operations
+
+## External Integrations
+- **OpenAI**: Use gpt-4o model with temperature 0.7
+- **Anthropic**: Use claude-3-7-sonnet-latest for deep analysis
+- **Perplexity**: Use sonar-pro for research
+- **Ollama**: Use llama3.1:8b for local fallback with 4K token limit
+- **Crossref API**: 45 req/sec limit for citation discovery
+- **Semantic Scholar**: 100 req/min limit for paper similarity
+
+## Context Management
+- Maintain agent context through AgentMemoryStore
+- Use Spring Events for pipeline coordination
+- Implement WebSocket updates for real-time progress
+- Store all artifacts in database with proper metadata
+
+## Quality Gates
+- All AI operations must pass through quality checkers
+- Implement automatic test generation with comprehensive coverage
+- Use static analysis tools as mandatory quality gates
+- Validate all JSON parsing with proper error handling
+- Ensure proper exception propagation and logging
+
+## Documentation Requirements
+- Update relevant design documents when making architectural changes
+- Maintain API documentation for agent interfaces
+- Document all configuration properties
+- Keep README.md updated with new features
+- Maintain migration history in database documentation
+
+## Error Handling Patterns
+- Use custom exceptions with meaningful messages
+- Implement circuit breaker patterns for external services
+- Provide fallback mechanisms for AI service failures
+- Log errors with proper context using LoggingUtil
+- Return structured error responses to UI
+
+Remember: This project demonstrates AI-TDD methodology in action. Every implementation should follow the documented patterns, maintain enterprise-grade quality, and contribute to the overall research platform excellence.

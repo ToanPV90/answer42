@@ -1,0 +1,337 @@
+{
+  "name": "prd-creator",
+  "version": "2.0.0",
+  "description": "Transform idea.md documents into comprehensive Product Requirements Documents (PRDs) following the AI-TDD methodology for Answer42 platform",
+  "purpose": "Transform idea.md documents into comprehensive Product Requirements Documents (PRDs) following the AI-TDD methodology for Answer42 academic research platform",
+  "project_context": {
+    "platform": "Answer42 - AI-Powered Academic Research Platform",
+    "core_features": [
+      "Multi-agent processing pipeline (9 specialized AI agents)",
+      "Related papers discovery system",
+      "Multi-modal AI chat (3 chat modes)",
+      "Credit-based subscription system",
+      "Local AI fallback with Ollama"
+    ],
+    "technology_stack": {
+      "backend": "Java 21, Spring Boot 3.4.5, Spring AI, Spring Batch",
+      "frontend": "Vaadin 24.7.3, Progressive Web App",
+      "database": "PostgreSQL with JSONB, answer42 schema",
+      "ai_providers": ["OpenAI GPT-4", "Anthropic Claude", "Perplexity", "Ollama Local"],
+      "external_apis": ["Crossref API", "Semantic Scholar API", "Supabase MCP"]
+    },
+    "architecture": "Multi-agent processing pipeline with Spring Batch orchestration"
+  },
+  "capabilities": [
+    "Parse and analyze idea.md content for Answer42 features",
+    "Generate detailed user stories for academic researchers",
+    "Define acceptance criteria aligned with Answer42 workflows",
+    "Create feature specifications for multi-agent system integration",
+    "Outline non-functional requirements for Answer42 platform",
+    "Identify stakeholders in academic research community",
+    "Define Answer42 system dependencies and integration points",
+    "Ensure all generated documents stay under 300 lines",
+    "Apply Answer42 coding standards from CLAUDE.md"
+  ],
+  "file_size_management": {
+    "max_lines": 300,
+    "enforcement": "STRICT",
+    "splitting_strategies": [
+      "Split large PRDs into focused sections (PRD-part1.md, PRD-part2.md)",
+      "Create separate files for User Stories, Requirements, Dependencies",
+      "Keep main PRD.md concise with references to detailed sections",
+      "Focus on core requirements in main document",
+      "Split by Answer42 system domains (agents, UI, discovery, credit, chat)"
+    ],
+    "document_organization": [
+      "Executive Summary & User Stories -> PRD.md",
+      "Detailed Requirements -> PRD-requirements.md",
+      "Dependencies & Timeline -> PRD-implementation.md",
+      "Answer42 Integration -> PRD-integration.md",
+      "Always maintain main PRD.md as entry point"
+    ]
+  },
+  "workflow": [
+    {
+      "step": 1,
+      "action": "read_and_analyze_idea",
+      "description": "Read and analyze the provided idea.md",
+      "answer42_context": "Focus on academic research workflow improvements and Answer42 system integration"
+    },
+    {
+      "step": 2,
+      "action": "expand_concept",
+      "description": "Expand on the concept with detailed Answer42 requirements",
+      "answer42_context": "Consider multi-agent system, credit system, discovery system, and chat system requirements"
+    },
+    {
+      "step": 3,
+      "action": "create_user_stories",
+      "description": "Create user stories with acceptance criteria for researchers",
+      "answer42_context": "Focus on academic researchers, students, and research team collaboration scenarios"
+    },
+    {
+      "step": 4,
+      "action": "define_constraints",
+      "description": "Define technical and business constraints for Answer42",
+      "answer42_context": "Include Answer42 technology stack limitations, credit system constraints, and API rate limits"
+    },
+    {
+      "step": 5,
+      "action": "generate_prd",
+      "description": "Generate comprehensive PRD.md document with Answer42 integration",
+      "answer42_context": "Include Answer42-specific sections for system integration and platform considerations"
+    }
+  ],
+  "commands": [
+    {
+      "name": "create_prd_from_idea",
+      "description": "Create Answer42 PRD from idea.md",
+      "parameters": {
+        "idea_file": {
+          "type": "string",
+          "required": true,
+          "default": "./ai-tdd-docs/[feature-name]/idea.md",
+          "description": "Path to the idea.md file to transform (in feature-specific folder)"
+        },
+        "output_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/PRD.md",
+          "description": "Path where the PRD document should be created (in feature-specific folder)"
+        },
+        "target_users": {
+          "type": "array",
+          "required": false,
+          "default": ["academic_researchers", "students", "research_teams"],
+          "description": "Target user groups for the Answer42 feature"
+        }
+      }
+    },
+    {
+      "name": "generate_product_requirements",
+      "description": "Generate Answer42 product requirements for idea file",
+      "parameters": {
+        "idea_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to the idea file to process"
+        },
+        "stakeholders": {
+          "type": "array",
+          "required": false,
+          "default": ["researchers", "students", "librarians", "research_institutions"],
+          "description": "Academic research stakeholders for the feature"
+        },
+        "answer42_systems": {
+          "type": "array",
+          "required": false,
+          "default": ["multi_agent_pipeline", "discovery_system", "credit_system", "chat_system"],
+          "description": "Answer42 systems involved in the requirements"
+        }
+      }
+    },
+    {
+      "name": "transform_idea_to_prd",
+      "description": "Transform Answer42 idea into PRD with user stories",
+      "parameters": {
+        "feature_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the Answer42 feature from the idea document"
+        },
+        "priority": {
+          "type": "string",
+          "required": false,
+          "enum": ["High", "Medium", "Low"],
+          "default": "Medium",
+          "description": "Priority level for the Answer42 feature"
+        },
+        "research_impact": {
+          "type": "string",
+          "required": false,
+          "enum": ["High", "Medium", "Low"],
+          "default": "Medium",
+          "description": "Impact level on academic research workflows"
+        }
+      }
+    }
+  ],
+  "answer42_template": {
+    "sections": [
+      "Product Requirements Document: [Feature Name]",
+      "Executive Summary",
+      "Academic Research Context",
+      "User Stories",
+      "Functional Requirements",
+      "Non-Functional Requirements",
+      "Answer42 System Integration",
+      "Dependencies",
+      "Success Metrics",
+      "Timeline & Milestones"
+    ],
+    "user_story_format": "As a [researcher/student/academic], I want to [action], So that [research benefit]",
+    "answer42_specific_sections": {
+      "academic_research_context": [
+        "Research workflow pain points",
+        "Academic paper processing challenges",
+        "Citation and discovery limitations",
+        "Collaboration and sharing needs",
+        "Research quality and accuracy requirements"
+      ],
+      "system_integration": [
+        "Multi-agent pipeline integration points",
+        "Credit system impact and cost considerations",
+        "Discovery system enhancements",
+        "Chat system integration (Paper, Cross-Reference, Research Explorer)",
+        "UI/UX integration with existing Answer42 views",
+        "Database schema impact (answer42 schema, JSONB fields)",
+        "External API integration requirements"
+      ]
+    }
+  },
+  "execution": {
+    "input_format": "markdown",
+    "input_file": "idea.md",
+    "output_format": "markdown",
+    "output_file": "PRD.md",
+    "quality_checks": [
+      "All user stories have clear acceptance criteria focused on research workflows",
+      "Functional requirements are specific and measurable for Answer42 platform",
+      "Non-functional requirements include Answer42-specific performance, security, and usability",
+      "Dependencies include Answer42 system components and external APIs",
+      "Success metrics are quantifiable and research-focused",
+      "Integration with existing Answer42 systems is clearly defined",
+      "Credit system impact is evaluated and documented"
+    ]
+  },
+  "answer42_requirements_categories": {
+    "functional": [
+      "Academic paper processing and analysis",
+      "Multi-agent workflow orchestration",
+      "Research discovery and recommendation",
+      "Citation analysis and verification",
+      "Real-time collaboration features",
+      "Credit-based operation management",
+      "User authentication and authorization",
+      "Data import/export capabilities"
+    ],
+    "non_functional": [
+      "Performance (agent processing speed, UI responsiveness)",
+      "Security (research data protection, API key management)",
+      "Usability (academic researcher-focused UI/UX)",
+      "Scalability (multi-user research teams, large paper datasets)",
+      "Reliability (99.5%+ uptime, error recovery)",
+      "Maintainability (code quality, Answer42 standards)",
+      "Compatibility (mobile devices, browser support)",
+      "Cost Efficiency (AI API usage optimization, credit management)"
+    ],
+    "research_specific": [
+      "Academic accuracy and citation integrity",
+      "Research workflow optimization",
+      "Collaborative research support",
+      "Multi-language academic content support",
+      "Research ethics and privacy compliance",
+      "Integration with academic institutions",
+      "Research data export and backup",
+      "Academic community standards alignment"
+    ]
+  },
+  "answer42_user_personas": {
+    "primary_users": {
+      "academic_researcher": {
+        "needs": ["Paper analysis", "Citation verification", "Research discovery", "Collaboration"],
+        "goals": ["Publish quality research", "Discover relevant papers", "Collaborate effectively"],
+        "pain_points": ["Information overload", "Citation accuracy", "Time constraints", "Tool fragmentation"]
+      },
+      "graduate_student": {
+        "needs": ["Literature review", "Research guidance", "Writing support", "Collaboration"],
+        "goals": ["Complete thesis", "Learn research methods", "Build academic network"],
+        "pain_points": ["Learning curve", "Budget constraints", "Advisor availability", "Research complexity"]
+      },
+      "research_team": {
+        "needs": ["Team collaboration", "Project management", "Shared knowledge base", "Progress tracking"],
+        "goals": ["Complete projects", "Maintain quality", "Meet deadlines", "Share insights"],
+        "pain_points": ["Communication overhead", "Version control", "Role coordination", "Resource sharing"]
+      }
+    },
+    "secondary_users": {
+      "librarian": {
+        "needs": ["Research support", "Tool recommendations", "User training", "Collection management"],
+        "goals": ["Support researchers", "Optimize resources", "Improve services"],
+        "pain_points": ["Tool complexity", "Budget limitations", "Training needs", "Technology updates"]
+      },
+      "research_administrator": {
+        "needs": ["Usage analytics", "Cost management", "Compliance monitoring", "User management"],
+        "goals": ["Optimize resources", "Ensure compliance", "Support research", "Control costs"],
+        "pain_points": ["Cost tracking", "Usage monitoring", "Policy enforcement", "Tool integration"]
+      }
+    }
+  },
+  "answer42_success_metrics": {
+    "user_engagement": [
+      "Daily active researchers",
+      "Papers processed per month",
+      "Chat interactions per session",
+      "Discovery searches performed",
+      "Feature adoption rates"
+    ],
+    "research_quality": [
+      "Citation accuracy improvement",
+      "Research discovery relevance scores",
+      "Paper analysis completeness",
+      "User satisfaction ratings",
+      "Research workflow efficiency gains"
+    ],
+    "system_performance": [
+      "Agent processing times",
+      "Discovery system response times",
+      "UI page load times",
+      "Credit consumption accuracy",
+      "System uptime and reliability"
+    ],
+    "business_impact": [
+      "User subscription conversions",
+      "Credit purchase patterns",
+      "Customer retention rates",
+      "Support ticket reduction",
+      "Platform scalability metrics"
+    ]
+  },
+  "answer42_integration_requirements": {
+    "agent_system": [
+      "Agent pipeline coordination",
+      "Agent memory context sharing",
+      "Cost tracking integration",
+      "Error handling and recovery",
+      "Performance monitoring"
+    ],
+    "discovery_system": [
+      "Multi-source discovery coordination",
+      "Result ranking and filtering",
+      "Caching strategy integration",
+      "External API rate limiting",
+      "User feedback incorporation"
+    ],
+    "chat_system": [
+      "Chat mode coordination",
+      "Context preservation",
+      "Real-time updates",
+      "Chat history management",
+      "AI provider fallback"
+    ],
+    "credit_system": [
+      "Cost calculation accuracy",
+      "Subscription tier enforcement",
+      "Credit exhaustion handling",
+      "Usage analytics tracking",
+      "Billing integration"
+    ],
+    "ui_system": [
+      "Vaadin component integration",
+      "Responsive design requirements",
+      "Progressive Web App features",
+      "Route management (UIConstants)",
+      "Real-time update display"
+    ]
+  }
+}

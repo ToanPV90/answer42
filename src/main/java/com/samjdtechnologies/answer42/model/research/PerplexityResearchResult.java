@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.model.research;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PerplexityResearchResult {
+public class PerplexityResearchResult implements Serializable {
+    private static final long serialVersionUID = 1L;
     
     private List<ResearchResult> queryResults;
     private ResearchSynthesis synthesis;
@@ -66,7 +68,8 @@ public class PerplexityResearchResult {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ResearchSynthesis {
+    public static class ResearchSynthesis implements Serializable {
+        private static final long serialVersionUID = 1L;
         private String summary;
         private List<String> keyFindings;
         private List<String> contradictions;
@@ -87,7 +90,8 @@ public class PerplexityResearchResult {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class FactVerification {
+    public static class FactVerification implements Serializable {
+        private static final long serialVersionUID = 1L;
         private String fact;
         private VerificationStatus status;
         private String evidence;
@@ -116,7 +120,8 @@ public class PerplexityResearchResult {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class TrendAnalysis {
+    public static class TrendAnalysis implements Serializable {
+        private static final long serialVersionUID = 1L;
         private String topic;
         private List<String> emergingTrends;
         private List<String> decliningTrends;

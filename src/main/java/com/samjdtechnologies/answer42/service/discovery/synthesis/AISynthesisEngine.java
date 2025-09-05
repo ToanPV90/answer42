@@ -17,8 +17,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.samjdtechnologies.answer42.config.ThreadConfig;
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaperResult;
 import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.model.discovery.RelatedPaperDiscoveryResult;
 import com.samjdtechnologies.answer42.model.enums.DiscoverySource;
@@ -48,9 +48,9 @@ public class AISynthesisEngine {
      */
     public RelatedPaperDiscoveryResult synthesizeResults(
             Paper sourcePaper,
-            List<DiscoveredPaper> crossrefPapers,
-            List<DiscoveredPaper> semanticScholarPapers,
-            List<DiscoveredPaper> perplexityPapers,
+            List<DiscoveredPaperResult> crossrefPapers,
+            List<DiscoveredPaperResult> semanticScholarPapers,
+            List<DiscoveredPaperResult> perplexityPapers,
             DiscoveryConfiguration config) {
 
         LoggingUtil.info(LOG, "synthesizeResults", 
@@ -61,22 +61,22 @@ public class AISynthesisEngine {
 
         try {
             // Combine all discovered papers
-            List<DiscoveredPaper> allPapers = new ArrayList<>();
+            List<DiscoveredPaperResult> allPapers = new ArrayList<>();
             allPapers.addAll(crossrefPapers);
             allPapers.addAll(semanticScholarPapers);
             allPapers.addAll(perplexityPapers);
 
             // Remove duplicates
-            List<DiscoveredPaper> uniquePapers = removeDuplicates(allPapers);
+            List<DiscoveredPaperResult> uniquePapers = removeDuplicates(allPapers);
 
             // Enhanced relevance scoring using AI
-            List<DiscoveredPaper> scoredPapers = enhanceRelevanceScores(sourcePaper, uniquePapers, config);
+            List<DiscoveredPaperResult> scoredPapers = enhanceRelevanceScores(sourcePaper, uniquePapers, config);
 
             // Quality assessment
-            List<DiscoveredPaper> qualityFiltered = filterByQuality(scoredPapers, config);
+            List<DiscoveredPaperResult> qualityFiltered = filterByQuality(scoredPapers, config);
 
             // Final ranking
-            List<DiscoveredPaper> rankedPapers = rankPapers(qualityFiltered, config);
+            List<DiscoveredPaperResult> rankedPapers = rankPapers(qualityFiltered, config);
 
             // Limit to requested size
             int maxResults = config.getMaxTotalPapers() != null ? config.getMaxTotalPapers() : 100;
@@ -132,10 +132,10 @@ public class AISynthesisEngine {
     /**
      * Remove duplicate papers based on DOI, title similarity, and other identifying features.
      */
-    private List<DiscoveredPaper> removeDuplicates(List<DiscoveredPaper> papers) {
-        Map<String, DiscoveredPaper> uniquePapers = new HashMap<>();
+    private List<DiscoveredPaperResult> removeDuplicates(List<DiscoveredPaperResult> papers) {
+        Map<String, DiscoveredPaperResult> uniquePapers = new HashMap<>();
         
-        for (DiscoveredPaper paper : papers) {
+        for (DiscoveredPaperResult paper : papers) {
             String key = generateDeduplicationKey(paper);
             
             // Keep the paper with highest relevance score if duplicates found
@@ -151,7 +151,7 @@ public class AISynthesisEngine {
     /**
      * Generate a key for deduplication based on DOI, title, and authors.
      */
-    private String generateDeduplicationKey(DiscoveredPaper paper) {
+    private String generateDeduplicationKey(DiscoveredPaperResult paper) {
         // Primary key: DOI if available
         if (paper.getDoi() != null && !paper.getDoi().trim().isEmpty()) {
             return "doi:" + paper.getDoi().toLowerCase().trim();
@@ -182,8 +182,8 @@ public class AISynthesisEngine {
     /**
      * Enhance relevance scores using AI analysis.
      */
-    private List<DiscoveredPaper> enhanceRelevanceScores(
-            Paper sourcePaper, List<DiscoveredPaper> papers, DiscoveryConfiguration config) {
+    private List<DiscoveredPaperResult> enhanceRelevanceScores(
+            Paper sourcePaper, List<DiscoveredPaperResult> papers, DiscoveryConfiguration config) {
         
         if (papers.isEmpty()) {
             return papers;
@@ -196,7 +196,7 @@ public class AISynthesisEngine {
             
             for (int i = 0; i < papers.size(); i += batchSize) {
                 int endIndex = Math.min(i + batchSize, papers.size());
-                List<DiscoveredPaper> batch = papers.subList(i, endIndex);
+                List<DiscoveredPaperResult> batch = papers.subList(i, endIndex);
                 
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> 
                     enhanceRelevanceScoresBatch(sourcePaper, batch), threadConfig.taskExecutor());
@@ -218,7 +218,7 @@ public class AISynthesisEngine {
     /**
      * Enhance relevance scores for a batch of papers using AI.
      */
-    private void enhanceRelevanceScoresBatch(Paper sourcePaper, List<DiscoveredPaper> batch) {
+    private void enhanceRelevanceScoresBatch(Paper sourcePaper, List<DiscoveredPaperResult> batch) {
         try {
             String prompt = buildRelevanceAnalysisPrompt(sourcePaper, batch);
             
@@ -239,7 +239,7 @@ public class AISynthesisEngine {
     /**
      * Build prompt for AI relevance analysis.
      */
-    private String buildRelevanceAnalysisPrompt(Paper sourcePaper, List<DiscoveredPaper> papers) {
+    private String buildRelevanceAnalysisPrompt(Paper sourcePaper, List<DiscoveredPaperResult> papers) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("Source Paper:\n");
         prompt.append("Title: ").append(sourcePaper.getTitle()).append("\n");
@@ -250,7 +250,7 @@ public class AISynthesisEngine {
         prompt.append("\nDiscovered Papers to Analyze:\n");
         
         for (int i = 0; i < papers.size(); i++) {
-            DiscoveredPaper paper = papers.get(i);
+            DiscoveredPaperResult paper = papers.get(i);
             prompt.append(i + 1).append(". Title: ").append(paper.getTitle()).append("\n");
             if (paper.getAbstractText() != null) {
                 prompt.append("   Abstract: ").append(paper.getAbstractText().substring(0, 
@@ -272,7 +272,7 @@ public class AISynthesisEngine {
     /**
      * Parse AI response and apply relevance scores.
      */
-    private void parseAndApplyRelevanceScores(List<DiscoveredPaper> papers, String response) {
+    private void parseAndApplyRelevanceScores(List<DiscoveredPaperResult> papers, String response) {
         try {
             String[] lines = response.split("\n");
             for (String line : lines) {
@@ -313,7 +313,7 @@ public class AISynthesisEngine {
     /**
      * Filter papers by quality criteria.
      */
-    private List<DiscoveredPaper> filterByQuality(List<DiscoveredPaper> papers, DiscoveryConfiguration config) {
+    private List<DiscoveredPaperResult> filterByQuality(List<DiscoveredPaperResult> papers, DiscoveryConfiguration config) {
         return papers.stream()
             .filter(paper -> {
                 // Basic quality filters
@@ -334,16 +334,16 @@ public class AISynthesisEngine {
     /**
      * Rank papers by comprehensive scoring algorithm.
      */
-    private List<DiscoveredPaper> rankPapers(List<DiscoveredPaper> papers, DiscoveryConfiguration config) {
+    private List<DiscoveredPaperResult> rankPapers(List<DiscoveredPaperResult> papers, DiscoveryConfiguration config) {
         return papers.stream()
-            .sorted(Comparator.<DiscoveredPaper>comparingDouble(this::calculateFinalScore).reversed())
+            .sorted(Comparator.<DiscoveredPaperResult>comparingDouble(this::calculateFinalScore).reversed())
             .collect(Collectors.toList());
     }
 
     /**
      * Calculate final ranking score considering multiple factors.
      */
-    private double calculateFinalScore(DiscoveredPaper paper) {
+    private double calculateFinalScore(DiscoveredPaperResult paper) {
         double score = 0.0;
         
         // Relevance score (40% weight)
@@ -372,7 +372,7 @@ public class AISynthesisEngine {
     /**
      * Calculate data completeness score.
      */
-    private double calculateDataCompleteness(DiscoveredPaper paper) {
+    private double calculateDataCompleteness(DiscoveredPaperResult paper) {
         int fields = 0;
         int filledFields = 0;
         
@@ -403,10 +403,10 @@ public class AISynthesisEngine {
      * Create discovery statistics from the papers.
      */
     private Map<String, Integer> createDiscoveryStatistics(
-            List<DiscoveredPaper> crossrefPapers,
-            List<DiscoveredPaper> semanticScholarPapers,
-            List<DiscoveredPaper> perplexityPapers,
-            List<DiscoveredPaper> finalResults) {
+            List<DiscoveredPaperResult> crossrefPapers,
+            List<DiscoveredPaperResult> semanticScholarPapers,
+            List<DiscoveredPaperResult> perplexityPapers,
+            List<DiscoveredPaperResult> finalResults) {
 
         Map<String, Integer> stats = new HashMap<>();
         stats.put("total", finalResults.size());
@@ -416,7 +416,7 @@ public class AISynthesisEngine {
         stats.put("original_total", crossrefPapers.size() + semanticScholarPapers.size() + perplexityPapers.size());
 
         // Count by relationship type
-        for (DiscoveredPaper paper : finalResults) {
+        for (DiscoveredPaperResult paper : finalResults) {
             if (paper.getRelationshipType() != null) {
                 String relKey = "relationship_" + paper.getRelationshipType().name().toLowerCase();
                 stats.put(relKey, stats.getOrDefault(relKey, 0) + 1);
@@ -429,14 +429,14 @@ public class AISynthesisEngine {
     /**
      * Calculate overall confidence score from individual paper scores.
      */
-    private Double calculateOverallConfidence(List<DiscoveredPaper> papers) {
+    private Double calculateOverallConfidence(List<DiscoveredPaperResult> papers) {
         if (papers == null || papers.isEmpty()) {
             return 0.0;
         }
 
         double totalScore = papers.stream()
             .filter(paper -> paper.getRelevanceScore() != null)
-            .mapToDouble(DiscoveredPaper::getRelevanceScore)
+            .mapToDouble(DiscoveredPaperResult::getRelevanceScore)
             .average()
             .orElse(0.0);
 

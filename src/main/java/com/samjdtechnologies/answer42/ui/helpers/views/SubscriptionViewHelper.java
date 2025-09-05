@@ -7,9 +7,9 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.samjdtechnologies.answer42.model.daos.Subscription;
-import com.samjdtechnologies.answer42.model.daos.SubscriptionPlan;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.Subscription;
+import com.samjdtechnologies.answer42.model.db.SubscriptionPlan;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.service.SubscriptionService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.util.LoggingUtil;

@@ -16,9 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.samjdtechnologies.answer42.model.FileEntry;
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.daos.Project;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.Project;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.model.enums.FileStatus;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.ProjectService;

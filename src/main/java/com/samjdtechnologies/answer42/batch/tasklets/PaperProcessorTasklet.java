@@ -20,8 +20,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
-import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.Paper;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.service.agent.PaperProcessorAgent;
 import com.samjdtechnologies.answer42.util.LoggingUtil;

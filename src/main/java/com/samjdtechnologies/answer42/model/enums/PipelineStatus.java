@@ -6,6 +6,7 @@ package com.samjdtechnologies.answer42.model.enums;
 public enum PipelineStatus {
     // Initial states
     PENDING("Pending execution"),
+    PENDING_USER_CHOICE("Ready to process"),
     PENDING_CREDITS("Pending credits"),
     INITIALIZING("Initializing pipeline"),
     
@@ -56,7 +57,7 @@ public enum PipelineStatus {
      * Check if the status represents a pending state.
      */
     public boolean isPending() {
-        return this == PENDING || this == PENDING_CREDITS;
+        return this == PENDING || this == PENDING_USER_CHOICE || this == PENDING_CREDITS;
     }
 
     /**
@@ -67,7 +68,7 @@ public enum PipelineStatus {
             case COMPLETED -> "COMPLETED";
             case FAILED -> "ERROR";
             case CANCELLED -> "CANCELLED";
-            case PENDING, PENDING_CREDITS -> "UPLOADED";
+            case PENDING, PENDING_USER_CHOICE, PENDING_CREDITS -> "UPLOADED";
             default -> "PROCESSING";
         };
     }
@@ -110,6 +111,7 @@ public enum PipelineStatus {
     public int getProgressPercentage() {
         return switch (this) {
             case PENDING -> 0;
+            case PENDING_USER_CHOICE -> 0;
             case PENDING_CREDITS -> 0;
             case INITIALIZING -> 5;
             case TEXT_EXTRACTION -> 15;
@@ -131,6 +133,7 @@ public enum PipelineStatus {
     public PipelineStatus getNextStatus() {
         return switch (this) {
             case PENDING -> INITIALIZING;
+            case PENDING_USER_CHOICE -> INITIALIZING; // After user chooses to process
             case PENDING_CREDITS -> PENDING; // After credits are added
             case INITIALIZING -> TEXT_EXTRACTION;
             case TEXT_EXTRACTION -> METADATA_ENHANCEMENT;

@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
@@ -46,6 +46,9 @@ public class CitationFormatterAgentTest {
     
     @Mock
     private OpenAiChatModel mockOpenAiChatModel;
+    
+    @Mock
+    private com.samjdtechnologies.answer42.repository.CitationRepository mockCitationRepository;
 
     private CitationFormatterAgent agent;
 
@@ -59,7 +62,7 @@ public class CitationFormatterAgentTest {
         when(mockAiConfig.openAiChatClient(mockOpenAiChatModel)).thenReturn(mockChatClient);
         
         agent = new CitationFormatterAgent(mockAiConfig, mockThreadConfig, 
-            mockRetryPolicy, mockRateLimiter);
+            mockRetryPolicy, mockRateLimiter, mockCitationRepository);
     }
 
     @Test

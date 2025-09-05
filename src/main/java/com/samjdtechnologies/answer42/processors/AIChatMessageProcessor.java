@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.samjdtechnologies.answer42.model.daos.ChatMessage;
+import com.samjdtechnologies.answer42.model.db.ChatMessage;
 import com.samjdtechnologies.answer42.service.ChatService;
 import com.samjdtechnologies.answer42.ui.components.AIChatGeneralMesssageBubble;
 import com.samjdtechnologies.answer42.ui.components.AIChatThinkingMessageBubble;

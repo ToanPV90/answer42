@@ -25,12 +25,17 @@ import com.samjdtechnologies.answer42.model.citation.CitationResult;
 import com.samjdtechnologies.answer42.model.citation.FormattedBibliography;
 import com.samjdtechnologies.answer42.model.citation.RawCitation;
 import com.samjdtechnologies.answer42.model.citation.StructuredCitation;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.model.enums.CitationStyle;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
+import com.samjdtechnologies.answer42.model.db.Citation;
+import com.samjdtechnologies.answer42.repository.CitationRepository;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.UUID;
 
 /**
  * Citation formatter agent using OpenAI for citation processing and formatting.
@@ -43,9 +48,13 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
         "(?:(?:\\[\\d+\\])|(?:\\(\\w+(?:,\\s*\\w+)*,?\\s*\\d{4}\\))|(?:\\w+\\s+et\\s+al\\.?,?\\s*\\d{4}))"
     );
 
+    private final CitationRepository citationRepository;
+
     public CitationFormatterAgent(AIConfig aiConfig, ThreadConfig threadConfig, 
-                                 AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+                                 AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
+                                 CitationRepository citationRepository) {
         super(aiConfig, threadConfig, retryPolicy, rateLimiter);
+        this.citationRepository = citationRepository;
     }
 
     @Override
@@ -81,6 +90,9 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
             
             long processingTime = System.currentTimeMillis() - startTime;
             
+            // Save citations to database
+            saveCitationsToDatabase(task, structuredCitations, rawCitations);
+            
             // Create comprehensive result
             CitationResult result = CitationResult.withStats(
                 structuredCitations, 
@@ -95,6 +107,19 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
                 processingTime, result.getProcessingSummary());
             
             return AgentResult.success(task.getId(), result);
+            
+        } catch (RuntimeException e) {
+            // Let retryable exceptions (like rate limits) bubble up to retry policy
+            if (isRetryableException(e)) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Retryable exception occurred, letting retry policy handle: %s", e.getMessage());
+                throw e; // Let retry policy handle this
+            }
+            
+            // Only catch non-retryable exceptions
+            LoggingUtil.error(LOG, "processWithConfig", 
+                "Citation formatting failed for task %s", e, task.getId());
+            return AgentResult.failure(task.getId(), e.getMessage());
             
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processWithConfig", 
@@ -209,11 +234,25 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
         
         try {
             Prompt structurePrompt = new Prompt(promptText);
-            ChatResponse response = chatClient.prompt(structurePrompt).call().chatResponse();
+            
+            // Do NOT catch exceptions here - let them propagate to trigger circuit breaker
+            ChatResponse response;
+            try {
+                response = executePrompt(structurePrompt);
+            } catch (Exception e) {
+                // Log the error but re-throw to ensure circuit breaker sees the failure
+                LoggingUtil.error(LOG, "processCitationBatch", 
+                    "AI provider failed for citation parsing: %s", e.getMessage());
+                throw new RuntimeException("AI provider communication failed: " + e.getMessage(), e);
+            }
+            
             String jsonResponse = response.getResult().getOutput().getText();
             
             return parseCitationStructures(jsonResponse);
             
+        } catch (RuntimeException e) {
+            // Re-throw circuit breaker exceptions
+            throw e;
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processCitationBatch", 
                 "Failed to process citation batch", e);
@@ -283,7 +322,18 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
             """, style.getDisplayName(), citationData, style.getDisplayName(), style.getDisplayName());
         
         Prompt formatPrompt = new Prompt(promptText);
-        ChatResponse response = chatClient.prompt(formatPrompt).call().chatResponse();
+        
+        // Do NOT catch exceptions here - let them propagate to trigger circuit breaker
+        ChatResponse response;
+        try {
+            response = executePrompt(formatPrompt);
+        } catch (Exception e) {
+            // Log the error but re-throw to ensure circuit breaker sees the failure
+            LoggingUtil.error(LOG, "formatBibliography", 
+                "AI provider failed for bibliography formatting: %s", e.getMessage());
+            throw new RuntimeException("AI provider communication failed: " + e.getMessage(), e);
+        }
+        
         String formattedText = response.getResult().getOutput().getText();
         
         List<String> formattedEntries = Arrays.stream(formattedText.split("\n"))
@@ -408,5 +458,137 @@ public class CitationFormatterAgent extends OpenAIBasedAgent {
         long styleSeconds = styles.size() * 30L;
         
         return Duration.ofSeconds(baseSeconds + citationSeconds + styleSeconds);
+    }
+
+    /**
+     * Save citations to the database.
+     */
+    @Transactional
+    private void saveCitationsToDatabase(AgentTask task, 
+                                        List<StructuredCitation> structuredCitations, 
+                                        List<RawCitation> rawCitations) {
+        try {
+            // Extract paper ID from task
+            UUID paperId = extractPaperIdFromTask(task);
+            if (paperId == null) {
+                LoggingUtil.warn(LOG, "saveCitationsToDatabase", 
+                    "No paper ID found in task, skipping citation save");
+                return;
+            }
+
+            LoggingUtil.info(LOG, "saveCitationsToDatabase", 
+                "Saving %d citations for paper %s", structuredCitations.size(), paperId);
+
+            // Delete existing citations for this paper to avoid duplicates
+            citationRepository.deleteByPaperId(paperId);
+
+            // Save structured citations
+            for (int i = 0; i < structuredCitations.size(); i++) {
+                StructuredCitation structured = structuredCitations.get(i);
+                String rawText = i < rawCitations.size() ? rawCitations.get(i).getText() : null;
+                
+                // Convert structured citation to JSON
+                JsonNode citationData = structuredCitationToJson(structured);
+                
+                // Create and save citation entity
+                Citation citation = new Citation(paperId, citationData, rawText);
+                citationRepository.save(citation);
+            }
+
+            LoggingUtil.info(LOG, "saveCitationsToDatabase", 
+                "Successfully saved %d citations for paper %s", structuredCitations.size(), paperId);
+
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "saveCitationsToDatabase", 
+                "Failed to save citations to database", e);
+            // Don't throw exception - citation saving is not critical to the main process
+        }
+    }
+
+    /**
+     * Extract paper ID from the agent task.
+     */
+    private UUID extractPaperIdFromTask(AgentTask task) {
+        JsonNode input = task.getInput();
+        
+        if (input.has("paperId")) {
+            String paperIdStr = input.get("paperId").asText();
+            try {
+                return UUID.fromString(paperIdStr);
+            } catch (IllegalArgumentException e) {
+                LoggingUtil.warn(LOG, "extractPaperIdFromTask", 
+                    "Invalid paper ID format: %s", paperIdStr);
+                return null;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Convert a StructuredCitation to JSON for database storage.
+     */
+    private JsonNode structuredCitationToJson(StructuredCitation citation) {
+        try {
+            ObjectNode jsonNode = OBJECT_MAPPER.createObjectNode();
+            
+            // Basic citation fields
+            if (citation.getTitle() != null) {
+                jsonNode.put("title", citation.getTitle());
+            }
+            
+            if (citation.getAuthors() != null && !citation.getAuthors().isEmpty()) {
+                var authorsArray = jsonNode.putArray("authors");
+                citation.getAuthors().forEach(authorsArray::add);
+            }
+            
+            if (citation.getPublicationVenue() != null) {
+                jsonNode.put("publicationVenue", citation.getPublicationVenue());
+            }
+            
+            if (citation.getYear() != null) {
+                jsonNode.put("year", citation.getYear());
+            }
+            
+            if (citation.getVolume() != null) {
+                jsonNode.put("volume", citation.getVolume());
+            }
+            
+            if (citation.getIssue() != null) {
+                jsonNode.put("issue", citation.getIssue());
+            }
+            
+            if (citation.getPages() != null) {
+                jsonNode.put("pages", citation.getPages());
+            }
+            
+            if (citation.getDoi() != null) {
+                jsonNode.put("doi", citation.getDoi());
+            }
+            
+            if (citation.getPublicationType() != null) {
+                jsonNode.put("publicationType", citation.getPublicationType());
+            }
+            
+            if (citation.getConfidence() != null) {
+                jsonNode.put("confidence", citation.getConfidence());
+            }
+            
+            // Add metadata
+            jsonNode.put("extractedAt", System.currentTimeMillis());
+            jsonNode.put("isStructured", citation.isComplete());
+            
+            return jsonNode;
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "structuredCitationToJson", 
+                "Failed to convert citation to JSON", e);
+            
+            // Return minimal JSON as fallback
+            ObjectNode fallbackNode = OBJECT_MAPPER.createObjectNode();
+            fallbackNode.put("title", citation.getTitle() != null ? citation.getTitle() : "Unknown");
+            fallbackNode.put("error", "Failed to serialize citation: " + e.getMessage());
+            return fallbackNode;
+        }
     }
 }

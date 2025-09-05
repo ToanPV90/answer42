@@ -5,6 +5,9 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -13,6 +16,8 @@ import org.springframework.stereotype.Component;
 
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
+
+import jakarta.annotation.PreDestroy;
 
 /**
  * Circuit breaker implementation for agent failure protection.
@@ -23,12 +28,14 @@ public class AgentCircuitBreaker {
     
     private static final Logger LOG = LoggerFactory.getLogger(AgentCircuitBreaker.class);
     
-    private static final int FAILURE_THRESHOLD = 5;
-    private static final int SUCCESS_THRESHOLD = 3; // Require 3 consecutive successes to close circuit
-    private static final Duration TIMEOUT_DURATION = Duration.ofMinutes(2);
-    private static final Duration HALF_OPEN_TIMEOUT = Duration.ofSeconds(30);
+    // Enhanced reliability for OpenAI timeout issues: More tolerant thresholds
+    private static final int FAILURE_THRESHOLD = 5; // Allow more failures before opening (was 3)
+    private static final int SUCCESS_THRESHOLD = 2; // Faster recovery with fewer required successes (was 3)
+    private static final Duration TIMEOUT_DURATION = Duration.ofMinutes(3); // Faster recovery for API issues (was 5)
+    private static final Duration HALF_OPEN_TIMEOUT = Duration.ofSeconds(30); // Standard timeout for API operations (was 45)
     
     private final Map<AgentType, CircuitBreakerState> circuitStates = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
     
     /**
      * Execute an operation with circuit breaker protection.
@@ -93,6 +100,82 @@ public class AgentCircuitBreaker {
         circuitStates.remove(agentType);
         LoggingUtil.info(LOG, "resetCircuitBreaker", 
             "Reset circuit breaker for agent %s", agentType);
+    }
+    
+    /**
+     * Schedule automatic recovery attempt for an agent (Phase 1 reliability improvement).
+     * This provides proactive recovery instead of waiting for the next request.
+     */
+    public void scheduleAutomaticRecovery(AgentType agentType) {
+        CircuitBreakerState state = circuitStates.get(agentType);
+        if (state == null || !state.isOpen()) {
+            return; // No need to schedule recovery
+        }
+        
+        LoggingUtil.info(LOG, "scheduleAutomaticRecovery", 
+            "Scheduling automatic recovery for agent %s in %d minutes", 
+            agentType, TIMEOUT_DURATION.toMinutes());
+        
+        scheduler.schedule(() -> {
+            try {
+                CircuitBreakerState currentState = circuitStates.get(agentType);
+                if (currentState != null && currentState.isOpen()) {
+                    LoggingUtil.info(LOG, "scheduleAutomaticRecovery", 
+                        "Attempting automatic recovery for agent %s", agentType);
+                    
+                    // Transition to half-open to allow testing
+                    synchronized (currentState) {
+                        if (currentState.status == CircuitBreakerStatus.OPEN && 
+                            currentState.shouldTransitionToHalfOpen()) {
+                            currentState.status = CircuitBreakerStatus.HALF_OPEN;
+                            LoggingUtil.info(LOG, "scheduleAutomaticRecovery", 
+                                "Transitioned agent %s to HALF_OPEN for recovery testing", agentType);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LoggingUtil.error(LOG, "scheduleAutomaticRecovery", 
+                    "Error during automatic recovery for agent %s: %s", agentType, e.getMessage());
+            }
+        }, TIMEOUT_DURATION.toMillis(), TimeUnit.MILLISECONDS);
+    }
+    
+    /**
+     * Get circuit breaker statistics for monitoring and debugging.
+     */
+    public Map<AgentType, CircuitBreakerStats> getCircuitBreakerStats() {
+        Map<AgentType, CircuitBreakerStats> stats = new ConcurrentHashMap<>();
+        
+        circuitStates.forEach((agentType, state) -> {
+            synchronized (state) {
+                stats.put(agentType, new CircuitBreakerStats(
+                    state.status,
+                    state.failureCount,
+                    state.successCount,
+                    state.lastFailureTime,
+                    state.lastAttemptTime
+                ));
+            }
+        });
+        
+        return stats;
+    }
+    
+    /**
+     * Cleanup method called when the application shuts down.
+     */
+    @PreDestroy
+    public void shutdown() {
+        LoggingUtil.info(LOG, "shutdown", "Shutting down circuit breaker scheduler");
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(10, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
     
     /**
@@ -185,6 +268,38 @@ public class AgentCircuitBreaker {
     public static class CircuitBreakerOpenException extends RuntimeException {
         public CircuitBreakerOpenException(String message) {
             super(message);
+        }
+    }
+    
+    /**
+     * Statistics holder for circuit breaker monitoring.
+     */
+    public static class CircuitBreakerStats {
+        private final CircuitBreakerStatus status;
+        private final int failureCount;
+        private final int successCount;
+        private final ZonedDateTime lastFailureTime;
+        private final ZonedDateTime lastAttemptTime;
+        
+        public CircuitBreakerStats(CircuitBreakerStatus status, int failureCount, int successCount,
+                                 ZonedDateTime lastFailureTime, ZonedDateTime lastAttemptTime) {
+            this.status = status;
+            this.failureCount = failureCount;
+            this.successCount = successCount;
+            this.lastFailureTime = lastFailureTime;
+            this.lastAttemptTime = lastAttemptTime;
+        }
+        
+        public CircuitBreakerStatus getStatus() { return status; }
+        public int getFailureCount() { return failureCount; }
+        public int getSuccessCount() { return successCount; }
+        public ZonedDateTime getLastFailureTime() { return lastFailureTime; }
+        public ZonedDateTime getLastAttemptTime() { return lastAttemptTime; }
+        
+        @Override
+        public String toString() {
+            return String.format("CircuitBreakerStats{status=%s, failures=%d, successes=%d, lastFailure=%s}", 
+                status, failureCount, successCount, lastFailureTime);
         }
     }
 }

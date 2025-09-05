@@ -20,8 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.service.PaperService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -115,9 +115,9 @@ public class PapersViewHelper {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         // Define columns with optimized widths to fit container
-        // Actions column - compact
+        // Actions column - let CSS control the width
         grid.addColumn(actionsRenderer)
-                .setHeader("Actions").setAutoWidth(false).setWidth("120px").setFlexGrow(0);
+                .setHeader("Actions").setAutoWidth(false).setWidth("200px").setFlexGrow(0);
         
         // Title - allow to grow more
         grid.addColumn(Paper::getTitle).setHeader("Title").setAutoWidth(false).setFlexGrow(3);

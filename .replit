@@ -14,8 +14,67 @@ run = ["sh", "-c", "mvn clean package -DskipTests && java -jar target/*.jar"]
 MAVEN_OPTS = "-Xmx2g -XX:+UseG1GC"
 JAVA_TOOL_OPTIONS = "-Dfile.encoding=UTF-8"
 
-# Optional: Add build command
+# Answer42 Application Configuration
+# Note: For production, set these in Replit Secrets instead of here
+# Database Configuration (Replit environment)
+DATABASE_URL = "jdbc:postgresql://localhost:5432/answer42?sslmode=disable"
+DATABASE_USERNAME = "postgres"
+DATABASE_PASSWORD = "postgres"
+
+# Performance Settings (Replit optimized)
+HIKARI_MAXIMUM_POOL_SIZE = "5"
+HIKARI_MINIMUM_IDLE = "2"
+HIKARI_CONNECTION_TIMEOUT = "30000"
+HIKARI_IDLE_TIMEOUT = "600000"
+HIKARI_MAX_LIFETIME = "1800000"
+
+# Thread Pool Settings (Replit resource constraints)
+TASK_EXECUTION_CORE_SIZE = "2"
+TASK_EXECUTION_MAX_SIZE = "10"
+TASK_EXECUTION_QUEUE_CAPACITY = "25"
+
+# File Upload Limits (Replit constraints)
+MAX_FILE_SIZE = "25MB"
+MAX_REQUEST_SIZE = "30MB"
+LARGE_FILE_THRESHOLD = "26214400"
+
+# Logging (Replit friendly)
+LOGGING_LEVEL_ROOT = "INFO"
+LOGGING_LEVEL_COM_SAMJDTECHNOLOGIES = "INFO"
+LOGGING_LEVEL_SQL = "WARN"
+
+# JPA Settings (Replit environment)
+JPA_SHOW_SQL = "false"
+JPA_FORMAT_SQL = "false"
+HIBERNATE_DDL_AUTO = "update"
+
+# Vaadin Settings (Replit deployment)
+VAADIN_PRODUCTION_MODE = "false"
+VAADIN_CLOSE_IDLE_SESSIONS = "true"
+VAADIN_HEARTBEAT_INTERVAL = "300"
+VAADIN_LAUNCH_BROWSER = "false"
+
+# Discovery Configuration (Conservative for Replit)
+DISCOVERY_ENABLED = "true"
+DISCOVERY_MAX_PAPERS_PER_SOURCE = "25"
+DISCOVERY_CACHE_DURATION_HOURS = "12"
+DISCOVERY_RATE_LIMIT_ENABLED = "true"
+DISCOVERY_RATE_LIMIT_CROSSREF_REQUESTS_PER_SECOND = "20"
+DISCOVERY_RATE_LIMIT_SEMANTIC_SCHOLAR_REQUESTS_PER_MINUTE = "50"
+DISCOVERY_RATE_LIMIT_PERPLEXITY_REQUESTS_PER_MINUTE = "5"
+
+# Monitoring (Replit optimized)
+MANAGEMENT_METRICS_EXPORT_ENABLED = "true"
+MANAGEMENT_METRICS_EXPORT_STEP = "PT10M"
+MANAGEMENT_HEALTH_SHOW_DETAILS = "when-authorized"
+
+# Spring Profile
+SPRING_PROFILES_ACTIVE = "replit"
+
+# Server Configuration
+SERVER_PORT = "8080"
+SERVER_SSL_ENABLED = "false"
+
 [[ports]]
 localPort = 8080
 externalPort = 80
-

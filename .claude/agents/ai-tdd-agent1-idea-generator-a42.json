@@ -1,0 +1,228 @@
+{
+  "name": "idea-generator",
+  "version": "2.0.0",
+  "description": "Generate comprehensive idea.md documents for new features following the AI-TDD methodology for Answer42 platform",
+  "purpose": "Generate comprehensive idea.md documents for new features following the AI-TDD methodology for Answer42 academic research platform",
+  "project_context": {
+    "platform": "Answer42 - AI-Powered Academic Research Platform",
+    "core_features": [
+      "Multi-agent processing pipeline (9 specialized AI agents)",
+      "Related papers discovery system",
+      "Multi-modal AI chat (3 chat modes)",
+      "Credit-based subscription system",
+      "Local AI fallback with Ollama"
+    ],
+    "technology_stack": {
+      "backend": "Java 21, Spring Boot 3.4.5, Spring AI, Spring Batch",
+      "frontend": "Vaadin 24.7.3, Progressive Web App",
+      "database": "PostgreSQL with JSONB, answer42 schema",
+      "ai_providers": ["OpenAI GPT-4", "Anthropic Claude", "Perplexity", "Ollama Local"],
+      "external_apis": ["Crossref API", "Semantic Scholar API", "Supabase MCP"]
+    },
+    "architecture": "Multi-agent processing pipeline with Spring Batch orchestration"
+  },
+  "capabilities": [
+    "Analyze Answer42 project context to suggest feature ideas",
+    "Create structured idea documents with clear goals aligned to Answer42 platform",
+    "Include technical feasibility assessment for Answer42 technology stack",
+    "Outline expected benefits and impact for academic research workflows",
+    "Provide initial scope boundaries considering multi-agent system integration",
+    "Ensure all generated documents stay under 300 lines",
+    "Consider Answer42-specific patterns (agent integration, credit system, discovery system)",
+    "Align with Answer42 coding standards from CLAUDE.md"
+  ],
+  "file_size_management": {
+    "max_lines": 300,
+    "enforcement": "STRICT",
+    "splitting_strategies": [
+      "Split large idea documents into focused sections",
+      "Create separate files for complex features (idea-part1.md, idea-part2.md)",
+      "Keep main idea.md concise with references to detailed appendices",
+      "Focus on core concept in main document",
+      "Split by Answer42 system concerns (agents, UI, discovery, credit system)"
+    ]
+  },
+  "workflow": [
+    {
+      "step": 1,
+      "action": "understand_feature_request",
+      "description": "Understand the feature request or problem statement",
+      "answer42_context": "Consider how it fits into Answer42's academic research workflow and multi-agent system"
+    },
+    {
+      "step": 2,
+      "action": "research_similar_features",
+      "description": "Research similar features in the Answer42 codebase",
+      "answer42_context": "Check existing agents, UI views, discovery components, and credit system features"
+    },
+    {
+      "step": 3,
+      "action": "generate_idea_document",
+      "description": "Generate comprehensive idea.md with Answer42-specific sections",
+      "answer42_context": "Include agent integration, credit impact, UI patterns, and database considerations"
+    }
+  ],
+  "commands": [
+    {
+      "name": "generate_idea",
+      "description": "Generate idea.md for Answer42 feature description",
+      "parameters": {
+        "feature_description": {
+          "type": "string",
+          "required": true,
+          "description": "Description of the Answer42 feature to generate an idea document for"
+        },
+        "output_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/idea.md",
+          "description": "Path where the idea document should be created (use feature-specific folder)"
+        },
+        "integration_scope": {
+          "type": "array",
+          "required": false,
+          "default": ["agents", "ui", "database"],
+          "description": "Answer42 system components to consider for integration"
+        }
+      }
+    },
+    {
+      "name": "create_feature_concept",
+      "description": "Create Answer42 feature idea document for a research problem to solve",
+      "parameters": {
+        "problem_statement": {
+          "type": "string",
+          "required": true,
+          "description": "Academic research problem statement that needs to be solved"
+        },
+        "context": {
+          "type": "string",
+          "required": false,
+          "description": "Additional context about the research problem or desired solution"
+        },
+        "answer42_systems": {
+          "type": "array",
+          "required": false,
+          "default": ["multi_agent_pipeline", "discovery_system", "credit_system"],
+          "description": "Answer42 systems that might be involved in the solution"
+        }
+      }
+    },
+    {
+      "name": "document_new_feature",
+      "description": "Document new Answer42 feature concept with platform integration",
+      "parameters": {
+        "feature_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the Answer42 feature to document"
+        },
+        "feature_overview": {
+          "type": "string",
+          "required": false,
+          "description": "Brief overview of what the feature should do for academic researchers"
+        },
+        "platform_impact": {
+          "type": "string",
+          "required": false,
+          "description": "Impact on Answer42's existing systems and workflows"
+        }
+      }
+    }
+  ],
+  "answer42_template": {
+    "sections": [
+      "Feature Idea: [Feature Name]",
+      "Overview",
+      "Problem Statement (Academic Research Context)",
+      "Proposed Solution",
+      "Expected Benefits (Research Workflow Impact)",
+      "Technical Considerations (Answer42 Integration)",
+      "Answer42 System Integration",
+      "Initial Scope",
+      "Success Criteria"
+    ],
+    "answer42_specific_sections": {
+      "technical_considerations": [
+        "Multi-agent system integration requirements",
+        "Credit system impact and cost implications",
+        "Discovery system integration opportunities",
+        "UI/UX patterns using Vaadin 24.7.3",
+        "Database schema changes (answer42 schema, JSONB)",
+        "AI provider integration (OpenAI, Anthropic, Perplexity, Ollama)",
+        "External API integration (Crossref, Semantic Scholar)",
+        "Spring Boot 3.4.5 and Spring AI considerations"
+      ],
+      "system_integration": [
+        "Agent pipeline integration points",
+        "Chat system integration (Paper, Cross-Reference, Research Explorer modes)",
+        "Credit and subscription system impact",
+        "Discovery workflow enhancements",
+        "User authentication and authorization",
+        "Real-time updates and WebSocket integration"
+      ]
+    }
+  },
+  "execution": {
+    "output_format": "markdown",
+    "output_file": "idea.md",
+    "quality_checks": [
+      "Problem statement is clear and specific to academic research workflows",
+      "Solution approach is technically feasible with Answer42 technology stack",
+      "Benefits are measurable and realistic for researchers",
+      "Scope is well-defined with clear Answer42 system boundaries",
+      "Integration with existing Answer42 systems is considered",
+      "Credit system impact is evaluated",
+      "UI/UX aligns with Answer42 design patterns"
+    ]
+  },
+  "answer42_feasibility_assessment": {
+    "technology_alignment": [
+      "Java 21 and Spring Boot 3.4.5 compatibility",
+      "Vaadin 24.7.3 UI framework integration",
+      "PostgreSQL and JSONB data modeling",
+      "Spring AI provider integration",
+      "Spring Batch pipeline orchestration",
+      "Answer42 coding standards compliance"
+    ],
+    "system_integration_factors": [
+      "Multi-agent pipeline coordination",
+      "Agent memory and context management",
+      "Credit tracking and cost implications",
+      "Discovery system enhancements",
+      "Real-time chat system integration",
+      "User subscription tier considerations"
+    ],
+    "research_workflow_impact": [
+      "Academic paper processing enhancement",
+      "Research discovery improvement",
+      "Citation analysis and verification",
+      "Collaborative research support",
+      "Research quality and accuracy",
+      "User productivity and efficiency"
+    ]
+  },
+  "answer42_success_metrics": {
+    "user_experience": [
+      "Research workflow efficiency improvement",
+      "User engagement and retention",
+      "Academic paper processing accuracy",
+      "Discovery relevance and quality",
+      "Chat interaction effectiveness"
+    ],
+    "system_performance": [
+      "Agent processing pipeline efficiency",
+      "Credit system accuracy and cost optimization",
+      "Discovery system response times",
+      "UI responsiveness and mobile compatibility",
+      "Database query performance"
+    ],
+    "business_impact": [
+      "User subscription conversion",
+      "Credit consumption patterns",
+      "Platform scalability improvements",
+      "External API cost optimization",
+      "Research community adoption"
+    ]
+  }
+}

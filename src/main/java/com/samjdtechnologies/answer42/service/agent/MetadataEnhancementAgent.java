@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,8 +22,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
+import com.samjdtechnologies.answer42.model.db.MetadataVerification;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
+import com.samjdtechnologies.answer42.repository.MetadataVerificationRepository;
 import com.samjdtechnologies.answer42.service.pipeline.AgentRetryPolicy;
 import com.samjdtechnologies.answer42.service.pipeline.APIRateLimiter;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -44,9 +48,13 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     private static final Pattern AUTHOR_COUNT_PATTERN = Pattern.compile("(?i)author[s]?\\s*count\\s*[:\"]?\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern CITATION_COUNT_PATTERN = Pattern.compile("(?i)citation[s]?\\s*count\\s*[:\"]?\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
     
+    private final MetadataVerificationRepository metadataVerificationRepository;
+    
     public MetadataEnhancementAgent(AIConfig aiConfig, ThreadConfig threadConfig,
-                                   AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter) {
+                                   AgentRetryPolicy retryPolicy, APIRateLimiter rateLimiter,
+                                   MetadataVerificationRepository metadataVerificationRepository) {
         super(aiConfig, threadConfig, retryPolicy, rateLimiter);
+        this.metadataVerificationRepository = metadataVerificationRepository;
     }
     
     @Override
@@ -55,6 +63,7 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     }
     
     @Override
+    @Transactional
     protected AgentResult processWithConfig(AgentTask task) {
         LoggingUtil.info(LOG, "processWithConfig", "Processing metadata enhancement for task %s", task.getId());
         
@@ -62,6 +71,7 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             // Extract task input
             JsonNode input = task.getInput();
             String paperId = input.get("paperId").asText();
+            UUID paperUuid = UUID.fromString(paperId);
             String title = input.has("title") ? input.get("title").asText() : null;
             String doi = input.has("doi") ? input.get("doi").asText() : null;
             JsonNode authors = input.has("authors") ? input.get("authors") : null;
@@ -71,9 +81,12 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             }
             
             // Execute parallel metadata enhancement from multiple sources
-            EnhancementResult enhancementResult = enhanceMetadataFromSources(paperId, title, doi, authors);
+            EnhancementResult enhancementResult = enhanceMetadataFromSources(paperUuid, title, doi, authors, task);
             
-            // Create result data
+            // Save metadata verifications to database
+            List<MetadataVerification> savedVerifications = saveMetadataVerifications(paperUuid, enhancementResult.getSources());
+            
+            // Create result data with saved verification info
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("paperId", paperId);
             resultData.put("enhancedMetadata", enhancementResult.getMetadata());
@@ -81,8 +94,28 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             resultData.put("confidence", enhancementResult.getConfidence());
             resultData.put("conflicts", enhancementResult.getConflicts());
             resultData.put("processingNotes", enhancementResult.getProcessingNotes());
+            resultData.put("verificationsStored", savedVerifications.size());
+            resultData.put("verificationIds", savedVerifications.stream()
+                .map(MetadataVerification::getId)
+                .collect(Collectors.toList()));
+            
+            LoggingUtil.info(LOG, "processWithConfig", 
+                "Successfully saved %d metadata verifications for paper %s", 
+                savedVerifications.size(), paperId);
             
             return AgentResult.success(task.getId(), resultData);
+            
+        } catch (RuntimeException e) {
+            // Let retryable exceptions (like rate limits) bubble up to retry policy
+            if (isRetryableException(e)) {
+                LoggingUtil.warn(LOG, "processWithConfig", 
+                    "Retryable exception occurred, letting retry policy handle: %s", e.getMessage());
+                throw e; // Let retry policy handle this
+            }
+            
+            // Only catch non-retryable exceptions
+            LoggingUtil.error(LOG, "processWithConfig", "Failed to enhance metadata", e);
+            return AgentResult.failure(task.getId(), "Metadata enhancement failed: " + e.getMessage());
             
         } catch (Exception e) {
             LoggingUtil.error(LOG, "processWithConfig", "Failed to enhance metadata", e);
@@ -91,9 +124,127 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     }
     
     /**
+     * Saves metadata verifications to the database.
+     */
+    private List<MetadataVerification> saveMetadataVerifications(UUID paperId, List<MetadataSource> sources) {
+        LoggingUtil.info(LOG, "saveMetadataVerifications", 
+            "Saving %d metadata verifications for paper %s", sources.size(), paperId);
+        
+        List<MetadataVerification> verifications = sources.stream()
+            .map(source -> createMetadataVerification(paperId, source))
+            .collect(Collectors.toList());
+        
+        return metadataVerificationRepository.saveAll(verifications);
+    }
+    
+    /**
+     * Creates a MetadataVerification entity from a MetadataSource.
+     */
+    private MetadataVerification createMetadataVerification(UUID paperId, MetadataSource source) {
+        try {
+            // Convert source data to JsonNode for storage
+            JsonNode metadata = objectMapper.valueToTree(source.getData());
+            
+            // Extract matching information from source data
+            String matchedBy = extractMatchedBy(source);
+            String identifierUsed = extractIdentifierUsed(source);
+            
+            MetadataVerification verification = new MetadataVerification(
+                paperId, 
+                source.getName(), 
+                source.getConfidence(), 
+                matchedBy,
+                identifierUsed
+            );
+            
+            verification.updateMetadata(metadata);
+            
+            LoggingUtil.debug(LOG, "createMetadataVerification", 
+                "Created verification for source %s with confidence %.2f", 
+                source.getName(), source.getConfidence());
+            
+            return verification;
+            
+        } catch (Exception e) {
+            LoggingUtil.error(LOG, "createMetadataVerification", 
+                "Failed to create metadata verification for source %s", source.getName(), e);
+            
+            // Create basic verification without metadata
+            return new MetadataVerification(paperId, source.getName(), source.getConfidence(), "error");
+        }
+    }
+    
+    /**
+     * Extracts the matching method from source data.
+     */
+    private String extractMatchedBy(MetadataSource source) {
+        Map<String, Object> data = source.getData();
+        
+        // Check if DOI was used for matching
+        if (data.containsKey("doi") && data.get("doi") != null) {
+            return "doi";
+        }
+        
+        // Check if title was used
+        if (data.containsKey("title") && data.get("title") != null) {
+            return "title";
+        }
+        
+        // Check if author information was used
+        if (data.containsKey("authors") || data.containsKey("authorCount")) {
+            return "author_title";
+        }
+        
+        // Default matching method based on source
+        String sourceName = source.getName();
+        switch (sourceName) {
+            case "crossref":
+                return "crossref_api";
+            case "semantic_scholar":
+                return "semantic_scholar_api";
+            case "doi_resolution":
+                return "doi";
+            case "author_disambiguation":
+                return "author_orcid";
+            default:
+                return "unknown";
+        }
+    }
+    
+    /**
+     * Extracts the identifier used for matching from source data.
+     */
+    private String extractIdentifierUsed(MetadataSource source) {
+        Map<String, Object> data = source.getData();
+        
+        // Try DOI first
+        if (data.containsKey("doi") && data.get("doi") != null) {
+            return data.get("doi").toString();
+        }
+        
+        // Try Semantic Scholar ID
+        if (data.containsKey("semanticScholarId") && data.get("semanticScholarId") != null) {
+            return "S2:" + data.get("semanticScholarId").toString();
+        }
+        
+        // Try arXiv ID
+        if (data.containsKey("arxivId") && data.get("arxivId") != null) {
+            return "arXiv:" + data.get("arxivId").toString();
+        }
+        
+        // Try title as last resort
+        if (data.containsKey("title") && data.get("title") != null) {
+            String title = data.get("title").toString();
+            return "title:" + (title.length() > 50 ? title.substring(0, 50) + "..." : title);
+        }
+        
+        return null;
+    }
+    
+    /**
      * Enhances metadata using multiple external sources in parallel.
      */
-    private EnhancementResult enhanceMetadataFromSources(String paperId, String title, String doi, JsonNode authors) {
+    private EnhancementResult enhanceMetadataFromSources(UUID paperId, String title, String doi, JsonNode authors, AgentTask task) {
         LoggingUtil.info(LOG, "enhanceMetadataFromSources", "Enhancing metadata for paper %s", paperId);
         
         // Execute multiple enhancement sources in parallel using ThreadConfig executor
@@ -114,7 +265,7 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             .collect(Collectors.toList());
         
         // Synthesize results using AI
-        return synthesizeMetadataWithAI(title, doi, sources);
+        return synthesizeMetadataWithAI(title, doi, sources, task);
     }
     
     /**
@@ -236,15 +387,20 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     /**
      * Synthesizes metadata from multiple sources using OpenAI GPT-4.
      */
-    private EnhancementResult synthesizeMetadataWithAI(String title, String doi, List<MetadataSource> sources) {
+    private EnhancementResult synthesizeMetadataWithAI(String title, String doi, List<MetadataSource> sources, AgentTask task) {
         LoggingUtil.info(LOG, "synthesizeMetadataWithAI", "Synthesizing metadata from %d sources", sources.size());
         
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("title", title);
-        variables.put("doi", doi != null ? doi : "Not available");
-        variables.put("sources", sources.stream()
+        // Clean inputs to avoid template parsing issues
+        String cleanTitle = cleanContentForTemplate(title);
+        String cleanDoi = cleanContentForTemplate(doi != null ? doi : "Not available");
+        String cleanSources = cleanContentForTemplate(sources.stream()
             .map(MetadataSource::getDetailedDescription)
             .collect(Collectors.joining("\n\n")));
+        
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("title", cleanTitle);
+        variables.put("doi", cleanDoi);
+        variables.put("sources", cleanSources);
         
         String synthesisPrompt = """
             Synthesize the following metadata from multiple sources into a coherent, authoritative record.
@@ -256,35 +412,38 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             Metadata Sources:
             {sources}
             
-            Return a JSON object with the following structure:
-            {
-              "title": "synthesized title",
-              "doi": "synthesized doi",
-              "year": "publication year",
-              "journal": "journal name",
-              "publisher": "publisher name",
-              "volume": "volume number",
-              "issue": "issue number",
-              "pages": "page range",
-              "authors": ["author1", "author2"],
-              "citationCount": number,
-              "publicationType": "journal-article",
-              "confidence": {
-                "title": 0.95,
-                "doi": 0.98,
-                "year": 0.90,
-                "journal": 0.85,
-                "overall": 0.92
-              },
-              "conflicts": ["list of any conflicts found"],
-              "sources": ["list of sources used"]
-            }
+            Return a JSON object with these fields:
+            - title: the synthesized paper title
+            - doi: the synthesized DOI
+            - year: publication year as number
+            - journal: journal name
+            - publisher: publisher name
+            - volume: volume number
+            - issue: issue number
+            - pages: page range
+            - authors: array of author names
+            - citationCount: number of citations
+            - publicationType: type of publication
+            - confidence: object with title, doi, year, journal, and overall confidence scores
+            - conflicts: array of any conflicts found
+            - sources: array of sources used
             
             Ensure all numeric values are properly formatted and all text fields are cleaned.
+            Return only valid JSON without any additional text or formatting.
             """;
         
         Prompt prompt = optimizePromptForOpenAI(synthesisPrompt, variables);
-        ChatResponse response = executePrompt(prompt);
+        
+        // Do NOT catch exceptions here - let them propagate to trigger circuit breaker
+        ChatResponse response;
+        try {
+            response = executePrompt(prompt);
+        } catch (Exception e) {
+            // Log the error but re-throw to ensure circuit breaker sees the failure
+            LoggingUtil.error(LOG, "synthesizeMetadataWithAI", 
+                "AI provider failed for metadata synthesis: %s", e.getMessage());
+            throw new RuntimeException("AI provider communication failed: " + e.getMessage(), e);
+        }
         
         String aiResponse = response.getResult().getOutput().toString();
         
@@ -670,7 +829,9 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
     /**
      * Data class for metadata sources.
      */
-    public static class MetadataSource {
+    public static class MetadataSource implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
+        
         private final String name;
         private final Map<String, Object> data;
         private final double confidence;
@@ -733,5 +894,24 @@ public class MetadataEnhancementAgent extends OpenAIBasedAgent {
             
             public EnhancementResult build() { return new EnhancementResult(this); }
         }
+    }
+    
+    /**
+     * Clean content to avoid template parsing issues with special characters.
+     */
+    private String cleanContentForTemplate(String content) {
+        if (content == null) {
+            return "";
+        }
+        
+        // Remove or escape characters that might cause template parsing issues
+        return content
+            .replace("\\", "\\\\")  // Escape backslashes
+            .replace("\"", "\\\"")  // Escape quotes
+            .replace("\n", " ")     // Replace newlines with spaces
+            .replace("\r", " ")     // Replace carriage returns with spaces
+            .replace("\t", " ")     // Replace tabs with spaces
+            .replaceAll("\\s+", " ") // Normalize whitespace
+            .trim();
     }
 }

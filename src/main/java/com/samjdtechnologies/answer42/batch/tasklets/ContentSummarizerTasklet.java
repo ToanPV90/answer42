@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.service.agent.ContentSummarizerAgent;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 

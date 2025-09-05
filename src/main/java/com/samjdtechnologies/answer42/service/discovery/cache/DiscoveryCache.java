@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.model.cache.CacheStats;
 import com.samjdtechnologies.answer42.model.cache.CachedDiscoveryResult;
-import com.samjdtechnologies.answer42.model.daos.AgentMemoryStore;
+import com.samjdtechnologies.answer42.model.db.AgentMemoryStore;
 import com.samjdtechnologies.answer42.model.discovery.RelatedPaperDiscoveryResult;
 import com.samjdtechnologies.answer42.repository.AgentMemoryStoreRepository;
 import com.samjdtechnologies.answer42.util.LoggingUtil;

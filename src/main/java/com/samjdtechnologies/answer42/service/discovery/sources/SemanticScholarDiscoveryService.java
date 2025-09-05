@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.samjdtechnologies.answer42.config.ThreadConfig;
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaperResult;
 import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.model.enums.DiscoverySource;
 import com.samjdtechnologies.answer42.service.helpers.SemanticScholarApiHelper;
@@ -38,25 +38,25 @@ public class SemanticScholarDiscoveryService {
     /**
      * Discover related papers using Semantic Scholar API with comprehensive discovery strategies.
      */
-    public List<DiscoveredPaper> discoverRelatedPapers(Paper sourcePaper, DiscoveryConfiguration config) {
+    public List<DiscoveredPaperResult> discoverRelatedPapers(Paper sourcePaper, DiscoveryConfiguration config) {
         LoggingUtil.info(LOG, "discoverRelatedPapers", 
             "Starting Semantic Scholar discovery for paper %s", sourcePaper.getId());
 
         Instant startTime = Instant.now();
-        List<DiscoveredPaper> allDiscovered = new ArrayList<>();
+        List<DiscoveredPaperResult> allDiscovered = new ArrayList<>();
 
         try {
             // Execute multiple discovery strategies in parallel
-            CompletableFuture<List<DiscoveredPaper>> semanticSimilarityFuture = 
+            CompletableFuture<List<DiscoveredPaperResult>> semanticSimilarityFuture = 
                 discoverSemanticSimilarityAsync(sourcePaper, config);
             
-            CompletableFuture<List<DiscoveredPaper>> citationNetworkFuture = 
+            CompletableFuture<List<DiscoveredPaperResult>> citationNetworkFuture = 
                 discoverCitationNetworkAsync(sourcePaper, config);
 
-            CompletableFuture<List<DiscoveredPaper>> authorNetworkFuture = 
+            CompletableFuture<List<DiscoveredPaperResult>> authorNetworkFuture = 
                 discoverAuthorNetworkAsync(sourcePaper, config);
 
-            CompletableFuture<List<DiscoveredPaper>> recommendationsFuture = 
+            CompletableFuture<List<DiscoveredPaperResult>> recommendationsFuture = 
                 discoverRecommendationsAsync(sourcePaper, config);
 
             // Wait for all discovery operations with timeout
@@ -94,17 +94,17 @@ public class SemanticScholarDiscoveryService {
     /**
      * Discover papers through semantic similarity analysis.
      */
-    private CompletableFuture<List<DiscoveredPaper>> discoverSemanticSimilarityAsync(
+    private CompletableFuture<List<DiscoveredPaperResult>> discoverSemanticSimilarityAsync(
             Paper sourcePaper, DiscoveryConfiguration config) {
         
         return CompletableFuture.supplyAsync(() -> {
-            List<DiscoveredPaper> similarPapers = new ArrayList<>();
+            List<DiscoveredPaperResult> similarPapers = new ArrayList<>();
 
             try {
                 int maxResults = config.getMaxPapersForSource(DiscoverySource.SEMANTIC_SCHOLAR) / 4;
                 
                 // Search by title for semantic similarity
-                List<DiscoveredPaper> titleSearch = apiHelper.searchByTitle(
+                List<DiscoveredPaperResult> titleSearch = apiHelper.searchByTitle(
                     sourcePaper.getTitle(), config, maxResults);
                 similarPapers.addAll(titleSearch);
 
@@ -123,28 +123,28 @@ public class SemanticScholarDiscoveryService {
     /**
      * Discover papers through citation network analysis.
      */
-    private CompletableFuture<List<DiscoveredPaper>> discoverCitationNetworkAsync(
+    private CompletableFuture<List<DiscoveredPaperResult>> discoverCitationNetworkAsync(
             Paper sourcePaper, DiscoveryConfiguration config) {
         
         return CompletableFuture.supplyAsync(() -> {
-            List<DiscoveredPaper> citationPapers = new ArrayList<>();
+            List<DiscoveredPaperResult> citationPapers = new ArrayList<>();
 
             try {
                 // Only proceed if we have a DOI to work with
                 if (sourcePaper.getDoi() != null && !sourcePaper.getDoi().trim().isEmpty()) {
                     // Try to get the paper from Semantic Scholar by DOI first
-                    DiscoveredPaper semanticScholarPaper = apiHelper.getPaperByDoi(sourcePaper.getDoi(), config);
+                    DiscoveredPaperResult semanticScholarPaper = apiHelper.getPaperByDoi(sourcePaper.getDoi(), config);
                     
                     if (semanticScholarPaper != null && semanticScholarPaper.getId() != null) {
                         int maxResults = config.getMaxPapersForSource(DiscoverySource.SEMANTIC_SCHOLAR) / 8;
                         
                         // Get papers that cite this one
-                        List<DiscoveredPaper> citations = apiHelper.getPaperCitations(
+                        List<DiscoveredPaperResult> citations = apiHelper.getPaperCitations(
                             semanticScholarPaper.getId(), config, maxResults);
                         citationPapers.addAll(citations);
 
                         // Get papers that this one cites
-                        List<DiscoveredPaper> references = apiHelper.getPaperReferences(
+                        List<DiscoveredPaperResult> references = apiHelper.getPaperReferences(
                             semanticScholarPaper.getId(), config, maxResults);
                         citationPapers.addAll(references);
                     }
@@ -165,11 +165,11 @@ public class SemanticScholarDiscoveryService {
     /**
      * Discover papers through author network analysis.
      */
-    private CompletableFuture<List<DiscoveredPaper>> discoverAuthorNetworkAsync(
+    private CompletableFuture<List<DiscoveredPaperResult>> discoverAuthorNetworkAsync(
             Paper sourcePaper, DiscoveryConfiguration config) {
         
         return CompletableFuture.supplyAsync(() -> {
-            List<DiscoveredPaper> authorPapers = new ArrayList<>();
+            List<DiscoveredPaperResult> authorPapers = new ArrayList<>();
 
             try {
                 if (sourcePaper.getAuthors() != null && !sourcePaper.getAuthors().isEmpty()) {
@@ -177,14 +177,14 @@ public class SemanticScholarDiscoveryService {
                     
                     // Get papers by the first author (typically the primary researcher)
                     String firstAuthor = sourcePaper.getAuthors().get(0);
-                    List<DiscoveredPaper> firstAuthorPapers = apiHelper.findPapersByAuthor(
+                    List<DiscoveredPaperResult> firstAuthorPapers = apiHelper.findPapersByAuthor(
                         firstAuthor, config, maxResults);
                     authorPapers.addAll(firstAuthorPapers);
 
                     // If there's a second author, get some of their papers too
                     if (sourcePaper.getAuthors().size() > 1) {
                         String secondAuthor = sourcePaper.getAuthors().get(1);
-                        List<DiscoveredPaper> secondAuthorPapers = apiHelper.findPapersByAuthor(
+                        List<DiscoveredPaperResult> secondAuthorPapers = apiHelper.findPapersByAuthor(
                             secondAuthor, config, maxResults / 2);
                         authorPapers.addAll(secondAuthorPapers);
                     }
@@ -205,23 +205,23 @@ public class SemanticScholarDiscoveryService {
     /**
      * Discover papers through Semantic Scholar recommendations.
      */
-    private CompletableFuture<List<DiscoveredPaper>> discoverRecommendationsAsync(
+    private CompletableFuture<List<DiscoveredPaperResult>> discoverRecommendationsAsync(
             Paper sourcePaper, DiscoveryConfiguration config) {
         
         return CompletableFuture.supplyAsync(() -> {
-            List<DiscoveredPaper> recommendations = new ArrayList<>();
+            List<DiscoveredPaperResult> recommendations = new ArrayList<>();
 
             try {
                 // Only proceed if we have a DOI to work with
                 if (sourcePaper.getDoi() != null && !sourcePaper.getDoi().trim().isEmpty()) {
                     // Try to get the paper from Semantic Scholar by DOI first
-                    DiscoveredPaper semanticScholarPaper = apiHelper.getPaperByDoi(sourcePaper.getDoi(), config);
+                    DiscoveredPaperResult semanticScholarPaper = apiHelper.getPaperByDoi(sourcePaper.getDoi(), config);
                     
                     if (semanticScholarPaper != null && semanticScholarPaper.getId() != null) {
                         int maxResults = config.getMaxPapersForSource(DiscoverySource.SEMANTIC_SCHOLAR) / 4;
                         
                         // Get Semantic Scholar recommendations
-                        List<DiscoveredPaper> recs = apiHelper.getPaperRecommendations(
+                        List<DiscoveredPaperResult> recs = apiHelper.getPaperRecommendations(
                             semanticScholarPaper.getId(), config, maxResults);
                         recommendations.addAll(recs);
                     }
@@ -242,13 +242,13 @@ public class SemanticScholarDiscoveryService {
     /**
      * Remove duplicate papers based on DOI or title similarity.
      */
-    private List<DiscoveredPaper> removeDuplicates(List<DiscoveredPaper> papers) {
-        List<DiscoveredPaper> uniquePapers = new ArrayList<>();
+    private List<DiscoveredPaperResult> removeDuplicates(List<DiscoveredPaperResult> papers) {
+        List<DiscoveredPaperResult> uniquePapers = new ArrayList<>();
         
-        for (DiscoveredPaper paper : papers) {
+        for (DiscoveredPaperResult paper : papers) {
             boolean isDuplicate = false;
             
-            for (DiscoveredPaper existing : uniquePapers) {
+            for (DiscoveredPaperResult existing : uniquePapers) {
                 // Check for DOI match
                 if (paper.getDoi() != null && existing.getDoi() != null && 
                     paper.getDoi().equalsIgnoreCase(existing.getDoi())) {

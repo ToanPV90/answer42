@@ -1,0 +1,422 @@
+{
+  "name": "plan-creator",
+  "version": "2.0.0",
+  "description": "Transform design.md documents into detailed, actionable implementation plans following the AI-TDD methodology for Answer42 platform",
+  "purpose": "Transform design.md documents into detailed, actionable implementation plans following the AI-TDD methodology for Answer42 academic research platform",
+  "project_context": {
+    "platform": "Answer42 - AI-Powered Academic Research Platform",
+    "core_features": [
+      "Multi-agent processing pipeline (9 specialized AI agents)",
+      "Related papers discovery system",
+      "Multi-modal AI chat (3 chat modes)",
+      "Credit-based subscription system",
+      "Local AI fallback with Ollama"
+    ],
+    "technology_stack": {
+      "backend": "Java 21, Spring Boot 3.4.5, Spring AI, Spring Batch",
+      "frontend": "Vaadin 24.7.3, Progressive Web App",
+      "database": "PostgreSQL with JSONB, answer42 schema",
+      "ai_providers": ["OpenAI GPT-4", "Anthropic Claude", "Perplexity", "Ollama Local"],
+      "external_apis": ["Crossref API", "Semantic Scholar API", "Supabase MCP"]
+    },
+    "architecture": "Multi-agent processing pipeline with Spring Batch orchestration"
+  },
+  "capabilities": [
+    "Parse technical design specifications for Answer42 features",
+    "Create numbered, sequential implementation steps for Answer42 development",
+    "Define clear task boundaries aligned with Answer42 coding standards",
+    "Assign effort estimates for Answer42 development patterns",
+    "Include verification criteria for Answer42 quality gates",
+    "Track implementation progress for Answer42 features",
+    "Plan Answer42 multi-agent system integration",
+    "Schedule credit system integration tasks",
+    "Plan discovery system enhancement tasks",
+    "Ensure all generated documents stay under 300 lines"
+  ],
+  "file_size_management": {
+    "max_lines": 300,
+    "enforcement": "STRICT",
+    "splitting_strategies": [
+      "Split large plans into phases (plan-phase1.md, plan-phase2.md, plan-phase3.md)",
+      "Create separate files for different implementation phases",
+      "Keep main plan.md concise with references to detailed phase documents",
+      "Focus on overview and current phase in main document",
+      "Split by Answer42 system implementation (agents, UI, discovery, credit, database)"
+    ],
+    "document_organization": [
+      "Overview & Current Phase -> plan.md",
+      "Phase 1: Foundation -> plan-phase1.md",
+      "Phase 2: Integration -> plan-phase2.md",
+      "Phase 3: Testing & Deployment -> plan-phase3.md",
+      "Answer42 Quality Gates -> plan-quality.md",
+      "Always maintain main plan.md as coordination hub"
+    ]
+  },
+  "workflow": [
+    {
+      "step": 1,
+      "action": "analyze_design_document",
+      "description": "Analyze design.md for Answer42 components and dependencies",
+      "answer42_context": "Focus on multi-agent integration, credit system impact, discovery enhancements, and UI components"
+    },
+    {
+      "step": 2,
+      "action": "break_down_tasks",
+      "description": "Break down implementation into Answer42-specific atomic tasks",
+      "answer42_context": "Consider Answer42 patterns: AbstractConfigurableAgent, LoggingUtil, UIConstants, credit tracking"
+    },
+    {
+      "step": 3,
+      "action": "order_by_dependencies",
+      "description": "Order tasks by Answer42 system dependencies and logical flow",
+      "answer42_context": "Database schema first, then services, agents, UI components, and integration testing"
+    },
+    {
+      "step": 4,
+      "action": "add_verification_steps",
+      "description": "Add Answer42 verification steps after each implementation",
+      "answer42_context": "Include Answer42 quality gates: checkstyle, PMD, SpotBugs, LoggingUtil verification"
+    },
+    {
+      "step": 5,
+      "action": "generate_implementation_plan",
+      "description": "Generate comprehensive plan.md with Answer42-specific status tracking"
+    }
+  ],
+  "commands": [
+    {
+      "name": "create_implementation_plan",
+      "description": "Create Answer42 implementation plan from design",
+      "parameters": {
+        "design_file": {
+          "type": "string",
+          "required": true,
+          "default": "./ai-tdd-docs/[feature-name]/design.md",
+          "description": "Path to the design.md file to transform (in feature-specific folder)"
+        },
+        "output_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/plan.md",
+          "description": "Path where the plan document should be created (in feature-specific folder)"
+        },
+        "answer42_integration": {
+          "type": "array",
+          "required": false,
+          "default": ["agents", "discovery", "credit", "chat", "ui"],
+          "description": "Answer42 systems to include in implementation plan"
+        }
+      }
+    },
+    {
+      "name": "generate_step_by_step_plan",
+      "description": "Generate step-by-step Answer42 plan for design file",
+      "parameters": {
+        "design_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to the design file to process"
+        },
+        "team_size": {
+          "type": "integer",
+          "required": false,
+          "default": 1,
+          "description": "Number of developers working on Answer42 implementation"
+        },
+        "timeline": {
+          "type": "string",
+          "required": false,
+          "description": "Target timeline for Answer42 feature completion (e.g., '2 weeks', '1 month')"
+        },
+        "answer42_complexity": {
+          "type": "string",
+          "required": false,
+          "enum": ["low", "medium", "high"],
+          "default": "medium",
+          "description": "Answer42 system integration complexity level"
+        }
+      }
+    },
+    {
+      "name": "transform_design_to_tasks",
+      "description": "Transform Answer42 design into actionable tasks",
+      "parameters": {
+        "feature_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the Answer42 feature being planned"
+        },
+        "integration_scope": {
+          "type": "array",
+          "required": false,
+          "default": ["multi_agent_pipeline", "discovery_system", "credit_system"],
+          "description": "Answer42 systems involved in the implementation"
+        },
+        "research_impact": {
+          "type": "string",
+          "required": false,
+          "enum": ["low", "medium", "high"],
+          "default": "medium",
+          "description": "Expected impact on academic research workflows"
+        }
+      }
+    }
+  ],
+  "answer42_template": {
+    "sections": [
+      "Implementation Plan: [Feature Name]",
+      "Overview",
+      "Answer42 System Integration Summary",
+      "Pre-Implementation Checklist",
+      "Implementation Steps",
+      "Answer42 Quality Gates",
+      "Testing Phase",
+      "Post-Implementation"
+    ],
+    "step_structure": {
+      "status": "[ ] Not Started / [ ] In Progress / [ ] Complete",
+      "effort": "Estimated hours considering Answer42 patterns",
+      "description": "Detailed task description with Answer42 context",
+      "actions": "Specific action items following Answer42 standards",
+      "verification": "Answer42-specific verification criteria and tests",
+      "answer42_integration": "Integration points with Answer42 systems",
+      "cost_impact": "Credit system and cost tracking considerations"
+    },
+    "answer42_specific_sections": {
+      "system_integration_summary": [
+        "Multi-agent pipeline integration points",
+        "Credit system cost tracking requirements",
+        "Discovery system enhancement areas",
+        "Chat system integration needs",
+        "UI/UX integration with existing Answer42 views",
+        "Database schema impact (answer42 schema)"
+      ],
+      "pre_implementation_checklist": [
+        "Answer42 development environment setup",
+        "Supabase MCP access verified",
+        "AI provider API keys configured",
+        "Answer42 coding standards reviewed (CLAUDE.md)",
+        "Database schema design approved",
+        "Agent integration patterns understood",
+        "Credit system impact assessed"
+      ]
+    }
+  },
+  "execution": {
+    "input_format": "markdown",
+    "input_file": "design.md",
+    "output_format": "markdown",
+    "output_file": "plan.md",
+    "quality_checks": [
+      "All tasks are actionable and specific to Answer42 platform",
+      "Dependencies are properly sequenced for Answer42 systems",
+      "Effort estimates reflect Answer42 development patterns",
+      "Verification criteria include Answer42 quality gates",
+      "Progress tracking enables Answer42 development coordination",
+      "Integration with Answer42 systems is clearly planned",
+      "Cost tracking and credit system impact is considered"
+    ]
+  },
+  "answer42_planning_principles": {
+    "task_breakdown": [
+      "Keep tasks under 4-8 hours each for Answer42 development",
+      "Ensure tasks follow Answer42 coding patterns",
+      "Make Answer42 system dependencies explicit",
+      "Include integration points with existing Answer42 components",
+      "Consider agent coordination requirements",
+      "Plan for credit system cost tracking",
+      "Include Answer42 UI/UX pattern compliance"
+    ],
+    "verification_types": [
+      "Unit tests pass (80%+ coverage)",
+      "Answer42 quality gates pass (checkstyle, PMD, SpotBugs)",
+      "LoggingUtil usage verified",
+      "UIConstants route compliance verified",
+      "Agent integration tests pass",
+      "Credit system integration verified",
+      "Discovery system integration verified",
+      "Vaadin component tests pass"
+    ],
+    "status_tracking": [
+      "Not Started",
+      "In Progress",
+      "Complete",
+      "Blocked",
+      "Review Required",
+      "Quality Check Failed",
+      "Answer42 Integration Pending"
+    ]
+  },
+  "answer42_effort_estimation": {
+    "factors": [
+      "Answer42 code pattern complexity",
+      "Multi-agent system integration requirements",
+      "Credit system integration complexity",
+      "Discovery system enhancement scope",
+      "UI/UX component complexity (Vaadin)",
+      "Database schema changes (answer42 schema)",
+      "External API integration requirements",
+      "Testing needs (unit, integration, agent coordination)",
+      "Documentation requirements",
+      "Answer42 quality gate compliance time"
+    ],
+    "guidelines": {
+      "simple_service_method": "2-4 hours",
+      "agent_class_implementation": "6-10 hours",
+      "vaadin_view_component": "4-8 hours",
+      "database_schema_change": "3-6 hours",
+      "credit_system_integration": "4-8 hours",
+      "discovery_enhancement": "8-16 hours",
+      "external_api_integration": "6-12 hours",
+      "multi_agent_coordination": "10-20 hours",
+      "comprehensive_testing": "4-8 hours per component"
+    },
+    "answer42_complexity_multipliers": {
+      "low_complexity": "1.0x",
+      "medium_complexity": "1.5x",
+      "high_complexity": "2.0x",
+      "multi_system_integration": "2.5x"
+    }
+  },
+  "answer42_quality_gates": {
+    "development": [
+      "All unit tests pass (80%+ coverage minimum)",
+      "Answer42 coding standards compliance (CLAUDE.md)",
+      "LoggingUtil usage throughout",
+      "UIConstants for all routes",
+      "No placeholder code or TODOs",
+      "Proper dependency injection patterns",
+      "Code compiles without warnings"
+    ],
+    "integration": [
+      "Agent coordination tests pass",
+      "Credit system integration verified",
+      "Discovery system integration functional",
+      "Chat system integration working",
+      "UI component integration verified",
+      "Database integration tests pass",
+      "External API integration tests pass"
+    ],
+    "answer42_specific": [
+      "Multi-agent pipeline coordination working",
+      "Agent memory context sharing functional",
+      "Cost tracking accurate across all operations",
+      "Discovery result ranking and filtering working",
+      "Real-time UI updates functional",
+      "Progressive Web App features working",
+      "Ollama fallback integration tested"
+    ],
+    "production_readiness": [
+      "Performance benchmarks met",
+      "Security scan clean",
+      "Answer42 documentation updated",
+      "Migration scripts tested (if applicable)",
+      "Monitoring and alerting configured"
+    ]
+  },
+  "answer42_implementation_phases": {
+    "phase_1_foundation": {
+      "duration": "1-2 weeks",
+      "focus": "Core implementation foundation",
+      "tasks": [
+        "Database schema implementation (answer42 schema)",
+        "Basic service layer implementation",
+        "Core entity classes with proper JPA annotations",
+        "Repository layer with Answer42 patterns",
+        "Basic configuration and dependency injection"
+      ],
+      "deliverables": [
+        "Database tables created and tested",
+        "Basic CRUD operations functional",
+        "Unit tests for core components (80%+ coverage)",
+        "Answer42 quality gates passing"
+      ]
+    },
+    "phase_2_integration": {
+      "duration": "2-3 weeks",
+      "focus": "Answer42 system integration",
+      "tasks": [
+        "Multi-agent system integration",
+        "Credit system integration and cost tracking",
+        "Discovery system enhancements",
+        "Chat system integration (if applicable)",
+        "UI component implementation (Vaadin)",
+        "External API integration"
+      ],
+      "deliverables": [
+        "Agent coordination functional",
+        "Credit tracking accurate",
+        "Discovery enhancements working",
+        "UI components responsive and functional",
+        "Integration tests passing"
+      ]
+    },
+    "phase_3_testing_deployment": {
+      "duration": "1 week",
+      "focus": "Comprehensive testing and deployment",
+      "tasks": [
+        "End-to-end testing",
+        "Performance testing and optimization",
+        "Security testing and validation",
+        "Answer42 documentation updates",
+        "Deployment preparation and validation"
+      ],
+      "deliverables": [
+        "All tests passing (unit, integration, e2e)",
+        "Performance requirements met",
+        "Security validation complete",
+        "Documentation updated",
+        "Feature ready for production"
+      ]
+    }
+  },
+  "answer42_testing_strategy": {
+    "unit_testing": [
+      "Test all service methods with Answer42 patterns",
+      "Test agent implementations with mock AI providers",
+      "Test repository methods with TestContainers",
+      "Test UI components with Vaadin TestBench",
+      "Test credit calculation and tracking logic",
+      "Test discovery result processing and ranking"
+    ],
+    "integration_testing": [
+      "Test multi-agent pipeline coordination",
+      "Test credit system end-to-end flows",
+      "Test discovery system with external APIs",
+      "Test chat system integration",
+      "Test UI navigation and data flow",
+      "Test database transactions and rollback"
+    ],
+    "answer42_specific_testing": [
+      "Test Ollama fallback scenarios",
+      "Test agent memory context sharing",
+      "Test cost tracking accuracy",
+      "Test discovery caching mechanisms",
+      "Test real-time UI updates via WebSocket",
+      "Test Progressive Web App features"
+    ]
+  },
+  "answer42_deployment_considerations": {
+    "environment_setup": [
+      "Supabase database configuration",
+      "AI provider API key management",
+      "Ollama service setup (Docker)",
+      "External API rate limiting configuration",
+      "Answer42 application properties configuration"
+    ],
+    "monitoring": [
+      "Agent processing performance metrics",
+      "Credit usage and cost tracking",
+      "Discovery system response times",
+      "UI performance and user experience",
+      "External API usage and rate limiting"
+    ],
+    "scalability": [
+      "Multi-user concurrent access support",
+      "Large research dataset handling",
+      "Agent processing parallelization",
+      "Database query optimization",
+      "Cache management and invalidation"
+    ]
+  }
+}

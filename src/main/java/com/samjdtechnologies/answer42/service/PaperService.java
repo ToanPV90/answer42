@@ -4,21 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,9 +21,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.daos.Project;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.Project;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.model.enums.PipelineStatus;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
@@ -53,10 +46,9 @@ public class PaperService {
     
     private final PaperRepository paperRepository;
     private final ObjectMapper objectMapper;
-    private final JobLauncher jobLauncher;
-    private final Job paperProcessingJob;
     private final CreditService creditService;
     private final FileTransferService fileTransferService;
+    private final PipelineJobLauncher pipelineJobLauncher;
     
     // Configure base upload directory for papers
     private final Path uploadDir = Paths.get("uploads/papers");
@@ -67,21 +59,19 @@ public class PaperService {
      * 
      * @param paperRepository the repository for Paper entity operations
      * @param objectMapper the mapper for JSON and Java object conversion
-     * @param jobLauncher the Spring Batch job launcher for pipeline processing
-     * @param paperProcessingJob the Spring Batch job for paper processing
      * @param creditService the service for credit management and validation
+     * @param fileTransferService the service for file transfer operations
+     * @param pipelineJobLauncher the service for launching pipeline processing jobs
      */
     public PaperService(PaperRepository paperRepository, ObjectMapper objectMapper,
-                       JobLauncher jobLauncher,
-                       Job paperProcessingJob,
                        CreditService creditService,
-                       FileTransferService fileTransferService) {
+                       FileTransferService fileTransferService,
+                       PipelineJobLauncher pipelineJobLauncher) {
         this.paperRepository = paperRepository;
         this.objectMapper = objectMapper;
-        this.jobLauncher = jobLauncher;
-        this.paperProcessingJob = paperProcessingJob;
         this.creditService = creditService;
         this.fileTransferService = fileTransferService;
+        this.pipelineJobLauncher = pipelineJobLauncher;
         
         // Create upload directories if they don't exist
         try {
@@ -184,7 +174,7 @@ public class PaperService {
             }
         }
         
-        // Create paper record with initial pipeline status
+        // Create paper record with initial pipeline status - ready for user choice
         Paper paper = new Paper();
         paper.setTitle(title);
         paper.setAuthors(Arrays.asList(authors));
@@ -193,7 +183,7 @@ public class PaperService {
         paper.setFileSize(file.getSize());
         paper.setFileType(file.getContentType());
         paper.setStatus("UPLOADED");
-        paper.setProcessingStatus(PipelineStatus.PENDING.getDisplayName());
+        paper.setProcessingStatus(PipelineStatus.PENDING_USER_CHOICE.getDisplayName());
         
         // Create initial metadata
         ObjectNode metadata = objectMapper.createObjectNode();
@@ -203,17 +193,63 @@ public class PaperService {
         metadata.put("uploadTimestamp", ZonedDateTime.now().toString());
         paper.setMetadata(metadata);
         
-        // Save paper first
+        // Save paper and return - no automatic processing
         Paper savedPaper = savePaper(paper);
         
-        // Trigger multi-agent pipeline processing if available
-        if (jobLauncher != null && paperProcessingJob != null) {
-            initiateMultiAgentProcessing(savedPaper, currentUser);
-        } else {
-            LoggingUtil.warn(logger, "uploadPaper", "Spring Batch not available, skipping pipeline processing");
-        }
+        LoggingUtil.info(logger, "uploadPaper", 
+            "Paper uploaded successfully with ID: %s, status: %s, processing_status: %s", 
+            savedPaper.getId(), savedPaper.getStatus(), savedPaper.getProcessingStatus());
         
         return savedPaper;
+    }
+    
+    /**
+     * Start pipeline processing for a paper when user chooses to process it.
+     * This is the public method called from the UI when user clicks "Process with AI".
+     * 
+     * Note: @Transactional removed to avoid conflicts with Spring Batch JobRepository
+     * which manages its own transactions. The individual database operations within
+     * this method are handled by their own transactional contexts.
+     * 
+     * @param paperId The paper ID to process
+     * @param user The user who owns the paper
+     * @return true if processing was started successfully, false otherwise
+     */
+    public boolean startPipelineProcessing(UUID paperId, User user) {
+        LoggingUtil.info(logger, "startPipelineProcessing", 
+            "User %s requested pipeline processing for paper %s", user.getId(), paperId);
+        
+        // Load paper from database
+        Optional<Paper> paperOpt = paperRepository.findById(paperId);
+        if (paperOpt.isEmpty()) {
+            LoggingUtil.error(logger, "startPipelineProcessing", "Paper not found: %s", paperId);
+            return false;
+        }
+        
+        Paper paper = paperOpt.get();
+        
+        // Verify paper belongs to user
+        if (!paper.getUser().getId().equals(user.getId())) {
+            LoggingUtil.error(logger, "startPipelineProcessing", 
+                "User %s attempted to process paper %s owned by %s", 
+                user.getId(), paperId, paper.getUser().getId());
+            return false;
+        }
+        
+        // Check if paper is in the right state for processing
+        PipelineStatus currentStatus = getPipelineStatus(paperId);
+        if (!currentStatus.equals(PipelineStatus.PENDING) &&
+            !currentStatus.equals(PipelineStatus.PENDING_USER_CHOICE) && 
+            !currentStatus.equals(PipelineStatus.PENDING_CREDITS) &&
+            !currentStatus.equals(PipelineStatus.FAILED)) {
+            LoggingUtil.warn(logger, "startPipelineProcessing", 
+                "Paper %s is not in a processable state: %s", paperId, currentStatus);
+            return false;
+        }
+        
+        // Start the processing
+        initiateMultiAgentProcessing(paper, user);
+        return true;
     }
     
     /**
@@ -224,8 +260,8 @@ public class PaperService {
      */
     private void initiateMultiAgentProcessing(Paper paper, User user) {
         try {
-            // Check user credits if credit service is available (assuming 30 credits for full pipeline)
-            if (creditService != null && !creditService.hasEnoughCredits(user.getId(), 30)) {
+            // Check user credits first
+            if (creditService != null && !creditService.hasEnoughCredits(user.getId(), pipelineJobLauncher.getRequiredCredits())) {
                 LoggingUtil.warn(logger, "initiateMultiAgentProcessing", 
                     "User %s has insufficient credits for pipeline processing", user.getId());
                 
@@ -234,22 +270,22 @@ public class PaperService {
                 return;
             }
             
-            // Create Spring Batch job parameters
-            JobParameters jobParameters = new JobParametersBuilder()
-                .addString("paperId", paper.getId().toString())
-                .addString("userId", user.getId().toString())
-                .addDate("startTime", new Date())
-                .addString("processingMode", "FULL_ANALYSIS")
-                .toJobParameters();
+            // Launch pipeline processing
+            boolean launched = pipelineJobLauncher.launchPipelineProcessing(paper, user);
             
-            // Launch Spring Batch job
-            jobLauncher.run(paperProcessingJob, jobParameters);
-            
-            // Update paper status using enum
-            updatePaperPipelineStatus(paper.getId(), PipelineStatus.INITIALIZING);
-            
-            LoggingUtil.info(logger, "initiateMultiAgentProcessing", 
-                "Initiated Spring Batch pipeline processing for paper %s", paper.getId());
+            if (launched) {
+                // Update paper status using enum
+                updatePaperPipelineStatus(paper.getId(), PipelineStatus.INITIALIZING);
+                
+                LoggingUtil.info(logger, "initiateMultiAgentProcessing", 
+                    "Initiated pipeline processing for paper %s", paper.getId());
+            } else {
+                // Update paper status to indicate processing failure
+                updatePaperPipelineStatus(paper.getId(), PipelineStatus.FAILED);
+                
+                LoggingUtil.error(logger, "initiateMultiAgentProcessing", 
+                    "Failed to launch pipeline processing for paper %s", paper.getId());
+            }
                 
         } catch (Exception e) {
             LoggingUtil.error(logger, "initiateMultiAgentProcessing", 

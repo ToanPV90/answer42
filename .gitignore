@@ -4,6 +4,7 @@
 # Log files
 *.log
 tmlog*.log
+logs/
 
 # BlueJ files
 *.ctxt
@@ -81,6 +82,9 @@ pdf/
 
 # Environment variables
 .env
+
+# Uploaded files
+uploads/
 
 # OS-specific files
 .DS_Store

@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaper;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.discovery.DiscoveredPaperResult;
 import com.samjdtechnologies.answer42.model.discovery.DiscoveryConfiguration;
 import com.samjdtechnologies.answer42.model.enums.DiscoverySource;
 import com.samjdtechnologies.answer42.model.enums.RelationshipType;
@@ -46,8 +46,8 @@ public class SemanticScholarApiHelper {
     /**
      * Search papers by title with semantic similarity.
      */
-    public List<DiscoveredPaper> searchByTitle(String title, DiscoveryConfiguration config, int maxResults) {
-        List<DiscoveredPaper> searchResults = new ArrayList<>();
+    public List<DiscoveredPaperResult> searchByTitle(String title, DiscoveryConfiguration config, int maxResults) {
+        List<DiscoveredPaperResult> searchResults = new ArrayList<>();
 
         try {
             rateLimitDelay();
@@ -64,7 +64,7 @@ public class SemanticScholarApiHelper {
 
             if (response.getBody() != null && response.getBody().getData() != null) {
                 for (SemanticScholarPaper paper : response.getBody().getData()) {
-                    DiscoveredPaper discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
+                    DiscoveredPaperResult discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
                     if (discoveredPaper != null) {
                         discoveredPaper.setRelationshipType(RelationshipType.SEMANTIC_SIMILARITY);
                         searchResults.add(discoveredPaper);
@@ -83,8 +83,8 @@ public class SemanticScholarApiHelper {
     /**
      * Get paper recommendations based on paper ID.
      */
-    public List<DiscoveredPaper> getPaperRecommendations(String paperId, DiscoveryConfiguration config, int maxResults) {
-        List<DiscoveredPaper> recommendations = new ArrayList<>();
+    public List<DiscoveredPaperResult> getPaperRecommendations(String paperId, DiscoveryConfiguration config, int maxResults) {
+        List<DiscoveredPaperResult> recommendations = new ArrayList<>();
 
         try {
             rateLimitDelay();
@@ -100,7 +100,7 @@ public class SemanticScholarApiHelper {
 
             if (response.getBody() != null && response.getBody().getRecommendedPapers() != null) {
                 for (SemanticScholarPaper paper : response.getBody().getRecommendedPapers()) {
-                    DiscoveredPaper discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
+                    DiscoveredPaperResult discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
                     if (discoveredPaper != null) {
                         discoveredPaper.setRelationshipType(RelationshipType.SEMANTIC_SIMILARITY);
                         recommendations.add(discoveredPaper);
@@ -119,8 +119,8 @@ public class SemanticScholarApiHelper {
     /**
      * Get citations for a paper (papers that cite this one).
      */
-    public List<DiscoveredPaper> getPaperCitations(String paperId, DiscoveryConfiguration config, int maxResults) {
-        List<DiscoveredPaper> citations = new ArrayList<>();
+    public List<DiscoveredPaperResult> getPaperCitations(String paperId, DiscoveryConfiguration config, int maxResults) {
+        List<DiscoveredPaperResult> citations = new ArrayList<>();
 
         try {
             rateLimitDelay();
@@ -136,7 +136,7 @@ public class SemanticScholarApiHelper {
 
             if (response.getBody() != null && response.getBody().getData() != null) {
                 for (SemanticScholarPaper paper : response.getBody().getData()) {
-                    DiscoveredPaper discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
+                    DiscoveredPaperResult discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
                     if (discoveredPaper != null) {
                         discoveredPaper.setRelationshipType(RelationshipType.CITES);
                         citations.add(discoveredPaper);
@@ -155,8 +155,8 @@ public class SemanticScholarApiHelper {
     /**
      * Get references for a paper (papers this one cites).
      */
-    public List<DiscoveredPaper> getPaperReferences(String paperId, DiscoveryConfiguration config, int maxResults) {
-        List<DiscoveredPaper> references = new ArrayList<>();
+    public List<DiscoveredPaperResult> getPaperReferences(String paperId, DiscoveryConfiguration config, int maxResults) {
+        List<DiscoveredPaperResult> references = new ArrayList<>();
 
         try {
             rateLimitDelay();
@@ -172,7 +172,7 @@ public class SemanticScholarApiHelper {
 
             if (response.getBody() != null && response.getBody().getData() != null) {
                 for (SemanticScholarPaper paper : response.getBody().getData()) {
-                    DiscoveredPaper discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
+                    DiscoveredPaperResult discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
                     if (discoveredPaper != null) {
                         discoveredPaper.setRelationshipType(RelationshipType.CITED_BY);
                         references.add(discoveredPaper);
@@ -191,8 +191,8 @@ public class SemanticScholarApiHelper {
     /**
      * Find papers by author name.
      */
-    public List<DiscoveredPaper> findPapersByAuthor(String authorName, DiscoveryConfiguration config, int maxResults) {
-        List<DiscoveredPaper> papers = new ArrayList<>();
+    public List<DiscoveredPaperResult> findPapersByAuthor(String authorName, DiscoveryConfiguration config, int maxResults) {
+        List<DiscoveredPaperResult> papers = new ArrayList<>();
 
         try {
             rateLimitDelay();
@@ -209,7 +209,7 @@ public class SemanticScholarApiHelper {
 
             if (response.getBody() != null && response.getBody().getData() != null) {
                 for (SemanticScholarPaper paper : response.getBody().getData()) {
-                    DiscoveredPaper discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
+                    DiscoveredPaperResult discoveredPaper = convertToDiscoveredPaper(paper, DiscoverySource.SEMANTIC_SCHOLAR);
                     if (discoveredPaper != null) {
                         discoveredPaper.setRelationshipType(RelationshipType.AUTHOR_NETWORK);
                         papers.add(discoveredPaper);
@@ -228,7 +228,7 @@ public class SemanticScholarApiHelper {
     /**
      * Get paper details by DOI.
      */
-    public DiscoveredPaper getPaperByDoi(String doi, DiscoveryConfiguration config) {
+    public DiscoveredPaperResult getPaperByDoi(String doi, DiscoveryConfiguration config) {
         try {
             rateLimitDelay();
 
@@ -260,7 +260,7 @@ public class SemanticScholarApiHelper {
     /**
      * Convert Semantic Scholar paper to DiscoveredPaper.
      */
-    public DiscoveredPaper convertToDiscoveredPaper(SemanticScholarPaper paper, DiscoverySource source) {
+    public DiscoveredPaperResult convertToDiscoveredPaper(SemanticScholarPaper paper, DiscoverySource source) {
         try {
             if (paper.getTitle() == null || paper.getTitle().trim().isEmpty()) {
                 return null; // Skip papers without titles
@@ -275,7 +275,7 @@ public class SemanticScholarApiHelper {
             Double influenceScore = paper.getInfluentialCitationCount() != null ? 
                 paper.getInfluentialCitationCount().doubleValue() : 0.0;
 
-            return DiscoveredPaper.builder()
+            return DiscoveredPaperResult.builder()
                 .id(paper.getPaperId())
                 .title(paper.getTitle())
                 .authors(authors)
@@ -303,8 +303,8 @@ public class SemanticScholarApiHelper {
     /**
      * Calculate relevance scores based on multiple factors.
      */
-    public void calculateRelevanceScores(List<DiscoveredPaper> papers, Paper sourcePaper) {
-        for (DiscoveredPaper paper : papers) {
+    public void calculateRelevanceScores(List<DiscoveredPaperResult> papers, Paper sourcePaper) {
+        for (DiscoveredPaperResult paper : papers) {
             calculateRelevanceScore(paper, sourcePaper);
         }
     }
@@ -354,11 +354,29 @@ public class SemanticScholarApiHelper {
     private ZonedDateTime extractPublishedDateTime(SemanticScholarPaper paper) {
         try {
             if (paper.getPublicationDate() != null && !paper.getPublicationDate().trim().isEmpty()) {
-                // Parse date in format "YYYY-MM-DD"
-                return ZonedDateTime.parse(paper.getPublicationDate() + "T00:00:00");
+                String dateStr = paper.getPublicationDate().trim();
+                
+                // Handle different date formats from Semantic Scholar
+                if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                    // Format: "YYYY-MM-DD"
+                    return ZonedDateTime.parse(dateStr + "T00:00:00Z");
+                } else if (dateStr.matches("\\d{4}-\\d{2}")) {
+                    // Format: "YYYY-MM"
+                    return ZonedDateTime.parse(dateStr + "-01T00:00:00Z");
+                } else if (dateStr.matches("\\d{4}")) {
+                    // Format: "YYYY"
+                    return ZonedDateTime.parse(dateStr + "-01-01T00:00:00Z");
+                }
+                
+                // If we get here, the format is unexpected - log once at TRACE level
+                LoggingUtil.trace(LOG, "extractPublishedDateTime", 
+                    "Unexpected date format from Semantic Scholar: '%s'", dateStr);
             }
         } catch (Exception e) {
-            LoggingUtil.debug(LOG, "extractPublishedDateTime", "Failed to parse date", e);
+            // Only log parsing failures at TRACE level to reduce noise
+            LoggingUtil.trace(LOG, "extractPublishedDateTime", 
+                "Failed to parse date '%s': %s", 
+                paper.getPublicationDate(), e.getMessage());
         }
         
         return null;
@@ -367,7 +385,7 @@ public class SemanticScholarApiHelper {
     /**
      * Calculate relevance score for a discovered paper.
      */
-    private void calculateRelevanceScore(DiscoveredPaper paper, Paper sourcePaper) {
+    private void calculateRelevanceScore(DiscoveredPaperResult paper, Paper sourcePaper) {
         double relevanceScore = 0.5; // Base score
         
         try {

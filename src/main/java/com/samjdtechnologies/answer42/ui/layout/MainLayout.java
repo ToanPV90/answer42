@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.service.UserService;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.samjdtechnologies.answer42.ui.service.AuthenticationService;

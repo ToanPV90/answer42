@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.samjdtechnologies.answer42.model.daos.SubscriptionPlan;
+import com.samjdtechnologies.answer42.model.db.SubscriptionPlan;
 
 /**
  * Repository for SubscriptionPlan entities.

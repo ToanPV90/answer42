@@ -30,9 +30,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.samjdtechnologies.answer42.model.daos.Paper;
-import com.samjdtechnologies.answer42.model.daos.Project;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.Paper;
+import com.samjdtechnologies.answer42.model.db.Project;
+import com.samjdtechnologies.answer42.model.db.User;
 import com.samjdtechnologies.answer42.model.enums.PipelineStatus;
 import com.samjdtechnologies.answer42.repository.PaperRepository;
 
@@ -45,16 +45,13 @@ public class PaperServiceTest {
     private ObjectMapper mockObjectMapper;
     
     @Mock
-    private JobLauncher mockJobLauncher;
-    
-    @Mock
-    private Job mockPaperProcessingJob;
-    
-    @Mock
     private CreditService mockCreditService;
     
     @Mock
     private FileTransferService mockFileTransferService;
+    
+    @Mock
+    private PipelineJobLauncher mockPipelineJobLauncher;
     
     @Mock
     private MultipartFile mockFile;
@@ -71,10 +68,9 @@ public class PaperServiceTest {
         paperService = new PaperService(
             mockPaperRepository, 
             mockObjectMapper, 
-            mockJobLauncher, 
-            mockPaperProcessingJob, 
             mockCreditService, 
-            mockFileTransferService
+            mockFileTransferService,
+            mockPipelineJobLauncher
         );
         
         testPaperId = UUID.randomUUID();
@@ -97,10 +93,9 @@ public class PaperServiceTest {
         PaperService service = new PaperService(
             mockPaperRepository, 
             mockObjectMapper, 
-            mockJobLauncher, 
-            mockPaperProcessingJob, 
             mockCreditService, 
-            mockFileTransferService
+            mockFileTransferService,
+            mockPipelineJobLauncher
         );
         
         assertNotNull(service);
@@ -162,13 +157,10 @@ public class PaperServiceTest {
         // Setup credit service mock
         when(mockCreditService.hasEnoughCredits(any(UUID.class), anyInt())).thenReturn(true);
         
-        // Setup job launcher mock
-        JobExecution mockJobExecution = mock(JobExecution.class);
-        try {
-            when(mockJobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(mockJobExecution);
-        } catch (Exception e) {
-            // This won't happen in tests, but needed for compilation
-        }
+        // Setup pipeline job launcher mock
+        when(mockPipelineJobLauncher.isPipelineAvailable()).thenReturn(true);
+        when(mockPipelineJobLauncher.getRequiredCredits()).thenReturn(30);
+        when(mockPipelineJobLauncher.launchPipelineProcessing(any(Paper.class), any(User.class))).thenReturn(true);
         
         // Setup repository mock
         when(mockPaperRepository.save(any(Paper.class))).thenAnswer(invocation -> {
@@ -191,11 +183,7 @@ public class PaperServiceTest {
         assertEquals("application/pdf", result.getFileType());
         
         verify(mockCreditService).hasEnoughCredits(testUser.getId(), 30);
-        try {
-            verify(mockJobLauncher).run(eq(mockPaperProcessingJob), any(JobParameters.class));
-        } catch (Exception e) {
-            // This won't happen in tests, but needed for compilation
-        }
+        verify(mockPipelineJobLauncher).launchPipelineProcessing(any(Paper.class), eq(testUser));
         verify(mockPaperRepository, times(2)).save(any(Paper.class)); // Once for initial save, once for status update
     }
 
@@ -220,13 +208,10 @@ public class PaperServiceTest {
         // Setup credit service mock
         when(mockCreditService.hasEnoughCredits(any(UUID.class), anyInt())).thenReturn(true);
         
-        // Setup job launcher mock
-        JobExecution mockJobExecution = mock(JobExecution.class);
-        try {
-            when(mockJobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(mockJobExecution);
-        } catch (Exception e) {
-            // This won't happen in tests, but needed for compilation
-        }
+        // Setup pipeline job launcher mock
+        when(mockPipelineJobLauncher.isPipelineAvailable()).thenReturn(true);
+        when(mockPipelineJobLauncher.getRequiredCredits()).thenReturn(30);
+        when(mockPipelineJobLauncher.launchPipelineProcessing(any(Paper.class), any(User.class))).thenReturn(true);
         
         // Setup repository mock
         when(mockPaperRepository.save(any(Paper.class))).thenAnswer(invocation -> {
@@ -243,11 +228,7 @@ public class PaperServiceTest {
         assertEquals(50 * 1024 * 1024L, result.getFileSize());
         
         verify(mockFileTransferService).transfer(eq(mockFile), any());
-        try {
-            verify(mockJobLauncher).run(eq(mockPaperProcessingJob), any(JobParameters.class));
-        } catch (Exception e) {
-            // This won't happen in tests, but needed for compilation
-        }
+        verify(mockPipelineJobLauncher).launchPipelineProcessing(any(Paper.class), eq(testUser));
     }
 
     @Test
@@ -280,11 +261,7 @@ public class PaperServiceTest {
         
         assertNotNull(result);
         verify(mockCreditService).hasEnoughCredits(testUser.getId(), 30);
-        try {
-            verify(mockJobLauncher, never()).run(any(Job.class), any(JobParameters.class));
-        } catch (Exception e) {
-            // This won't happen in tests, but needed for compilation
-        }
+        verify(mockPipelineJobLauncher, never()).launchPipelineProcessing(any(Paper.class), any(User.class));
     }
 
     @Test

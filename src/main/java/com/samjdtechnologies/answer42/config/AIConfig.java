@@ -9,6 +9,9 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.model.tool.DefaultToolCallingManager;
 import org.springframework.ai.model.tool.ToolCallingManager;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
@@ -17,13 +20,14 @@ import org.springframework.ai.tool.execution.DefaultToolExecutionExceptionProces
 import org.springframework.ai.tool.execution.ToolExecutionExceptionProcessor;
 import org.springframework.ai.tool.resolution.ToolCallbackResolver;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.retry.support.RetryTemplate;
 
-import com.samjdtechnologies.answer42.model.daos.User;
-import com.samjdtechnologies.answer42.model.daos.UserPreferences;
+import com.samjdtechnologies.answer42.model.db.User;
+import com.samjdtechnologies.answer42.model.db.UserPreferences;
 import com.samjdtechnologies.answer42.service.UserPreferencesService;
 import com.samjdtechnologies.answer42.util.LoggingUtil;
 
@@ -74,11 +78,29 @@ public class AIConfig {
     @Value("${spring.ai.openai.chat.completions-path}")
     private String openaiCompletionsPath;
 
+    @Value("${spring.ai.perplexity.chat.completions-path:/chat/completions}")
+    private String perplexityCompletionsPath;
+
     @Value("${spring.ai.openai.chat.options.model}")
     private String openaiModel;
     
     @Value("${spring.ai.token-logging.enabled:true}")
     private boolean tokenLoggingEnabled;
+    
+    @Value("${spring.ai.perplexity.chat.options.model:sonar-pro}")
+    private String perplexityModel;
+    
+    @Value("${spring.ai.ollama.base-url:http://localhost:11434}")
+    private String ollamaBaseUrl;
+    
+    @Value("${spring.ai.ollama.chat.options.model:llama2}")
+    private String ollamaModel;
+    
+    @Value("${spring.ai.ollama.chat.options.max-tokens:4000}")
+    private int ollamaMaxTokens;
+    
+    @Value("${spring.ai.ollama.chat.options.temperature:0.7}")
+    private double ollamaTemperature;
     
     private final UserPreferencesService userPreferencesService;
     
@@ -309,6 +331,8 @@ public class AIConfig {
                 promptCostPer1K = 0.0005;     // $0.5/1M tokens
                 completionCostPer1K = 0.0015; // $1.5/1M tokens
                 break;
+            case "sonar":
+            case "sonar-pro":
             case "llama-3.1-sonar-small-128k-online":
                 promptCostPer1K = 0.0002;     // Perplexity pricing
                 completionCostPer1K = 0.0002;
@@ -345,7 +369,8 @@ public class AIConfig {
             .observationHandler(new ObservationHandler<Observation.Context>() {
                 @Override
                 public boolean supportsContext(Observation.Context context) {
-                    return context.getName().contains("spring.ai");
+                    String name = context.getName();
+                    return name != null && name.contains("spring.ai");
                 }
                 
                 @Override
@@ -398,6 +423,7 @@ public class AIConfig {
      * 
      * @return An AnthropicApi client for making requests to Anthropic's services
      */
+    @SuppressWarnings("deprecation")
     @Bean
     public AnthropicApi anthropicApi() {
         return new AnthropicApi(getAnthropicKey());
@@ -499,6 +525,7 @@ public class AIConfig {
         return OpenAiApi.builder()
             .apiKey(apiKey)
             .baseUrl(perplexityBaseUrl)
+            .completionsPath(perplexityCompletionsPath)
             .build();
     }
     
@@ -511,7 +538,7 @@ public class AIConfig {
     @Bean
     public OpenAiChatModel perplexityChatModel(OpenAiApi perplexityApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
-                .model("llama-3.1-sonar-small-128k-online")  // Use Perplexity's model
+                .model(perplexityModel)  // Use configured Perplexity model
                 .maxTokens(perplexityMaxTokens)
                 .temperature(perplexityTemperature)
                 .build();
@@ -566,5 +593,23 @@ public class AIConfig {
     @Bean
     public ChatClient openAiChatClient(OpenAiChatModel openAiChatModel) {
         return ChatClient.builder(openAiChatModel).build();
+    }
+    
+    // Removed manual Ollama configuration - using Spring Boot auto-configuration instead
+    // This allows all timeout properties from application.properties to be properly applied
+    // The auto-configured beans are available when spring.ai.ollama.enabled=true
+    
+    /**
+     * Creates a chat client using the auto-configured Ollama chat model for local fallback.
+     * This bean is conditionally created only when Ollama is enabled and depends on 
+     * Spring Boot's auto-configuration which properly applies all timeout settings.
+     * 
+     * @param ollamaChatModel The auto-configured Ollama chat model with proper timeouts
+     * @return A ChatClient that uses the Ollama model for local conversations
+     */
+    @Bean
+    @ConditionalOnProperty(name = "spring.ai.ollama.enabled", havingValue = "true", matchIfMissing = false)
+    public ChatClient ollamaChatClient(OllamaChatModel ollamaChatModel) {
+        return ChatClient.builder(ollamaChatModel).build();
     }
 }

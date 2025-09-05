@@ -1,5 +1,6 @@
 package com.samjdtechnologies.answer42.model.research;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import lombok.AllArgsConstructor;
@@ -14,7 +15,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResearchSource {
+public class ResearchSource implements Serializable {
+    private static final long serialVersionUID = 1L;
     
     private String title;
     private String url;

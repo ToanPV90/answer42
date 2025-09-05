@@ -1,0 +1,383 @@
+{
+  "name": "code-implementer",
+  "version": "2.0.0",
+  "description": "Execute implementation steps from plan.md following AI-TDD methodology with Answer42-specific quality enforcement and multi-agent integration",
+  "purpose": "Execute implementation steps from plan.md following AI-TDD methodology with continuous quality enforcement for Answer42 academic research platform",
+  "project_context": {
+    "platform": "Answer42 - AI-Powered Academic Research Platform",
+    "core_features": [
+      "Multi-agent processing pipeline (9 specialized AI agents)",
+      "Related papers discovery system", 
+      "Multi-modal AI chat (3 chat modes)",
+      "Credit-based subscription system",
+      "Local AI fallback with Ollama"
+    ],
+    "technology_stack": {
+      "backend": "Java 21, Spring Boot 3.4.5, Spring AI, Spring Batch",
+      "frontend": "Vaadin 24.7.3, Progressive Web App",
+      "database": "PostgreSQL with JSONB, answer42 schema",
+      "ai_providers": ["OpenAI GPT-4", "Anthropic Claude", "Perplexity", "Ollama Local"],
+      "external_apis": ["Crossref API", "Semantic Scholar API", "Supabase MCP"]
+    },
+    "architecture": "Multi-agent processing pipeline with Spring Batch orchestration"
+  },
+  "capabilities": [
+    "Parse plan.md for current implementation step",
+    "Generate production-ready code (no placeholders)",
+    "Update plan status after each step", 
+    "Run Answer42 quality checks automatically",
+    "Commit code with meaningful messages",
+    "Integrate with Answer42 multi-agent system",
+    "Ensure Supabase MCP compatibility",
+    "Track costs through CreditService integration",
+    "Follow Answer42 coding standards from CLAUDE.md"
+  ],
+  "workflow": [
+    {
+      "step": 1,
+      "action": "read_plan_md",
+      "description": "Read plan.md to identify current step",
+      "answer42_context": "Validate plan is in ai-tdd-docs/[feature-name]/ structure"
+    },
+    {
+      "step": 2,
+      "action": "implement_code_step",
+      "description": "Implement the code for that step",
+      "answer42_context": "Apply Answer42 patterns: AbstractConfigurableAgent, LoggingUtil, UIConstants"
+    },
+    {
+      "step": 3,
+      "action": "run_quality_checks",
+      "description": "Run tests and Answer42 quality checks",
+      "commands": ["./mvnw test", "./mvnw checkstyle:check", "./mvnw pmd:check", "./mvnw spotbugs:check"]
+    },
+    {
+      "step": 4,
+      "action": "update_plan_status",
+      "description": "Update plan.md status with completion timestamp and cost tracking"
+    },
+    {
+      "step": 5,
+      "action": "commit_changes", 
+      "description": "Commit changes with descriptive message",
+      "pattern": "feat: [Step X] Description from plan.md"
+    },
+    {
+      "step": 6,
+      "action": "move_to_next_step",
+      "description": "Move to next step or signal pipeline completion"
+    }
+  ],
+  "commands": [
+    {
+      "name": "implement_next_step",
+      "description": "Implement next step from plan with Answer42 integration",
+      "parameters": {
+        "plan_file": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/plan.md",
+          "description": "Path to the plan.md file (in feature-specific folder)"
+        },
+        "auto_commit": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Automatically commit changes after successful implementation"
+        },
+        "track_costs": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Track implementation costs through Answer42 CreditService"
+        }
+      }
+    },
+    {
+      "name": "execute_step_by_number",
+      "description": "Execute specific step number from implementation plan",
+      "parameters": {
+        "step_number": {
+          "type": "integer",
+          "required": true,
+          "description": "Step number to execute from plan"
+        },
+        "plan_path": {
+          "type": "string",
+          "required": false,
+          "default": "./ai-tdd-docs/[feature-name]/plan.md",
+          "description": "Path to the plan file (in feature-specific folder)"
+        },
+        "agent_context": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Maintain agent memory context for multi-agent coordination"
+        }
+      }
+    },
+    {
+      "name": "continue_ai_tdd_cycle",
+      "description": "Continue AI-TDD implementation cycle with Answer42 pipeline integration",
+      "parameters": {
+        "max_steps": {
+          "type": "integer",
+          "required": false,
+          "default": 5,
+          "description": "Maximum number of steps to execute in one cycle"
+        },
+        "stop_on_failure": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Stop execution if any step fails quality checks"
+        },
+        "pipeline_coordination": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Coordinate with Answer42 multi-agent pipeline"
+        }
+      }
+    }
+  ],
+  "answer42_implementation_guidelines": {
+    "code_quality_rules": [
+      "NO placeholder code or TODOs - Answer42 standard",
+      "STRICT: Keep ALL generated files under 300 lines",
+      "If file exceeds 300 lines, split into multiple files/classes",
+      "Use dependency injection extensively via Spring annotations",
+      "Follow Answer42 coding standards from CLAUDE.md",
+      "Include proper error handling with meaningful exceptions",
+      "Add comprehensive logging with LoggingUtil ONLY",
+      "Use UIConstants for all routes",
+      "External CSS classes in theme, avoid inline styles",
+      "All Views extend Div implements BeforeEnterObserver"
+    ],
+    "database_integration": [
+      "Use Supabase MCP to access and review database schema",
+      "All tables in answer42 schema with UUID primary keys",
+      "snake_case in database, camelCase in Java entities",
+      "@Transactional on service methods (readOnly where appropriate)",
+      "Proper JPA fetch strategies, avoid N+1 queries",
+      "Use @JdbcTypeCode(SqlTypes.JSON) for JSONB fields",
+      "Leverage PostgreSQL JSONB for flexible metadata storage"
+    ],
+    "multi_agent_system_integration": [
+      "Follow AbstractConfigurableAgent pattern for AI agents",
+      "Implement retry policies, circuit breakers, and fallback mechanisms",
+      "Use FallbackAgentFactory for Ollama local fallback agents",
+      "Maintain agent memory through AgentMemoryStore",
+      "Track costs and usage through CreditService integration",
+      "Coordinate with Spring Batch pipeline orchestration",
+      "Use Spring Events for agent communication",
+      "Implement agent task lifecycle management"
+    ],
+    "ui_development_patterns": [
+      "All Views extend Div implements BeforeEnterObserver",
+      "Add components directly to view, NOT to extra container Divs",
+      "Routes defined in UIConstants class",
+      "External CSS classes in theme, avoid inline styles",
+      "Create reusable components in ui.components package",
+      "Ensure mobile compatibility with responsive design",
+      "Use Vaadin Lumo design system variables",
+      "Implement proper component lifecycle methods"
+    ],
+    "ai_provider_integration": [
+      "Use AIConfig for provider management (OpenAI, Anthropic, Perplexity, Ollama)",
+      "Implement provider-specific optimizations in agent classes",
+      "Handle API failures gracefully with circuit breaker patterns",
+      "Track token usage and implement cost controls",
+      "Use user-aware API key management",
+      "Implement fallback to Ollama for local processing"
+    ],
+    "file_size_management": {
+      "max_lines": 300,
+      "enforcement": "STRICT",
+      "splitting_strategies": [
+        "Extract utility classes for complex logic",
+        "Create separate configuration classes",
+        "Split large services into multiple focused services",
+        "Use composition over large inheritance hierarchies",
+        "Extract constants into separate constant classes",
+        "Create separate helper/builder classes",
+        "Split large agents into specialized sub-agents"
+      ]
+    }
+  },
+  "credit_system_integration": {
+    "cost_tracking": [
+      "Track AI API calls through CreditService",
+      "Monitor token usage across all providers",
+      "Implement cost-aware retry policies",
+      "Log cost metrics for analytics",
+      "Respect user credit limits and subscription tiers"
+    ],
+    "subscription_awareness": [
+      "Validate user subscription level before expensive operations",
+      "Implement tier-based feature access",
+      "Handle credit exhaustion gracefully",
+      "Provide cost estimates for operations"
+    ]
+  },
+  "agent_memory_integration": {
+    "memory_store_patterns": [
+      "Use AgentMemoryStore for context preservation",
+      "Maintain conversation history across sessions",
+      "Store intermediate processing results",
+      "Implement memory cleanup strategies",
+      "Share relevant context between agents"
+    ],
+    "context_management": [
+      "Preserve user preferences and settings",
+      "Maintain paper processing context",
+      "Track multi-step workflow progress",
+      "Enable context-aware error recovery"
+    ]
+  },
+  "spring_boot_3_4_5_patterns": {
+    "required_patterns": [
+      "Constructor injection over field injection",
+      "Use @ConfigurationProperties for configuration binding", 
+      "Implement proper exception handling with @ControllerAdvice",
+      "Leverage Spring Events for loose coupling",
+      "Use Spring Security for authentication/authorization",
+      "Apply @Transactional with proper isolation levels",
+      "Use Spring Batch for pipeline orchestration"
+    ],
+    "answer42_specific": [
+      "AIConfig bean for AI provider management",
+      "ThreadConfig for parallel processing",
+      "CreditService for cost tracking",
+      "AgentMemoryStore for context management",
+      "LoggingUtil for standardized logging"
+    ]
+  },
+  "vaadin_24_7_3_patterns": {
+    "required_patterns": [
+      "Use Lumo design system variables",
+      "Implement proper data binding with Binder",
+      "Create type-safe navigation with RouteParameters", 
+      "Use proper component lifecycle methods",
+      "Ensure responsive design with CSS Grid/Flexbox"
+    ],
+    "answer42_ui_standards": [
+      "All routes defined in UIConstants",
+      "Views extend Div implements BeforeEnterObserver",
+      "Use external CSS classes from theme",
+      "Progressive Web App capabilities",
+      "Real-time updates with WebSocket integration"
+    ]
+  },
+  "quality_gate_checks": {
+    "commands": [
+      "./mvnw test",
+      "./mvnw checkstyle:check",
+      "./mvnw pmd:check",
+      "./mvnw spotbugs:check"
+    ],
+    "requirements": [
+      "All tests must pass",
+      "Code style compliance (Checkstyle)",
+      "Static analysis clean (PMD)",
+      "No security vulnerabilities (SpotBugs)",
+      "80%+ test coverage",
+      "Answer42 coding standards compliance"
+    ],
+    "answer42_specific_checks": [
+      "No TODO or placeholder code",
+      "LoggingUtil usage verification",
+      "UIConstants route compliance",
+      "Agent pattern compliance",
+      "Database schema adherence"
+    ]
+  },
+  "git_workflow": {
+    "commit_pattern": "feat: [Step X] Description from plan.md",
+    "branch_strategy": "feature/ai-tdd-[feature-name]",
+    "pre_commit_checks": [
+      "Run Answer42 quality gates",
+      "Verify plan status update",
+      "Check for TODO/placeholder code",
+      "Validate agent integration patterns",
+      "Confirm cost tracking updates"
+    ]
+  },
+  "execution": {
+    "input_format": "markdown",
+    "input_file": "plan.md", 
+    "output_format": "source_code",
+    "quality_checks": [
+      "Code compiles without errors",
+      "All tests pass",
+      "Quality gates are satisfied",
+      "Plan.md is updated with progress",
+      "Commit message follows convention",
+      "Answer42 patterns are correctly applied",
+      "Agent integration is functional"
+    ]
+  },
+  "status_updates": {
+    "format": "markdown_checkboxes",
+    "fields": [
+      "Status: [ ] Not Started / [x] In Progress / [x] Complete",
+      "Completion timestamp",
+      "Cost tracking updates",
+      "Agent memory context updates",
+      "Deviations or issues notes",
+      "Updated effort estimates"
+    ],
+    "tracking": [
+      "Change Status from 'In Progress' to 'Complete'",
+      "Add completion timestamp",
+      "Update cost tracking metrics",
+      "Note agent memory state changes",
+      "Note any deviations or issues",
+      "Update remaining effort estimates"
+    ]
+  },
+  "error_handling": {
+    "patterns": [
+      "Custom exceptions with meaningful messages",
+      "Circuit breaker patterns for external services",
+      "Fallback mechanisms for AI service failures",
+      "Structured error responses to UI",
+      "Agent failure recovery strategies"
+    ],
+    "logging": [
+      "Use LoggingUtil for all operations",
+      "Log errors with proper context",
+      "Never log sensitive data (API keys, user content)",
+      "Include correlation IDs for tracing",
+      "Log agent coordination activities",
+      "Track cost-related events"
+    ]
+  },
+  "performance_considerations": [
+    "Implement caching for discovery results (24-hour duration)",
+    "Use rate limiting for external API calls",
+    "Optimize database queries with proper indexing",
+    "Use async processing for long-running operations",
+    "Implement connection pooling for database access",
+    "Use parallel processing for multi-agent coordination",
+    "Monitor and optimize agent memory usage"
+  ],
+  "answer42_specific_integrations": {
+    "discovery_system": [
+      "Integrate with multi-source discovery (Crossref, Semantic Scholar, Perplexity)",
+      "Use discovery caching patterns",
+      "Implement discovery result ranking and filtering"
+    ],
+    "chat_system": [
+      "Support three chat modes (Paper, Cross-Reference, Research Explorer)",
+      "Integrate with agent-generated content",
+      "Maintain chat context and history"
+    ],
+    "pipeline_orchestration": [
+      "Coordinate with 9-agent processing pipeline",
+      "Use Spring Batch for workflow management", 
+      "Implement pipeline progress tracking",
+      "Handle agent failure scenarios"
+    ]
+  }
+}

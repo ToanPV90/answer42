@@ -3,7 +3,7 @@ package com.samjdtechnologies.answer42.ui.components;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import com.samjdtechnologies.answer42.model.daos.Paper;
+import com.samjdtechnologies.answer42.model.db.Paper;
 import com.samjdtechnologies.answer42.ui.constants.UIConstants;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;

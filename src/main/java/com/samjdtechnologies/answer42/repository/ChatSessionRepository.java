@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.samjdtechnologies.answer42.model.daos.ChatSession;
-import com.samjdtechnologies.answer42.model.daos.User;
+import com.samjdtechnologies.answer42.model.db.ChatSession;
+import com.samjdtechnologies.answer42.model.db.User;
 
 /**
  * Repository interface for ChatSession entities.
@@ -26,12 +26,12 @@ public interface ChatSessionRepository extends JpaRepository<ChatSession, UUID> 
     List<ChatSession> findByUser(User user);
     
     /**
-     * Find all chat sessions for a specific user, ordered by last message time (newest first).
+     * Find all chat sessions for a specific user, ordered by last updated time (newest first).
      * 
      * @param user The user whose sessions to find
-     * @return List of chat sessions owned by the user, ordered by last message time
+     * @return List of chat sessions owned by the user, ordered by last updated time
      */
-    @Query("SELECT cs FROM ChatSession cs WHERE cs.user = :user ORDER BY cs.lastMessageAt DESC NULLS LAST")
+    @Query("SELECT cs FROM ChatSession cs WHERE cs.user = :user ORDER BY cs.updatedAt DESC NULLS LAST")
     List<ChatSession> findByUserOrderByLastMessageAtDesc(@Param("user") User user);
     
     /**

@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.samjdtechnologies.answer42.model.daos.Subscription;
-import com.samjdtechnologies.answer42.model.daos.SubscriptionPlan;
+import com.samjdtechnologies.answer42.model.db.Subscription;
+import com.samjdtechnologies.answer42.model.db.SubscriptionPlan;
 import com.samjdtechnologies.answer42.repository.SubscriptionPlanRepository;
 import com.samjdtechnologies.answer42.repository.SubscriptionRepository;
 import com.samjdtechnologies.answer42.util.LoggingUtil;

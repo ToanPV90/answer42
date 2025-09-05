@@ -22,7 +22,7 @@ public class ResearchResponseParser {
     private static final Logger LOG = LoggerFactory.getLogger(ResearchResponseParser.class);
 
     private static final Pattern CITATION_PATTERN = Pattern.compile("\\[([0-9]+)\\]");
-    private static final Pattern URL_PATTERN = Pattern.compile("https?://[\\w\\-._~:/?#[\\]@!$&'()*+,;=%]+");
+    private static final Pattern URL_PATTERN = Pattern.compile("https?://[\\w\\-._~:/?#\\[\\]@!$&'()*+,;=%]+");
     private static final Pattern FACT_PATTERN = Pattern.compile("(?i)according to|research shows|studies indicate|data suggests");
     
     // Enhanced patterns for paper extraction

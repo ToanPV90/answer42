@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.samjdtechnologies.answer42.config.AIConfig;
 import com.samjdtechnologies.answer42.config.ThreadConfig;
 import com.samjdtechnologies.answer42.model.agent.AgentResult;
-import com.samjdtechnologies.answer42.model.daos.AgentTask;
+import com.samjdtechnologies.answer42.model.db.AgentTask;
 import com.samjdtechnologies.answer42.model.enums.AIProvider;
 import com.samjdtechnologies.answer42.model.enums.AgentType;
 import com.samjdtechnologies.answer42.service.agent.MetadataEnhancementAgent.EnhancementResult;
@@ -60,6 +60,9 @@ public class MetadataEnhancementAgentTest {
     
     @Mock
     private ChatClient.CallResponseSpec mockCallResponseSpec;
+    
+    @Mock
+    private com.samjdtechnologies.answer42.repository.MetadataVerificationRepository mockMetadataVerificationRepository;
 
     private MetadataEnhancementAgent agent;
 
@@ -73,7 +76,7 @@ public class MetadataEnhancementAgentTest {
         when(mockAiConfig.openAiChatClient(mockOpenAiChatModel)).thenReturn(mockChatClient);
         
         agent = new MetadataEnhancementAgent(mockAiConfig, mockThreadConfig, 
-            mockRetryPolicy, mockRateLimiter);
+            mockRetryPolicy, mockRateLimiter, mockMetadataVerificationRepository);
     }
 
     @Test
@@ -192,6 +195,15 @@ public class MetadataEnhancementAgentTest {
         when(mockRequestSpec.call()).thenReturn(mockCallResponseSpec);
         when(mockCallResponseSpec.content()).thenReturn(mockAiResponse);
 
+        // Mock repository saveAll to return the saved verifications
+        List<com.samjdtechnologies.answer42.model.db.MetadataVerification> savedVerifications = List.of(
+            createMockVerification("crossref", 0.95),
+            createMockVerification("semantic_scholar", 0.85),
+            createMockVerification("doi_resolution", 0.98),
+            createMockVerification("author_disambiguation", 0.80)
+        );
+        when(mockMetadataVerificationRepository.saveAll(any())).thenReturn(savedVerifications);
+
         AgentResult result = agent.processWithConfig(task);
 
         assertNotNull(result);
@@ -213,6 +225,17 @@ public class MetadataEnhancementAgentTest {
         Double confidence = (Double) resultData.get("confidence");
         assertNotNull(confidence);
         assertTrue(confidence >= 0.0 && confidence <= 1.0);
+        
+        // ✅ CRITICAL: Verify database population
+        verify(mockMetadataVerificationRepository, times(1)).saveAll(any());
+        
+        // Verify verification tracking in result data
+        assertEquals(4, resultData.get("verificationsStored"));
+        assertTrue(resultData.containsKey("verificationIds"));
+        
+        @SuppressWarnings("unchecked")
+        List<java.util.UUID> verificationIds = (List<java.util.UUID>) resultData.get("verificationIds");
+        assertEquals(4, verificationIds.size());
     }
 
     @Test
@@ -515,6 +538,13 @@ public class MetadataEnhancementAgentTest {
         when(mockRequestSpec.call()).thenReturn(mockCallResponseSpec);
         when(mockCallResponseSpec.content()).thenReturn(mockAiResponse);
 
+        // Mock repository saveAll
+        List<com.samjdtechnologies.answer42.model.db.MetadataVerification> savedVerifications = List.of(
+            createMockVerification("crossref", 0.75),
+            createMockVerification("semantic_scholar", 0.70)
+        );
+        when(mockMetadataVerificationRepository.saveAll(any())).thenReturn(savedVerifications);
+
         AgentResult result = agent.processWithConfig(task);
 
         assertNotNull(result);
@@ -528,5 +558,135 @@ public class MetadataEnhancementAgentTest {
         List<String> conflicts = (List<String>) resultData.get("conflicts");
         assertNotNull(conflicts);
         assertTrue(conflicts.size() > 0);
+        
+        // ✅ CRITICAL: Verify database population even with conflicts
+        verify(mockMetadataVerificationRepository, times(1)).saveAll(any());
+        assertEquals(2, resultData.get("verificationsStored"));
+    }
+    
+    @Test
+    void testProcessWithConfig_DatabaseSaveFailure() {
+        AgentTask task = new AgentTask();
+        task.setId("test-task-db-failure");
+        ObjectNode input = JsonNodeFactory.instance.objectNode();
+        input.put("paperId", "paper-db-failure");
+        input.put("title", "Test Paper DB Failure");
+        task.setInput(input);
+
+        // Mock successful AI response
+        String mockAiResponse = """
+            {
+                "title": "Test Paper DB Failure",
+                "confidence": {"overall": 0.80}
+            }
+            """;
+
+        when(mockChatClient.prompt(any(Prompt.class))).thenReturn(mockRequestSpec);
+        when(mockRequestSpec.call()).thenReturn(mockCallResponseSpec);
+        when(mockCallResponseSpec.content()).thenReturn(mockAiResponse);
+
+        // Mock repository saveAll to throw exception
+        when(mockMetadataVerificationRepository.saveAll(any()))
+            .thenThrow(new RuntimeException("Database connection failed"));
+
+        AgentResult result = agent.processWithConfig(task);
+
+        assertNotNull(result);
+        assertFalse(result.isSuccess());
+        assertEquals("test-task-db-failure", result.getTaskId());
+        assertTrue(result.getErrorMessage().contains("Metadata enhancement failed"));
+        
+        // Verify the save operation was attempted
+        verify(mockMetadataVerificationRepository, times(1)).saveAll(any());
+    }
+    
+    @Test
+    void testProcessWithConfig_VerifiesRepositoryInteraction() {
+        AgentTask task = new AgentTask();
+        task.setId("test-task-repo-interaction");
+        ObjectNode input = JsonNodeFactory.instance.objectNode();
+        input.put("paperId", "paper-repo-test");
+        input.put("title", "Repository Interaction Test");
+        task.setInput(input);
+
+        // Mock minimal AI response
+        String mockAiResponse = """
+            {
+                "title": "Repository Interaction Test",
+                "confidence": {"overall": 0.75}
+            }
+            """;
+
+        when(mockChatClient.prompt(any(Prompt.class))).thenReturn(mockRequestSpec);
+        when(mockRequestSpec.call()).thenReturn(mockCallResponseSpec);
+        when(mockCallResponseSpec.content()).thenReturn(mockAiResponse);
+
+        // Create specific mock verifications with proper IDs
+        java.util.UUID id1 = java.util.UUID.randomUUID();
+        java.util.UUID id2 = java.util.UUID.randomUUID();
+        java.util.UUID id3 = java.util.UUID.randomUUID();
+        java.util.UUID id4 = java.util.UUID.randomUUID();
+        
+        List<com.samjdtechnologies.answer42.model.db.MetadataVerification> savedVerifications = List.of(
+            createMockVerificationWithId(id1, "crossref", 0.75),
+            createMockVerificationWithId(id2, "semantic_scholar", 0.70),
+            createMockVerificationWithId(id3, "doi_resolution", 0.80),
+            createMockVerificationWithId(id4, "author_disambiguation", 0.65)
+        );
+        when(mockMetadataVerificationRepository.saveAll(any())).thenReturn(savedVerifications);
+
+        AgentResult result = agent.processWithConfig(task);
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        assertEquals("test-task-repo-interaction", result.getTaskId());
+        
+        // Detailed verification of repository interaction
+        verify(mockMetadataVerificationRepository, times(1)).saveAll(argThat(list -> {
+            @SuppressWarnings("unchecked")
+            List<com.samjdtechnologies.answer42.model.db.MetadataVerification> verifications = 
+                (List<com.samjdtechnologies.answer42.model.db.MetadataVerification>) list;
+            
+            // Should have 4 verification sources (crossref, semantic_scholar, doi_resolution, author_disambiguation)
+            assertEquals(4, verifications.size());
+            
+            // Verify paper ID is set correctly for all verifications
+            assertTrue(verifications.stream().allMatch(v -> 
+                v.getPaperId().equals(java.util.UUID.fromString("paper-repo-test"))));
+            
+            return true;
+        }));
+        
+        Map<String, Object> resultData = (Map<String, Object>) result.getResultData();
+        assertEquals(4, resultData.get("verificationsStored"));
+        
+        @SuppressWarnings("unchecked")
+        List<java.util.UUID> verificationIds = (List<java.util.UUID>) resultData.get("verificationIds");
+        assertEquals(4, verificationIds.size());
+        assertTrue(verificationIds.contains(id1));
+        assertTrue(verificationIds.contains(id2));
+        assertTrue(verificationIds.contains(id3));
+        assertTrue(verificationIds.contains(id4));
+    }
+    
+    /**
+     * Helper method to create mock MetadataVerification for tests.
+     */
+    private com.samjdtechnologies.answer42.model.db.MetadataVerification createMockVerification(String source, double confidence) {
+        return createMockVerificationWithId(java.util.UUID.randomUUID(), source, confidence);
+    }
+    
+    /**
+     * Helper method to create mock MetadataVerification with specific ID for tests.
+     */
+    private com.samjdtechnologies.answer42.model.db.MetadataVerification createMockVerificationWithId(
+            java.util.UUID id, String source, double confidence) {
+        com.samjdtechnologies.answer42.model.db.MetadataVerification verification = 
+            mock(com.samjdtechnologies.answer42.model.db.MetadataVerification.class);
+        when(verification.getId()).thenReturn(id);
+        when(verification.getSource()).thenReturn(source);
+        when(verification.getConfidence()).thenReturn(confidence);
+        when(verification.getPaperId()).thenReturn(java.util.UUID.fromString("paper-repo-test"));
+        return verification;
     }
 }

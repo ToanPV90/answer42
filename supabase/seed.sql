@@ -1,0 +1,1 @@
+-- Minimal seed file for initial setup
